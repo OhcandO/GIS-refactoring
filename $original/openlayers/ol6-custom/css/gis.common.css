@@ -1,0 +1,74 @@
+@charset 'utf-8';
+
+.custom-toolbar {position: absolute; top: 0px; right: 0px; }
+.mapbtn {position: absolute; top: 20px; right: 20px; }
+.mapbtn  h3 {overflow: hidden;font-size:0;line-height: 0;text-indent: -9999px;}
+.mapbtn>a {overflow:hidden;width: 40px;height: 38px;background: url(../images/toolbar/ico_gis_sprite.png) #fff no-repeat; border: 1px solid #9aa7b8; border-radius: 3px;box-shadow: 0px 0px 5px #999;}
+.mapbtn>a>span {display: none;overflow: hidden;text-indent: -9999px;}
+.mapbtn .viewer {background-position: 0 -120px;}
+.mapbtn > a.danmyun {background: url(../images/toolbar/ico_gis_sprite.png) #fff 0 -400px;}
+.mapbtn>a:hover {margin:-1px;border: 2px solid #1357ce}
+.mapbtn .choice_map {display: none;position: absolute;top: 0;right: 30px;width: 210px;}
+.mapbtn:hover ul.choice_map { display:block;}
+.mapbtn ul.choice_map {font-size: 0}
+.mapbtn ul.choice_map li {float: left;margin-right:5px;background:#fff; width:60px;text-align:center;border:2px solid transparent; border-radius: 3px;box-shadow: 0px 0px 5px #999;overflow:hidden}
+.mapbtn ul.choice_map li:last-child {margin-right:0}
+.mapbtn ul.choice_map>li:hover {border: 2px solid #1357ce;}
+.mapbtn ul.choice_map>li.on {border: 2px solid #1357ce;}
+.mapbtn ul.choice_map li span {font-size: 12px;color: #999;text-align: center;}
+.mapbtn ul.choice_map li.on span {font-size: 12px;color: #333;text-align: center;}
+
+.tool_bar {position: absolute; top: 140px; right: 20px; }
+.tool_bar h3 {overflow: hidden;font-size:0;line-height: 0;text-indent: -9999px;}
+.tool_bar .status {margin-bottom:10px;overflow:hidden;width:40px; height:40px; background: #fff;border: 1px solid #9aa7b8; border-radius: 3px;box-shadow: 0px 0px 5px #999; box-sizing:border-box }
+.tool_bar .status a {display:block; width:40px; height:40px; background:url(../../images/om/ico_gis_sprite.png) no-repeat; background-position: 0 -160px;text-indent: -9999px} 
+.tool_bar .status a:hover {background-position: -40px -160px;}
+.tool_bar .status a.on {background:url(../../images/om/ico_gis_sprite.png) no-repeat; background-position: 0 -200px;} 
+.tool_bar .status a.on:hover {background-position: -40px -200px;}
+.tool_bar ul {display: inline-block; overflow: hidden; width:40px; background: #fff; border: 1px solid #9aa7b8; border-radius: 3px;box-shadow: 0px 0px 5px #999; font-size: 0;box-sizing: border-box}
+.tool_bar ul li {height:40px; border-bottom: 1px solid #eeeeee;box-sizing:border-box}
+.tool_bar ul li:last-child {border-bottom: 0 none}
+.tool_bar ul li a {width: 40px;height: 40px; display:inline-block;}
+.tool_bar ul li a span {display: none;overflow: hidden;text-indent: -9999px;}
+
+.ol-scale-line {
+    background: rgba(0,60,136,.3);
+    border-radius: 4px;
+    bottom: 30px;
+    left: 350px;
+    padding: 2px;
+    position: absolute;
+}
+
+/* 로드뷰 관련 */
+#roadview-container {width: 100%; height: 100%; z-index:500; display:block;position: unset;left: 50%;top: 0px;}
+#roadview-container .roadview-container-1p {width:50%; height:100%; float:left; position:relative;}
+#roadview-container .roadview-container-2p {width:50%; height:100%; float:left; position:relative;}
+#roadview-container .roadview {position:absolute; top:0; right:0; left:0; bottom:0; z-index:0; background:#999;}
+
+/* Map Contents: Map Control Bar */
+.map_control {position:absolute; right:20px; top:200px; display:block;} 
+.control_icons {background:rgba(255,255,255,0.9); border-radius:4px; box-shadow:0 0 10px rgba(0,0,0,0.2); padding:10px; display:block;}
+.control_icons li a {display:block; width:40px; height:40px; font-size:0;}
+.control_icons li a:hover {border-radius:100%; box-shadow:0 3px 5px rgba(0,0,0,0.1);}
+.btn_control_zoomin {background:url(../images/toolbar/btn_cont_zoomin.png) no-repeat center;}
+.btn_control_zoomin:hover{background:url(../images/toolbar/btn_cont_zoomin_on.png) no-repeat center #67aee3;}
+.btn_control_zoomout {background:url(../images/toolbar/btn_cont_zoomout.png) no-repeat center !important;}
+.btn_control_zoomout:hover {background:url(../images/toolbar/btn_cont_zoomout_on.png) no-repeat center #67aee3;}
+.btn_control_prev {background:url(../images/toolbar/btn_cont_prev.png) no-repeat center;}
+.btn_control_prev:hover {background:url(../images/toolbar/btn_cont_prev_on.png) no-repeat center #67aee3;}
+.btn_control_next {background:url(../images/toolbar/btn_cont_next.png) no-repeat center;}
+.btn_control_next:hover {background:url(../images/toolbar/btn_cont_next_on.png) no-repeat center #67aee3;}
+.btn_control_ruler {background:url(../images/toolbar/btn_cont_ruler.png) no-repeat center center;}
+.btn_control_ruler:hover {background:url(../images/toolbar/btn_cont_ruler_on.png) no-repeat center #67aee3;}
+.btn_control_ruler.active{background:url(../images/toolbar/btn_cont_ruler_on.png) no-repeat center #67aee3;}
+.btn_control_area {background:url(../images/toolbar/btn_cont_area.png) no-repeat center;}
+.btn_control_area:hover {background:url(../images/toolbar/btn_cont_area_on.png) no-repeat center #67aee3;}
+.btn_control_area.active {background:url(../images/toolbar/btn_cont_area_on.png) no-repeat center #67aee3;}
+.btn_control_save {background:url(../images/toolbar/btn_cont_save.png) no-repeat center;}
+.btn_control_save:hover {background:url(../images/toolbar/btn_cont_save_on.png) no-repeat center #67aee3;}
+.btn_control_sketch {background:url(../images/toolbar/btn_cont_sketch.png) no-repeat center;}
+.btn_control_sketch:hover {background:url(../images/toolbar/btn_cont_sketch_on.png) no-repeat center #67aee3;}
+.btn_control_print {background:url(../images/toolbar/btn_cont_print.png) no-repeat center;}
+.btn_control_print:hover {background:url(../images/toolbar/btn_cont_print_on.png) no-repeat center #67aee3;}
+

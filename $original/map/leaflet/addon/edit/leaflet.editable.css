@@ -1,0 +1,49 @@
+/* div icon (Edit Object vertext) */
+.leaflet-div-icon-edit {
+    background: #fff;
+    border: 1px solid #666;
+	}
+
+/* div icon (Edit Point (red)) */
+.leaflet-div-icon-edit-icon-red {
+	background:red;
+	border:7px solid rgba(255,255,255,0.7);
+	color:red;
+	font-weight:bold;
+	text-align:center;
+	border-radius:50%;
+	line-height:30px;
+	}
+
+/* div icon (Edit Point (blue)) */
+.leaflet-div-icon-edit-icon-blue {
+	background:blue;
+	border:7px solid rgba(255,255,255,0.7);
+	color:blue;
+	font-weight:bold;
+	text-align:center;
+	border-radius:50%;
+	line-height:30px;
+	}
+
+/* div icon (Edit Select Point (red)) */
+.leaflet-div-icon-edit-icon-select-red {
+	/*background:red;*/
+	border:2px solid rgba(255,0,0,1);
+	color:red;
+	font-weight:bold;
+	text-align:center;
+	border-radius:50%;
+	line-height:30px;
+	}
+
+/* div icon (Edit Select Point (blue)) */
+.leaflet-div-icon-edit-icon-select-blue {
+	/*background:red;*/
+	border:2px solid rgba(0,0,255,1);
+	color:red;
+	font-weight:bold;
+	text-align:center;
+	border-radius:50%;
+	line-height:30px;
+	}

@@ -1,0 +1,36 @@
+@charset 'utf-8';
+
+.edit_control {position: absolute; top: 20px; left: 610px;}
+.edit_control h3 {overflow: hidden;font-size:0;line-height: 0;text-indent: -9999px;}
+.edit_control ul {float: right;overflow: hidden; height:40px; margin-left:10px;background: #fff; font-size: 0; border: 1px solid #9aa7b8; border-radius: 3px;box-shadow: 0px 0px 5px #999;box-sizing: border-box}
+.edit_control ul li {display: inline-block;width:40px; height:40px; border-right: 1px solid #eeeeee;}
+.edit_control ul li:last-child {border-right: 0 none;}
+/*background 삭제*/
+/* .edit_control ul li a {overflow:hidden;width: 40px;height: 40px;background: url(../../images/om/ico_gis_sprite.png) no-repeat;} */
+.edit_control ul li a {overflow:hidden; width: 40px;height: 40px; display:inline-block;}
+.edit_control ul li a span {display: none;overflow: hidden;text-indent: -9999px;}
+.edit_control select {float: left;min-width:150px;height:40px;line-height:40px;margin-left: 10px;padding-left: 10px; font-size: 13px; color: #666; border: 1px solid #fff; border-radius: 3px;box-shadow: 0px 0px 5px #999; }
+.edit_control button {float: left;min-width:80px;height: 40px;margin-left: 5px;font-size:13px; color: #fff; text-align: center; background: #9aa7b8; border-radius: 3px;}
+.edit_control button:hover, .edit_control button:focus {background: #1357ce}
+
+.edit_toolbar {position:absolute; left:280px; top:52px;}
+.btn_edit_slt {background:url(../images/toolbar/btn_edit_slt.png) no-repeat center;}
+.btn_edit_slt.hover{background:url(../images/toolbar/btn_edit_slt_on.png) no-repeat center;}
+.btn_edit_slt.active {background:url(../images/toolbar/btn_edit_slt_on.png) no-repeat center;}
+.btn_edit_add {background:url(../images/toolbar/btn_edit_add.png) no-repeat center;}
+.btn_edit_add.hover {background:url(../images/toolbar/btn_edit_add_on.png) no-repeat center;}
+.btn_edit_add.active {background:url(../images/toolbar/btn_edit_add_on.png) no-repeat center;}
+.btn_edit_del {background:url(../images/toolbar/btn_edit_del.png) no-repeat center;}
+.btn_edit_del.hover {background:url(../images/toolbar/btn_edit_del_on.png) no-repeat center;}
+.btn_edit_prev {background:url(../images/toolbar/btn_edit_prev.png) no-repeat center;}
+.btn_edit_prev.hover {background:url(../images/toolbar/btn_edit_prev_on.png) no-repeat center;}
+.btn_edit_next {background:url(../images/toolbar/btn_edit_next.png) no-repeat center;}
+.btn_edit_next.hover {background:url(../images/toolbar/btn_edit_next_on.png) no-repeat center;}
+.btn_edit_snap {background:url(../images/toolbar/btn_edit_snap.png) no-repeat center;}
+.btn_edit_snap.hover {background:url(../images/toolbar/btn_edit_snap_on.png) no-repeat center;}
+.btn_edit_snap.active {background:url(../images/toolbar/btn_edit_snap_on.png) no-repeat center;}
+.btn_edit_save {background:url(../images/toolbar/btn_edit_save.png) no-repeat center;}
+.btn_edit_save.hover {background:url(../images/toolbar/btn_edit_save_on.png) no-repeat center;}
+.btn_edit_transform {background:url(../images/toolbar/btn_edit_slt.png) no-repeat center;}
+.btn_edit_transform.hover{background:url(../images/toolbar/btn_edit_slt_on.png) no-repeat center;}
+.btn_edit_transform.active {background:url(../images/toolbar/btn_edit_slt_on.png) no-repeat center;}

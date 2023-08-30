@@ -1,0 +1,10 @@
+
+
+
+
+
+====참고====
+OpenLayers.js 에서
+this.theme=OpenLayers._getScriptLocation()+"theme/default/style.css"
+
+경로를 참조하므로 경로에 css 파일 첨부
