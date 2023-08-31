@@ -10,7 +10,7 @@
 
 //2. base layer 구성
 
-const map = new ol.Map({
+export const map = new ol.Map({
     layers : [
         new ol.layer.Tile({
             source : new ol.source.OSM()
@@ -23,3 +23,5 @@ const map = new ol.Map({
     }
     )
 });
+
+window.mainMap = map;
