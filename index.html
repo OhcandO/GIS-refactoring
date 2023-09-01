@@ -63,68 +63,16 @@
 
     <script type="module" src="./MO_GIS/MO.main.js"></script>
     <script>
-        class moov extends ol.Overlay {
-            coordOrigin;
-            dragstart;
-            dragend;
-            startPixel;
-            endPixel;
-
-            constructor(obj) {
-                super(obj);
-
-                console.log(this);
-                this.element.addEventListener('pointerdown', e=> {
-                    //e.preventDefault();
-                    //e.stopPropagation();
-                    if (!this.coordOrigin) this.coordOrigin = this.getPosition();
-                    this.element.draggable = true;
-
-                });
-
-                this.element.addEventListener('pointerup', e => {
-                    this.element.draggable = false;
-                });
-
-                this.element.addEventListener('dragstart', e => {
-                    this.dragstart = e;
-                    this.startPixel = [e.clientX, e.clientY];
-                });
-
-                this.element.addEventListener('dragend', e => {
-                    this.dragend = e;
-                    this.endPixel = [e.clientX, e.clientY];
-                    const dif = [this.endPixel[0] - this.startPixel[0], this.endPixel[1] - this.startPixel[1]];
-
-                    const originOverlayPixel = this.getMap().getPixelFromCoordinate(this.getPosition());
-                    this.setPosition(this.getMap().getCoordinateFromPixel([originOverlayPixel[0] + dif[0], originOverlayPixel[1] + dif[1]]));
-
-                    this.element.insertAdjacentHTML(`beforeend`,
-                        `<div id='ol-overlay-reset_temp' style='position: absolute; top: 0px; right: 0px; cursor: move;'>📍📍<div>`);
-                });
-
-            }
-        }
+        
         document.addEventListener('DOMContentLoaded', function () {
-
-            // document.body.insertAdjacentHTML('beforeend',`
-            // <div id='popup' style='height:100px; width:100px; border:1px solid blue; '>
-            //     <div id='popup-content'> nah!
-            //     </div>
-            // </div>
-            // `)
 
             const container = document.getElementById('popup');
             const content = document.getElementById('popup-content');
 
-            // container.style.height='100px';
-            // container.style.width='100px';
-            // container.style.border=`1px solid blue`;
-
             /**
              * Create an overlay to anchor the popup to the map.
              */
-            const overlay = new moov({
+            const overlay = new ol.Overlay({
                 element: container,
                 autoPan: {
                     animation: {
@@ -132,15 +80,6 @@
                     },
                 },
             });
-
-            // const overlay2 = new ol.Overlay({
-            // element: container,
-            // autoPan: {
-            //     animation: {
-            //     duration: 250,
-            //     },
-            // },
-            // });
 
             mainMap.addOverlay(overlay);
             //----------------------
@@ -152,7 +91,6 @@
                 overlay.setPosition(coordinate);
             });
         });
-
 
     </script>
 </body>

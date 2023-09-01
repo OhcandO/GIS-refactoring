@@ -4,24 +4,16 @@
  * 그 중 entry point 로서 사용하기 위한 core 파일
  */
 
+"use strict"
 
-
+import {MapFactory} from './MO.mapFactory.js'
+import {confObj as MapConf} from './MO.config.js'
 //1. fetch GIS setting from server
 
 //2. base layer 구성
 
-export const map = new ol.Map({
-    layers : [
-        new ol.layer.Tile({
-            source : new ol.source.OSM()
-        })
-    ],
-    target:'map',
-    view : new ol.View({
-        center: [0,0],
-        zoom:2,
-    }
-    )
-});
+const conf = MapConf.config_base;
 
-window.mainMap = map;
+const mapObj = 
+
+globalThis.mainMap = mapObj;
