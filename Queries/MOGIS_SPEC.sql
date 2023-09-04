@@ -33,6 +33,7 @@ create table MOGIS_SPEC_LAYER(
     LAYER_TYPE varchar2(10), --POLYGON, LINE, POINT
     MIN_ZOOM number,
     CQLFILTER varchar2(2000),
+    -- SRC_URL varchar2(300), -- '/geoserver/wfs/...'
     BOOL_USE_YN char(1),
     BOOL_ISGROUP char(1),
     BOOL_SELECTABLE char(1),
@@ -42,6 +43,7 @@ create table MOGIS_SPEC_LAYER(
 	LINE_STYLE VARCHAR2(20), -- only for POLYGON and LINE
 	LINE_WIDTH VARCHAR2(20), -- only for POLYGON and LINE
     ICON_NAME varchar2(30), -- only for POINT
+
     FONT varchar2(100), --spec : https://developer.mozilla.org/en-US/docs/Web/CSS/font
     LABEL_COLUMN varchar2(10), 
     COLOR_FILL varchar2(20), --rgba(170, 50, 220, .6)

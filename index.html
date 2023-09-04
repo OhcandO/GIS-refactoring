@@ -61,9 +61,9 @@
         <div id="popup-content"></div>
     </div>
 
-    <script type="module" src="./MO_GIS/MO.main.js"></script>
+    <!-- <script type="module" src="./MO_GIS/MO.main.js"></script> -->
     <script>
-        
+        let mainMap;
         document.addEventListener('DOMContentLoaded', function () {
 
             const container = document.getElementById('popup');
@@ -80,7 +80,21 @@
                     },
                 },
             });
-
+            
+            
+            mainMap = new ol.Map({
+                layers: [
+                    new ol.layer.Tile({
+                    source: new ol.source.OSM(),
+                    }),
+                ],
+                target: 'map',
+                view: new ol.View({
+                    projection: 'EPSG:4326',
+                    center: [0, 0],
+                    zoom: 2,
+                }),
+            });
             mainMap.addOverlay(overlay);
             //----------------------
             mainMap.on('singleclick', function (evt) {

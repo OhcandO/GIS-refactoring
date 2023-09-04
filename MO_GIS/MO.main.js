@@ -6,14 +6,16 @@
 
 "use strict"
 
-import {MapFactory} from './MO.mapFactory.js'
-import {confObj as MapConf} from './MO.config.js'
+import MOMapConfig from './classes/MO.config.js';
+
+//1. default config 가져오기
+let baseConf = new MOMapConfig();
+console.log(baseConf);
+
 //1. fetch GIS setting from server
 
 //2. base layer 구성
 
-const conf = MapConf.config_base;
-
-const mapObj = 
+let mapObj ;
 
 globalThis.mainMap = mapObj;
