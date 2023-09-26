@@ -5,7 +5,6 @@
 /**
  * @module ol/Overlay
  */
-"use strict"
 import {Overlay} from '../lib/openlayers_v7.5.1/Overlay'
 
 class MOOverlay extends Overlay {
