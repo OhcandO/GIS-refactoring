@@ -2,38 +2,39 @@
 
 -- Map 과 View 설정
 create table MOGIS_SPEC_MAP (
-    id number primary key,
-    title varchar2(20),
-    zoom_min number,
+    MAP_ID number primary key,
+    title VARCHAR2(20),
+    zoom_min number, 
     zoom_max number,
-    crs varchar2(10),
-    note varchar2(200)
+    SRID VARCHAR2(10), -- VIEW 객체의 SRID
+    note VARCHAR2(200)
 );
 
--- Source 설정
+-- Source 설정 (Primary Key)
+-- 지도 객체의 출처를 명시하는 테이블
 create table MOGIS_SPEC_SRC (
-    id number primary key,
-    title varchar2(20),
-    source_type, varchar2(40), -- XYZ, WMTS 등
-    url varchar2(100),
-    API_KEY varchar2(500),
-    rgst_dt date,
-    note varchar2(4000)
+    SOURCE_ID number primary key,
+    TITLE VARCHAR2(20),
+    DOMAIN VARCHAR2(20), -- 서비스의 출처 vworld, geoserver, emap, geojson etc.
+    SOURCE_TYPE, VARCHAR2(40), -- vector, xyz, wmts etc.
+    SRID, varchar2(10), -- 'EPSG:4326', 'EPSG:5181' etc.
+    SOURCE_URL VARCHAR2(100) not null, 
+    API_KEY VARCHAR2(500),
+    RGST_DT date,
+    NOTE VARCHAR2(4000)
 );
 
--- insert into MOGIS_SPEC_SRC 
--- select 1, 'Vworld'
-
--- Layer 와 Style 설정
+-- Layer 와 Style 설정 (Foreign Key)
+-- 개별 레이어의 CQL_FILETER, STYLE 등을 정하는 테이블
 create table MOGIS_SPEC_LAYER(
-    ID number primary key,
-    UPPER_ID number,
+    LAYER_ID number primary key,
     TITLE VARCHAR2(50), -- this will be shown in viewport
+    SOURCE_ID number,
+    UPPER_LAYER_ID number,
 	TABLE_NAME VARCHAR2(30), --actual reference table in Scheme
-    LAYER_TYPE varchar2(10), --POLYGON, LINE, POINT
+    LAYER_TYPE VARCHAR2(10), --POLYGON, LINE, POINT
     MIN_ZOOM number,
-    CQLFILTER varchar2(2000),
-    -- SRC_URL varchar2(300), -- '/geoserver/wfs/...'
+    CQLFILTER VARCHAR2(2000),
     BOOL_USE_YN char(1),
     BOOL_ISGROUP char(1),
     BOOL_SELECTABLE char(1),
@@ -42,14 +43,14 @@ create table MOGIS_SPEC_LAYER(
     BOOL_DOWNLOAD char(1),
 	LINE_STYLE VARCHAR2(20), -- only for POLYGON and LINE
 	LINE_WIDTH VARCHAR2(20), -- only for POLYGON and LINE
-    ICON_NAME varchar2(30), -- only for POINT
+    ICON_NAME VARCHAR2(30), -- only for POINT
 
-    FONT varchar2(100), --spec : https://developer.mozilla.org/en-US/docs/Web/CSS/font
-    LABEL_COLUMN varchar2(10), 
-    COLOR_FILL varchar2(20), --rgba(170, 50, 220, .6)
-    COLOR_LINE varchar2(20), --rgba(170, 50, 220, .6)
-    COLOR_FONT_OUTLINE varchar2(20), 
-    COLOR_FONT_FILL varchar2(20), 
+    FONT VARCHAR2(100), --spec : https://developer.mozilla.org/en-US/docs/Web/CSS/font
+    LABEL_COLUMN VARCHAR2(10), 
+    COLOR_FILL VARCHAR2(20), --rgba(170, 50, 220, .6)
+    COLOR_LINE VARCHAR2(20), --rgba(170, 50, 220, .6)
+    COLOR_FONT_OUTLINE VARCHAR2(20), 
+    COLOR_FONT_FILL VARCHAR2(20), 
     ORDR number,
     RGST_DT, date,
 );
