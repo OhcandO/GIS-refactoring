@@ -1,6 +1,6 @@
 /**
- * 지도 기본 설정 및 서버 통한 Fetch 작업
- * 지도 객체 하나 당 하나의 세팅
+ * 지도 기본 설정 및 서버 통한 API key Fetch 작업
+ * 지도 객체 하나 당 하나의 세팅 (개별 레이어 세팅 아님)
  * 이 객체 내부에 딸릴 레이어의 정보가 들어가야 함
  */
 
@@ -13,7 +13,20 @@
  */
 
 export class MOMapConfig {
-    VIEW_CRS;
+    
+    /**
+     * Openlayers 뷰 포트 객체가 표현하는 좌표계.
+     * 배경지도의 원본 좌표계를 설정해 이미지가 열화 없이 표출되도록 함
+     * @default 'EPSG:4326' vworld 배경지도 좌표계
+     * @memberof MOMapConfig
+     */
+    VIEW_CRS = `EPSG:4326`;
+
+    /**
+     *
+     *
+     * @memberof MOMapConfig
+     */
     CENTER;
     LAYERS;
 
