@@ -1,3 +1,5 @@
+<!-- getCapabilities 요청했는데 response 가 제대로 표출되지 않음 -->
+
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -5,102 +7,77 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>브이월드 오픈API</title>
-    <!-- <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> -->
+    <title>브이월드 오픈API test</title>
     <title>2DMap</title>
-    <!-- <script src="https://map.vworld.kr/js/map/OpenLayers-2.13/OpenLayers-2.13.js"></script> -->
     <link rel="stylesheet" href="./lib/openlayers_v7.5.1/ol.css">
     <script src="./lib/openlayers_v7.5.1/dist/ol.js"></script>
-    <!-- vworld api-->
-    <script src="https://map.vworld.kr/js/apis.do?type=Base&apiKey=B58E48FE-683E-3E7E-B91C-2F912512FE60"></script>
     <script>
         let map;
-        let mapBounds = new OpenLayers.Bounds(123, 32, 134, 43);
-        let mapMinZoom = 7;
-        let mapMaxZoom = 19;
-
+        // let mapBounds = new OpenLayers.Bounds(123, 32, 134, 43);
+        // let mapMinZoom = 7;
+        // let mapMaxZoom = 19;
+        const key = `B58E48FE-683E-3E7E-B91C-2F912512FE60`;
         // avoid pink tiles
         // OpenLayers.IMAGE_RELOAD_ATTEMPTS = 3;
         // OpenLayers.Util.onImageLoadErrorColor = "transparent";
 
-        function init() {
-            var options = {
-                controls: [],
-                projection: new OpenLayers.Projection("EPSG:900913"),
-                displayProjection: new OpenLayers.Projection("EPSG:4326"),
-                units: "m",
-                controls: [],
-                numZoomLevels: 21,
-                maxResolution: 156543.0339,
-                maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34)
-            };
-            map = new ol.Map('map', options);
+        //======================================
+        //1. 배경지도 추가하기
+        // let backMap_Base = new vworld.Layers.Base('VBASE');
+        // let backMap_SAT = new vworld.Layers.Satellite('VSAT');
+        // let backMap_Hybrid = new vworld.Layers.Hybrid('VHYBRID');
+        // let backMap_White = new vworld.Layers.White('VWHITE');
+        // let backMap_Midnight = new vworld.Layers.Midnight('VMIDNIGHT');
+        //===========================================
+        // const parser = new ol.format.WMTSCapabilities();
+        fetch(`./MO_GIS/external/WMTSCapabilities.xml`)
+            .then(function (response) {
+                return response.text();
+            })
+            .then(originText => {
+                let text_with_APIKEY=originText.replaceAll('{{{ $APIKEY }}}','B58E48FE-683E-3E7E-B91C-2F912512FE60');
+                const result = new ol.format.WMTSCapabilities().read(text_with_APIKEY);
 
-            var options = {
-                serviceVersion: "",
-                layername: "",
-                isBaseLayer: false,
-                opacity: 1,
-                type: 'png',
-                transitionEffect: 'resize',
-                tileSize: new OpenLayers.Size(256, 256),
-                min_level: 7,
-                max_level: 18,
-                buffer: 0
-            };
-            //======================================
-            //1. 배경지도 추가하기
-            let backMap_Base = new vworld.Layers.Base('VBASE');
-            let backMap_SAT = new vworld.Layers.Satellite('VSAT');
-            let backMap_Hybrid = new vworld.Layers.Hybrid('VHYBRID');
-            let backMap_White = new vworld.Layers.White('VWHITE');
-            let backMap_Midnight = new vworld.Layers.Midnight('VMIDNIGHT');
-            //===========================================
+                const midOption = ol.source.WMTS.optionsFromCapabilities(result, { layer: `midnight`});
+                const baseOption = ol.source.WMTS.optionsFromCapabilities(result, { layer: `Base` });
+                const whiteOption = ol.source.WMTS.optionsFromCapabilities(result, { layer: `gray` });
+                const sateOption = ol.source.WMTS.optionsFromCapabilities(result, { layer: `Satellite` });
+                const hybridOption = ol.source.WMTS.optionsFromCapabilities(result, { layer: `Hybrid` });
+                
+                // console.log(midOption);
+                // console.log(baseOption);
+                // console.log(whiteOption);
+                // console.log(sateOption);
+                // console.log(hybridOption);
 
-            // var switcherControl = new OpenLayers.Control.LayerSwitcher();
-            // map.addControl(switcherControl);
-            // switcherControl.maximizeControl();
-
-            map.zoomToExtent(mapBounds.transform(map.displayProjection, map.projection));
-            map.zoomTo(11);
-
-            // map.addControl(new OpenLayers.Control.PanZoomBar());
-            //map.addControl(new OpenLayers.Control.MousePosition());
-            // map.addControl(new OpenLayers.Control.Navigation());
-            //map.addControl(new OpenLayers.Control.Attribution({ separator: " " }))
-        }
-        function deleteLayerByName(name) {
-            for (var i = 0, len = map.layers.length; i < len; i++) {
-                var layer = map.layers[i];
-                if (layer.name == name) {
-                    map.removeLayer(layer);
-                    //return layer;
-                    break;
-                }
-            }
-        }
+                map = new ol.Map({
+                    target: 'map',
+                    layers: [
+                        new ol.layer.Tile({
+                             source: new ol.source.WMTS(hybridOption) 
+                            })
+                    ],
+                    view: new ol.View({
+                        center:[14144137.024974, 4465661.394248],
+                        zoom:11,
+                        projection: 'EPSG:3857'
+                    })
+                });
+            })
 
     </script>
     <style>
-        .olControlAttribution {
-            right: 20px;
-        }
-
-        .olControlLayerSwitcher {
-            right: 20px;
-            top: 20px;
-        }
-        #map{
+        .map {
+            width: 100%;
             height: 600px;
+            border: 1px solid black;
         }
     </style>
 </head>
 
 <body>
-    <div id="map" ></div>
-    <div>
-        <button type="button" onclick="javascript:deleteLayerByName('VHYBRID');" name="rpg_1">레이어삭제하기</button>
-    </div>
+    <div id="map" class="map"></div>
+
 </body>
 
 </html>
