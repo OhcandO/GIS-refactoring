@@ -7,16 +7,16 @@
  * @class MOSourceConfig
  */
 
-import GeoJSON from '../../lib/openlayers_v7.5.1/format/GeoJSON.js';
+import GeoJSON  from '../../lib/openlayers_v7.5.1/format/GeoJSON.js';
+import Source   from '../../lib/openlayers_v7.5.1/source/Source.js';
+import XYZ      from '../../lib/openlayers_v7.5.1/source/XYZ.js';
 import VectorSource from '../../lib/openlayers_v7.5.1/source/Vector.js';
-import XYZ from '../../lib/openlayers_v7.5.1/source/XYZ.js';
-import Source from '../../lib/openlayers_v7.5.1/source/Source.js';
 
 export class MOSourceConfig {
     #KEY_ORIGIN = `origin`;
     #KEY_SOURCE_PATHNAME = `sourcePathname`;
     #KEY_SOURCE_TYPE = `sourceType`;
-    #KEY_DOMAIN = `domain`;
+    #KEY_CATEGORY = `category`;
     #KEY_TYPE_NAME = `typeName`;
     #KEY_CQL_FILTER = `cqlFilter`;
 
@@ -71,10 +71,10 @@ export class MOSourceConfig {
      */
     buildSource() {
         let sourceInstance;
-        if (this.#isValid_domain_source()) {
+        if (this.#isValid_category_source()) {
             try {
                 sourceInstance = this.#sourceFactory(
-                    this.#merged_layerSpec.get(this.#KEY_DOMAIN),
+                    this.#merged_layerSpec.get(this.#KEY_CATEGORY),
                     this.#merged_layerSpec.get(this.#KEY_SOURCE_TYPE)
                 );
             } catch (e) {
@@ -88,32 +88,32 @@ export class MOSourceConfig {
         }
     }
 
-    #isValid_domain_source() {
+    #isValid_category_source() {
         let bool = false;
-        let domain, sourceType;
+        let category, sourceType;
 
         try {
-            domain = layerSpec.get(this.#KEY_DOMAIN); //vworld, geoserver, emap etc.
+            category = layerSpec.get(this.#KEY_CATEGORY); //vworld, geoserver, emap etc.
             sourceType = layerSpec.get(this.#KEY_SOURCE_TYPE); //vector, xyz, wmts etc.
         } catch (e) {
-            console.group(`"domain" 및 "source_type" 지정안됨`);
+            console.group(`"category" 및 "source_type" 지정안됨`);
             console.table(layerSpec);
             console.groupEnd();
-            throw new Error(`"domain" 및 "source_type" 지정안됨`);
+            throw new Error(`"category" 및 "source_type" 지정안됨`);
         }
 
         //현재는 이 도메인과 소스타입으로만 구성중임
-        const AVAILABLE_DOMAIN_SOURCE = [
-            { domain: `vworld`, sourceType: `wmts` },
-            { domain: `vworld`, sourceType: `xyz` },
-            { domain: `geoserver`, sourceType: `geojson` },
+        const AVAILABLE_CATEGORY_SOURCE = [
+            { category: `vworld`, sourceType: `wmts` },
+            { category: `vworld`, sourceType: `xyz` },
+            { category: `geoserver`, sourceType: `geojson` },
         ];
 
-        bool = AVAILABLE_DOMAIN_SOURCE.some(
-            (e) => e.domain == domain && e.sourceType == sourceType
+        bool = AVAILABLE_CATEGORY_SOURCE.some(
+            (e) => e.category == category && e.sourceType == sourceType
         );
         if (!bool) {
-            console.group(`유효하지 않은 domain, sourceType 지정`);
+            console.group(`유효하지 않은 category, sourceType 지정`);
             console.table(inputLayerSpec);
             console.groupEnd();
         }
@@ -122,15 +122,15 @@ export class MOSourceConfig {
 
     /**
      *
-     * @param {String} domain 도메인
+     * @param {String} category 카테고리
      * @param {String} sourceType 소스타입
      * @returns {URL}
      */
-    #sourceFactory(domain, sourceType) {
+    #sourceFactory(category, sourceType) {
         let returnSource;
         let sourceURL;
         let srid;
-        if (domain == `geoserver` && sourceType == `vector`) {
+        if (category == `geoserver` && sourceType == `vector`) {
             let geojson_option;
             
             srid = this.#getValidSrid();
@@ -141,7 +141,7 @@ export class MOSourceConfig {
                 format: new GeoJSON(geojson_option),
                 url: sourceURL,
             });
-        } else if (domain == `vworld` && sourceType == `xyz`) {
+        } else if (category == `vworld` && sourceType == `xyz`) {
             
             sourceURL = this.#urlBuilder_vworld_xyz();
             let sourceOpion={
@@ -153,12 +153,12 @@ export class MOSourceConfig {
             if(srid) sourceOpion[`projection`] = srid;
 
             returnSource = new XYZ(sourceOpion);
-        } else if (domain == `vworld` && sourceType == `wmts`) {
+        } else if (category == `vworld` && sourceType == `wmts`) {
             //TODO WMTS 인 경우 (배경지도) 소스 URL 구성하는 방법
         } else {
-            console.log(`정의되지 않은 domain, sourceType`);
-            console.log(domain, sourceType);
-            throw new Error(`정의되지 않은 domain, sourceType`);
+            console.log(`정의되지 않은 category, sourceType`);
+            console.log(category, sourceType);
+            throw new Error(`정의되지 않은 category, sourceType`);
         }
         return returnSource;
     }
