@@ -7,21 +7,23 @@
  * @class MOSourceConfig
  */
 
-import GeoJSON  from '../../lib/openlayers_v7.5.1/format/GeoJSON.js';
+import GeoJSON          from '../../lib/openlayers_v7.5.1/format/GeoJSON.js';
 import WMTSCapabilities from '../../lib/openlayers_v7.5.1/format/WMTSCapabilities.js';
 import WMTS, {optionsFromCapabilities} from '../../lib/openlayers_v7.5.1/source/WMTS.js';
-import Source   from '../../lib/openlayers_v7.5.1/source/Source.js';
-import XYZ      from '../../lib/openlayers_v7.5.1/source/XYZ.js';
-import VectorSource from '../../lib/openlayers_v7.5.1/source/Vector.js';
+import Source           from '../../lib/openlayers_v7.5.1/source/Source.js';
+import XYZ              from '../../lib/openlayers_v7.5.1/source/XYZ.js';
+import VectorSource     from '../../lib/openlayers_v7.5.1/source/Vector.js';
+import { vworld_compatibilities } from '../external/vworldCompatibilities.js';
 
 export class MOSourceConfig {
     #KEY_ORIGIN = `origin`;
     #KEY_SOURCE_PATHNAME = `sourcePathname`;
     #KEY_SOURCE_TYPE = `sourceType`;
-    #KEY_CATEGORY = `category`;
     #KEY_TYPE_NAME = `typeName`;
-    #KEY_CQL_FILTER = `cqlFilter`;
+    #KEY_CQL_FILTER = `cqlfilter`;
     #KEY_APIKEY = `apiKey`;
+    #KEY_SRID = `srid`;
+    #KEY_CATEGORY = `category`;
     
     #default_leyerSpec = {
         zIndex: 5,
@@ -42,18 +44,15 @@ export class MOSourceConfig {
 
         if (inputLayerSpec) {
             //레이어의 소스 구성
-            this.buildSource()
-            .then(theSource=>{this.#theSource = theSource});
+            this.#theSource = this.buildSource()
 
-            //레이어의
-            //TODO 바로 layer source, layer style 파라미터로 사용할 수 있도록 구성
             return this.#theSource;
         }
     }
 
-    get source() {
-
-        return this.#theSource;
+    getSource() {
+        return this.buildSource()
+        // return this.#theSource;
     }
 
     set source(ol_source){
@@ -73,12 +72,12 @@ export class MOSourceConfig {
      * @return {} Openlayers source 파라미터로 사용할 수 있는 URL 폼
      * @memberof MOSourceConfig
      */
-    async buildSource() {
+    buildSource() {
         if (this.#isValid_category_source()) {
             try {
-                return await this.#sourceFactory(
-                    this.#merged_layerSpec.get(this.#KEY_CATEGORY),
-                    this.#merged_layerSpec.get(this.#KEY_SOURCE_TYPE)
+                return this.#sourceFactory(
+                    this.#merged_layerSpec[this.#KEY_CATEGORY],
+                    this.#merged_layerSpec[this.#KEY_SOURCE_TYPE]
                 );
             } catch (e) {
                 console.group(`openlayers source 객체 생성실패`);
@@ -86,14 +85,6 @@ export class MOSourceConfig {
                 console.groupEnd();
                 throw new Error(`openlayers source 객체 생성실패`);
             } 
-            /* return new Promise((res,rej)=>{
-
-                this.#sourceFactory(
-                    this.#merged_layerSpec.get(this.#KEY_CATEGORY),
-                    this.#merged_layerSpec.get(this.#KEY_SOURCE_TYPE)
-                ).
-            }); */
-            
         }
     }
 
@@ -110,11 +101,11 @@ export class MOSourceConfig {
         let category, sourceType;
 
         try {
-            category = layerSpec.get(this.#KEY_CATEGORY); //vworld, geoserver, emap etc.
-            sourceType = layerSpec.get(this.#KEY_SOURCE_TYPE); //vector, xyz, wmts etc.
+            category = this.#merged_layerSpec[this.#KEY_CATEGORY]; //vworld, geoserver, emap etc.
+            sourceType = this.#merged_layerSpec[this.#KEY_SOURCE_TYPE]; //vector, xyz, wmts etc.
         } catch (e) {
             console.group(`"category" 및 "source_type" 지정안됨`);
-            console.table(layerSpec);
+            console.table(this.#merged_layerSpec);
             console.groupEnd();
             throw new Error(`"category" 및 "source_type" 지정안됨`);
         }
@@ -131,7 +122,7 @@ export class MOSourceConfig {
         );
         if (!bool) {
             console.group(`유효하지 않은 category, sourceType 지정`);
-            console.table(inputLayerSpec);
+            console.table(this.#merged_layerSpec);
             console.groupEnd();
         }
         return bool;
@@ -143,7 +134,7 @@ export class MOSourceConfig {
      * @param {String} sourceType 소스타입
      * @returns {Source}
      */
-    async #sourceFactory(category, sourceType) {
+    #sourceFactory(category, sourceType) {
         let sourceURL;
         let srid;
         if (category == `geoserver` && sourceType == `vector`) {
@@ -174,7 +165,7 @@ export class MOSourceConfig {
 
 
         } else if (category == `vworld` && sourceType == `wmts`) {
-            return await this.#wmtsSourceBuilder();
+            return this.#wmtsSourceBuilder();
 
 
         } else {
@@ -242,7 +233,6 @@ export class MOSourceConfig {
     #urlBuilder_vworld_xyz() {
         let origin = this.#merged_layerSpec[this.#KEY_ORIGIN] ||location.origin;
         let pathName = this.#merged_layerSpec[this.#KEY_SOURCE_PATHNAME]; // "http://xdworld.vworld.kr:8080/2d/Satellite/service/{z}/{x}/{y}.jpeg";
-        let returnURL;
         if (pathName) {
             return new URL(pathName, origin); //origin 은 sourceURL 이 absolute 라면 무시됨
         } else {
@@ -256,18 +246,17 @@ export class MOSourceConfig {
      * 
      * @returns 
      */
-    async #wmtsSourceBuilder(){
+    #wmtsSourceBuilder(){
         if(this.#isValid_apiKey()){
             const typeName = this.#merged_layerSpec[this.#KEY_TYPE_NAME];
-            const tempXml = await fetch(`../external/vworld_WMTSCapabilities.xml`);
-            let wmtsConfigTemplate = await tempXml.text();
-            wmtsConfigTemplate=wmtsConfigTemplate.replaceAll('{{{ $APIKEY }}}',this.#merged_layerSpec[this.#KEY_APIKEY]);
-            const result = await new WMTSCapabilities.read(wmtsConfigTemplate);
+            const wmtsConfigTemplate = vworld_compatibilities.replaceAll('{{{ $APIKEY }}}',this.#merged_layerSpec[this.#KEY_APIKEY]);
+            const result = new WMTSCapabilities().read(wmtsConfigTemplate);
             let sourceOption;
             if(typeName){
                 sourceOption = optionsFromCapabilities(result, {layer:typeName});
                 return new WMTS(sourceOption);
             }else{
+                console.error(`invalid typeName : ${typeName}`);
                 throw new Error(`invalid typeName : ${typeName}`);
             }
         }

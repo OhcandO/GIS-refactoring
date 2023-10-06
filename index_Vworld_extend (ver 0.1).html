@@ -1,0 +1,83 @@
+<!-- getCapabilities 요청했는데 response 가 제대로 표출되지 않음 -->
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>브이월드 오픈API test</title>
+    <title>2DMap</title>
+    <link rel="stylesheet" href="./lib/openlayers_v7.5.1/ol.css">
+    <script src="./lib/openlayers_v7.5.1/dist/ol.js"></script>
+    <script>
+        let map;
+        // let mapBounds = new OpenLayers.Bounds(123, 32, 134, 43);
+        // let mapMinZoom = 7;
+        // let mapMaxZoom = 19;
+        const key = `B58E48FE-683E-3E7E-B91C-2F912512FE60`;
+        // avoid pink tiles
+        // OpenLayers.IMAGE_RELOAD_ATTEMPTS = 3;
+        // OpenLayers.Util.onImageLoadErrorColor = "transparent";
+
+        //======================================
+        //1. 배경지도 추가하기
+        // let backMap_Base = new vworld.Layers.Base('VBASE');
+        // let backMap_SAT = new vworld.Layers.Satellite('VSAT');
+        // let backMap_Hybrid = new vworld.Layers.Hybrid('VHYBRID');
+        // let backMap_White = new vworld.Layers.White('VWHITE');
+        // let backMap_Midnight = new vworld.Layers.Midnight('VMIDNIGHT');
+        //===========================================
+        // const parser = new ol.format.WMTSCapabilities();
+        fetch(`./MO_GIS/external/vworld_WMTSCapabilities.xml`)
+            .then(function (response) {
+                return response.text();
+            })
+            .then(originText => {
+                let text_with_APIKEY=originText.replaceAll('{{{ $APIKEY }}}','B58E48FE-683E-3E7E-B91C-2F912512FE60');
+                const result = new ol.format.WMTSCapabilities().read(text_with_APIKEY);
+
+                const midOption = ol.source.WMTS.optionsFromCapabilities(result, { layer: `midnight`});
+                const baseOption = ol.source.WMTS.optionsFromCapabilities(result, { layer: `Base` });
+                const whiteOption = ol.source.WMTS.optionsFromCapabilities(result, { layer: `gray` });
+                const sateOption = ol.source.WMTS.optionsFromCapabilities(result, { layer: `Satellite` });
+                const hybridOption = ol.source.WMTS.optionsFromCapabilities(result, { layer: `Hybrid` });
+                
+                // console.log(midOption);
+                // console.log(baseOption);
+                // console.log(whiteOption);
+                // console.log(sateOption);
+                // console.log(hybridOption);
+
+                map = new ol.Map({
+                    target: 'map',
+                    layers: [
+                        new ol.layer.Tile({
+                             source: new ol.source.WMTS(hybridOption) 
+                            })
+                    ],
+                    view: new ol.View({
+                        center:[14144137.024974, 4465661.394248],
+                        zoom:11,
+                        projection: 'EPSG:3857'
+                    })
+                });
+            })
+
+    </script>
+    <style>
+        .map {
+            width: 100%;
+            height: 600px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map" class="map"></div>
+
+</body>
+
+</html>
