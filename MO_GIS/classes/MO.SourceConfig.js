@@ -45,8 +45,14 @@ export class MOSourceConfig {
         if (inputLayerSpec) {
             //레이어의 소스 구성
             this.#theSource = this.buildSource()
-
-            return this.#theSource;
+            if(this.#theSource instanceof Source){
+                return this.#theSource;
+            }else{
+                console.groupCollapsed(`해당 source 객체는 openlayers 인스턴스 아님`);
+                console.log(inputLayerSpec);
+                console.groupEnd();
+                throw new Error(`해당 source 객체는 openlayers 인스턴스 아님`);
+            }
         }
     }
 
@@ -59,9 +65,7 @@ export class MOSourceConfig {
         if(ol_source instanceof Source){
             this.#theSource = ol_source;
         }else{
-            console.log(`해당 source 객체는 openlayers 인스턴스 아님`);
-            console.log(ol_source);
-            throw new Error(`해당 source 객체는 openlayers 인스턴스 아님`);
+            
         }
     }
 
@@ -80,7 +84,7 @@ export class MOSourceConfig {
                     this.#merged_layerSpec[this.#KEY_SOURCE_TYPE]
                 );
             } catch (e) {
-                console.group(`openlayers source 객체 생성실패`);
+                console.groupCollapsed(`openlayers source 객체 생성실패`);
                 console.table(this.#merged_layerSpec);
                 console.groupEnd();
                 throw new Error(`openlayers source 객체 생성실패`);
@@ -104,7 +108,7 @@ export class MOSourceConfig {
             category = this.#merged_layerSpec[this.#KEY_CATEGORY]; //vworld, geoserver, emap etc.
             sourceType = this.#merged_layerSpec[this.#KEY_SOURCE_TYPE]; //vector, xyz, wmts etc.
         } catch (e) {
-            console.group(`"category" 및 "source_type" 지정안됨`);
+            console.groupCollapsed(`"category" 및 "source_type" 지정안됨`);
             console.table(this.#merged_layerSpec);
             console.groupEnd();
             throw new Error(`"category" 및 "source_type" 지정안됨`);
@@ -121,7 +125,7 @@ export class MOSourceConfig {
             (e) => e.category == category && e.sourceType == sourceType
         );
         if (!bool) {
-            console.group(`유효하지 않은 category, sourceType 지정`);
+            console.groupCollapsed(`유효하지 않은 category, sourceType 지정`);
             console.table(this.#merged_layerSpec);
             console.groupEnd();
         }
@@ -225,7 +229,7 @@ export class MOSourceConfig {
             }
             return returnURL;
         } else {
-            console.group(`source URL 이 정의되지 않음`);
+            console.groupCollapsed(`source URL 이 정의되지 않음`);
             console.log(this.#merged_layerSpec);
             throw new Error(`source URL 이 정의되지 않음`);
         }
@@ -236,7 +240,7 @@ export class MOSourceConfig {
         if (pathName) {
             return new URL(pathName, origin); //origin 은 sourceURL 이 absolute 라면 무시됨
         } else {
-            console.group(`source URL 이 정의되지 않음`);
+            console.groupCollapsed(`source URL 이 정의되지 않음`);
             console.log(this.#merged_layerSpec);
             throw new Error(`source URL 이 정의되지 않음`);
         }
@@ -270,7 +274,7 @@ export class MOSourceConfig {
             //TODO 추가적인 API 키 유효성 검증 로직이 있으면 추가
             bool = true;
         }else{
-            console.group(`apiKey 정보가 입력되지 않음`);
+            console.groupCollapsed(`apiKey 정보가 입력되지 않음`);
             console.log(this.#merged_layerSpec);
             throw new Error (`apiKey 정보가 입력되지 않음`);
         }

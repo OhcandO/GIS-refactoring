@@ -3,10 +3,12 @@
 -- Map 과 View 설정
 create table MOGIS_SPEC_MAP (
     MAP_ID number primary key,
-    title VARCHAR2(20),
+    map_title VARCHAR2(20),
+	coor_x varchar2(30), --view 객체 SRID에 따른 x 좌표, 경도, longitude
+	coor_y varchar2(30), --view 객체 SRID에 따른 y 좌표, 위도, latitude
     zoom_min number, 
     zoom_max number,
-    SRID VARCHAR2(10), -- VIEW 객체의 SRID
+    SRID VARCHAR2(10) default 'EPSG:3857', -- VIEW 객체의 SRID
     note VARCHAR2(200)
 );
 
