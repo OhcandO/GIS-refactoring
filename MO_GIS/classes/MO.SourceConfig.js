@@ -8,6 +8,8 @@
  */
 
 import GeoJSON  from '../../lib/openlayers_v7.5.1/format/GeoJSON.js';
+import WMTSCapabilities from '../../lib/openlayers_v7.5.1/format/WMTSCapabilities.js';
+import WMTS, {optionsFromCapabilities} from '../../lib/openlayers_v7.5.1/source/WMTS.js';
 import Source   from '../../lib/openlayers_v7.5.1/source/Source.js';
 import XYZ      from '../../lib/openlayers_v7.5.1/source/XYZ.js';
 import VectorSource from '../../lib/openlayers_v7.5.1/source/Vector.js';
@@ -19,7 +21,8 @@ export class MOSourceConfig {
     #KEY_CATEGORY = `category`;
     #KEY_TYPE_NAME = `typeName`;
     #KEY_CQL_FILTER = `cqlFilter`;
-
+    #KEY_APIKEY = `apiKey`;
+    
     #default_leyerSpec = {
         zIndex: 5,
         opacity: 1,
@@ -39,11 +42,12 @@ export class MOSourceConfig {
 
         if (inputLayerSpec) {
             //레이어의 소스 구성
-            this.buildSource();
+            this.buildSource()
+            .then(theSource=>{this.#theSource = theSource});
 
             //레이어의
             //TODO 바로 layer source, layer style 파라미터로 사용할 수 있도록 구성
-            return this.source;
+            return this.#theSource;
         }
     }
 
@@ -69,11 +73,10 @@ export class MOSourceConfig {
      * @return {} Openlayers source 파라미터로 사용할 수 있는 URL 폼
      * @memberof MOSourceConfig
      */
-    buildSource() {
-        let sourceInstance;
+    async buildSource() {
         if (this.#isValid_category_source()) {
             try {
-                sourceInstance = this.#sourceFactory(
+                return await this.#sourceFactory(
                     this.#merged_layerSpec.get(this.#KEY_CATEGORY),
                     this.#merged_layerSpec.get(this.#KEY_SOURCE_TYPE)
                 );
@@ -82,12 +85,26 @@ export class MOSourceConfig {
                 console.table(this.#merged_layerSpec);
                 console.groupEnd();
                 throw new Error(`openlayers source 객체 생성실패`);
-            } finally {
-                this.#theSource = sourceInstance;
-            }
+            } 
+            /* return new Promise((res,rej)=>{
+
+                this.#sourceFactory(
+                    this.#merged_layerSpec.get(this.#KEY_CATEGORY),
+                    this.#merged_layerSpec.get(this.#KEY_SOURCE_TYPE)
+                ).
+            }); */
+            
         }
     }
 
+    /**
+     * 레이어 소스를 만들기 위한 '카테고리' 와 '소스타입' 가 적합한지 확인
+     * '카테고리'는 vworld, geoserver 등 gis 데이터를 가져오기위한 약식 출처구분
+     * '소스타입' 은 레이어 구성을 위한 소스의 종류를 구분 (vector, xyz, wmts)
+     * 
+     * 본 클래스 내에서 다룰 수 있는지 여부를 우선으로 판가름함
+     * @returns {boolean}
+     */
     #isValid_category_source() {
         let bool = false;
         let category, sourceType;
@@ -124,10 +141,9 @@ export class MOSourceConfig {
      *
      * @param {String} category 카테고리
      * @param {String} sourceType 소스타입
-     * @returns {URL}
+     * @returns {Source}
      */
-    #sourceFactory(category, sourceType) {
-        let returnSource;
+    async #sourceFactory(category, sourceType) {
         let sourceURL;
         let srid;
         if (category == `geoserver` && sourceType == `vector`) {
@@ -137,10 +153,12 @@ export class MOSourceConfig {
             if(srid) geojson_option(`dataProjection`)=srid;
 
             sourceURL = this.#urlBuilder_geoserver();
-            returnSource = new VectorSource({
+            return new VectorSource({
                 format: new GeoJSON(geojson_option),
                 url: sourceURL,
             });
+
+
         } else if (category == `vworld` && sourceType == `xyz`) {
             
             sourceURL = this.#urlBuilder_vworld_xyz();
@@ -152,15 +170,18 @@ export class MOSourceConfig {
             srid = this.#getValidSrid();
             if(srid) sourceOpion[`projection`] = srid;
 
-            returnSource = new XYZ(sourceOpion);
+            return new XYZ(sourceOpion);
+
+
         } else if (category == `vworld` && sourceType == `wmts`) {
-            //TODO WMTS 인 경우 (배경지도) 소스 URL 구성하는 방법
+            return await this.#wmtsSourceBuilder();
+
+
         } else {
             console.log(`정의되지 않은 category, sourceType`);
             console.log(category, sourceType);
             throw new Error(`정의되지 않은 category, sourceType`);
         }
-        return returnSource;
     }
 
     #getValidSrid() {
@@ -229,5 +250,41 @@ export class MOSourceConfig {
             console.log(this.#merged_layerSpec);
             throw new Error(`source URL 이 정의되지 않음`);
         }
+    }
+
+    /**
+     * 
+     * @returns 
+     */
+    async #wmtsSourceBuilder(){
+        if(this.#isValid_apiKey()){
+            const typeName = this.#merged_layerSpec[this.#KEY_TYPE_NAME];
+            const tempXml = await fetch(`../external/vworld_WMTSCapabilities.xml`);
+            let wmtsConfigTemplate = await tempXml.text();
+            wmtsConfigTemplate=wmtsConfigTemplate.replaceAll('{{{ $APIKEY }}}',this.#merged_layerSpec[this.#KEY_APIKEY]);
+            const result = await new WMTSCapabilities.read(wmtsConfigTemplate);
+            let sourceOption;
+            if(typeName){
+                sourceOption = optionsFromCapabilities(result, {layer:typeName});
+                return new WMTS(sourceOption);
+            }else{
+                throw new Error(`invalid typeName : ${typeName}`);
+            }
+        }
+        
+    }
+
+    #isValid_apiKey(){
+        let bool = false;
+        let apiKey = this.#merged_layerSpec[this.#KEY_APIKEY];
+        if(apiKey){
+            //TODO 추가적인 API 키 유효성 검증 로직이 있으면 추가
+            bool = true;
+        }else{
+            console.group(`apiKey 정보가 입력되지 않음`);
+            console.log(this.#merged_layerSpec);
+            throw new Error (`apiKey 정보가 입력되지 않음`);
+        }
+        return bool;
     }
 }
