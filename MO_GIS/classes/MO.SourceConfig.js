@@ -6,7 +6,7 @@
  * @export
  * @class MOSourceConfig
  */
-
+import * as KEY from '../MO.keyMap.js';
 import GeoJSON          from '../../lib/openlayers_v7.5.1/format/GeoJSON.js';
 import WMTSCapabilities from '../../lib/openlayers_v7.5.1/format/WMTSCapabilities.js';
 import WMTS, {optionsFromCapabilities} from '../../lib/openlayers_v7.5.1/source/WMTS.js';
@@ -16,19 +16,12 @@ import VectorSource     from '../../lib/openlayers_v7.5.1/source/Vector.js';
 import { vworld_compatibilities } from '../external/vworldCompatibilities.js';
 
 export class MOSourceConfig {
-    #KEY_ORIGIN = `origin`;
-    #KEY_SOURCE_PATHNAME = `sourcePathname`;
-    #KEY_SOURCE_TYPE = `sourceType`;
-    #KEY_TYPE_NAME = `typeName`;
-    #KEY_CQL_FILTER = `cqlfilter`;
-    #KEY_APIKEY = `apiKey`;
-    #KEY_SRID = `srid`;
-    #KEY_CATEGORY = `category`;
     
     #default_leyerSpec = {
         zIndex: 5,
         opacity: 1,
     };
+    
     #merged_layerSpec;
     #theSource; //생성자에 입력된 내용이 default 와 합쳐져 등록됨
 
@@ -80,8 +73,8 @@ export class MOSourceConfig {
         if (this.#isValid_category_source()) {
             try {
                 return this.#sourceFactory(
-                    this.#merged_layerSpec[this.#KEY_CATEGORY],
-                    this.#merged_layerSpec[this.#KEY_SOURCE_TYPE]
+                    this.#merged_layerSpec[KEY.CATEGORY],
+                    this.#merged_layerSpec[KEY.SOURCE_TYPE]
                 );
             } catch (e) {
                 console.groupCollapsed(`openlayers source 객체 생성실패`);
@@ -105,8 +98,8 @@ export class MOSourceConfig {
         let category, sourceType;
 
         try {
-            category = this.#merged_layerSpec[this.#KEY_CATEGORY]; //vworld, geoserver, emap etc.
-            sourceType = this.#merged_layerSpec[this.#KEY_SOURCE_TYPE]; //vector, xyz, wmts etc.
+            category = this.#merged_layerSpec[KEY.CATEGORY]; //vworld, geoserver, emap etc.
+            sourceType = this.#merged_layerSpec[KEY.SOURCE_TYPE]; //vector, xyz, wmts etc.
         } catch (e) {
             console.groupCollapsed(`"category" 및 "source_type" 지정안됨`);
             console.table(this.#merged_layerSpec);
@@ -180,7 +173,7 @@ export class MOSourceConfig {
     }
 
     #getValidSrid() {
-        let SRID = this.#merged_layerSpec[this.#KEY_SRID];
+        let SRID = this.#merged_layerSpec[KEY.SRID];
         if (SRID) {
             //SRID == 'EPSG:5181' <--- 콜론 포함 이 형태가 되어야 함
             //SRID == 'EPSG4326'
@@ -204,12 +197,12 @@ export class MOSourceConfig {
      * @returns {URL}
      */
     #urlBuilder_geoserver() {
-        let origin = this.#merged_layerSpec[this.#KEY_ORIGIN] ||location.origin;
-        let pathName = this.#merged_layerSpec[this.#KEY_SOURCE_PATHNAME]; // "/geoserver/waternet/wfs/";
+        let origin = this.#merged_layerSpec[KEY.ORIGIN] ||location.origin;
+        let pathName = this.#merged_layerSpec[KEY.SOURCE_PATHNAME]; // "/geoserver/waternet/wfs/";
         let returnURL;
         if (pathName) {
             returnURL = new URL(pathName, origin); //origin 은 sourceURL 이 absolute 라면 무시됨
-            const typeName = this.#merged_layerSpec[this.#KEY_TYPE_NAME]; // "waternet:WTL_BLSM_AS_YS" etc.
+            const typeName = this.#merged_layerSpec[KEY.TYPE_NAME]; // "waternet:WTL_BLSM_AS_YS" etc.
 
             let paramString = new URLSearchParams();
             //WFS getFeature v2.0.0 공통 request
@@ -223,7 +216,7 @@ export class MOSourceConfig {
                 encodeURIComponent(`application/json`)
             );
 
-            const cqlFilter = this.#merged_layerSpec[this.#KEY_CQL_FILTER];
+            const cqlFilter = this.#merged_layerSpec[KEY.CQL_FILTER];
             if (cqlFilter) {
                 paramString.set(`cql_filter`, encodeURIComponent(cqlFilter));
             }
@@ -235,8 +228,8 @@ export class MOSourceConfig {
         }
     }
     #urlBuilder_vworld_xyz() {
-        let origin = this.#merged_layerSpec[this.#KEY_ORIGIN] ||location.origin;
-        let pathName = this.#merged_layerSpec[this.#KEY_SOURCE_PATHNAME]; // "http://xdworld.vworld.kr:8080/2d/Satellite/service/{z}/{x}/{y}.jpeg";
+        let origin = this.#merged_layerSpec[this.KEY.ORIGIN] ||location.origin;
+        let pathName = this.#merged_layerSpec[KEY.SOURCE_PATHNAME]; // "http://xdworld.vworld.kr:8080/2d/Satellite/service/{z}/{x}/{y}.jpeg";
         if (pathName) {
             return new URL(pathName, origin); //origin 은 sourceURL 이 absolute 라면 무시됨
         } else {
@@ -252,8 +245,8 @@ export class MOSourceConfig {
      */
     #wmtsSourceBuilder(){
         if(this.#isValid_apiKey()){
-            const typeName = this.#merged_layerSpec[this.#KEY_TYPE_NAME];
-            const wmtsConfigTemplate = vworld_compatibilities.replaceAll('{{{ $APIKEY }}}',this.#merged_layerSpec[this.#KEY_APIKEY]);
+            const typeName = this.#merged_layerSpec[KEY.TYPE_NAME];
+            const wmtsConfigTemplate = vworld_compatibilities.replaceAll('{{{ $APIKEY }}}',this.#merged_layerSpec[KEY.APIKEY]);
             const result = new WMTSCapabilities().read(wmtsConfigTemplate);
             let sourceOption;
             if(typeName){
@@ -269,7 +262,7 @@ export class MOSourceConfig {
 
     #isValid_apiKey(){
         let bool = false;
-        let apiKey = this.#merged_layerSpec[this.#KEY_APIKEY];
+        let apiKey = this.#merged_layerSpec[KEY.APIKEY];
         if(apiKey){
             //TODO 추가적인 API 키 유효성 검증 로직이 있으면 추가
             bool = true;
