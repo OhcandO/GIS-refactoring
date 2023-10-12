@@ -45,6 +45,24 @@ const layerSpec = {
     },
 };
 
+default_viewSpec = {
+    /**
+     * Openlayers 뷰 포트 객체가 표현하는 좌표계.
+     * 배경지도의 원본 좌표계를 설정해 이미지가 열화 없이 표출되도록 함
+     * @default 'EPSG:4326' vworld 배경지도 좌표계
+     * @memberof MOMapConfig
+     */
+    projection: `EPSG:3857`, //google map projected Pseudo-Mercator coordinate system. Also Vworld basemap coordinate
+    /** mindone */
+    center: [127.043879, 37.482099], 
+    enableRotation : false,
+};
+
+default_mapSpec = {
+    /** Map 이 생성될 기본 DIV id */
+    target: 'map',
+};
+
 let wmtsSource = new MOSourceConfig(layerSpec.sate);
 
 let map = new Map({
