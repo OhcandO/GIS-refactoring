@@ -1,5 +1,5 @@
-import { MOGISMap } from './MO.MOGISMap.js';
 import * as KEY from '../MO.keyMap.js';
+import { MOGISMap } from './MO.MOGISMap.js';
 
 /**
  * MOGISMap 을 인자로 받아, 해당 Map 객체의 레이어를 관장하는 
@@ -325,7 +325,7 @@ export class LayerTree {
         }
     }
     #getTreeIdArr(typeName, ftrIdn = "") {
-        let codeObjArr = structuredClone(this.layerCode.filter(layCD => layCD[KEY.TYPE_NAME] == typeName && layCD[KEY.BOOL_IS_LAYER] == "Y"))
+        let codeObjArr = structuredClone(this.layerCode.filter(layCD => layCD[KEY.TYPE_NAME] == typeName && layCD[KEY.BOOL_IS_GROUP] !== "Y"))
         if (codeObjArr?.length > 0) return codeObjArr.map(codeObj => "layerid_" + codeObj[KEY.ELEMENT_ID]);
         else return [];
     }
@@ -355,7 +355,7 @@ export class LayerTree {
          */
         function getCodeObjArrFromTypeName(typeName) {
             let codeObjArr = structuredClone(this.layerCode.filter(
-                (layCD) => layCD[KEY.TYPE_NAME]=== typeName && layCD[KEY.BOOL_IS_LAYER] === "Y"
+                (layCD) => layCD[KEY.TYPE_NAME]=== typeName && layCD[KEY.BOOL_IS_GROUP] !== "Y"
             ));
 
             //layerCode 상 같은 typeName 사용하는 레이어의 줌 레벨 선택

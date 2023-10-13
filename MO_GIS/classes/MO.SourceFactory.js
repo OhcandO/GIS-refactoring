@@ -12,52 +12,50 @@ import Source           from '../../lib/openlayers_v7.5.1/source/Source.js';
 import XYZ              from '../../lib/openlayers_v7.5.1/source/XYZ.js';
 import VectorSource     from '../../lib/openlayers_v7.5.1/source/Vector.js';
 import { vworld_compatibilities } from '../external/vworldCompatibilities.js';
+import {MOFactory} from './MO.Factory.js';
 
-export class SourceFactory {
+export class SourceFactory extends MOFactory{
     
-    #default_leyerSpec = {
-        zIndex: 5,
-        opacity: 1,
+    #default_sourceSpec = {
+        strategy : all,//loading strategy. out of : all, bbox, tile
+        crossOrigin : 'anonymous', //XYZ 
+        minZoom : 19 //XYZ
     };
     
-    #mergedLayerCodeElement;
-    #theSource; //생성자에 입력된 내용이 default 와 합쳐져 등록됨
+    #INSTANCE_ol_Source; //생성자에 입력된 내용이 default 와 합쳐져 등록됨
+    
+    #SourceRecipe;
 
-    /**
-     *
-     * @param {inputLayerSpec} inputLayerSpec
-     */
-    constructor(inputLayerSpec) {
-        this.#mergedLayerCodeElement = Object.assign(
-            this.#default_leyerSpec,
-            inputLayerSpec
-        );
+    constructor(default_param){
+        super();
+        Object.assign(this.#default_sourceSpec, default_param);
+    }
 
-        if (inputLayerSpec) {
-            //레이어의 소스 구성
-            this.#theSource = this.buildSource()
-            if(this.#theSource instanceof Source){
-                return this.#theSource;
-            }else{
-                console.groupCollapsed(`해당 source 객체는 openlayers 인스턴스 아님`);
-                console.log(inputLayerSpec);
-                console.groupEnd();
-                throw new Error(`해당 source 객체는 openlayers 인스턴스 아님`);
+    getSource() {
+        if(!this.#INSTANCE_ol_Source) {
+            try{
+                this.#INSTANCE_ol_Source = this.#buildSource();
+            }catch(e){
+                console.error(e);
+                return undefined;
             }
         }
-    }
-
-    get source() {
-        if(!this.#theSource) this.#theSource = this.buildSource();
-        return this.#theSource;
-    }
-
-    set source(ol_source){
-        if(ol_source instanceof Source){
-            this.#theSource = ol_source;
+        if(this.#INSTANCE_ol_Source instanceof Source){
+            return this.#INSTANCE_ol_Source;
         }else{
-            throw new Error(`입력한 source 가 Openlayers Source 객체 아님`);
+            console.groupCollapsed(`해당 source 객체는 openlayers 인스턴스 아님`);
+            console.log(inputLayerSpec);
+            console.groupEnd();
+            throw new Error(`해당 source 객체는 openlayers 인스턴스 아님`);
         }
+    }
+
+    /**
+     * 초기화
+     */
+    resetFactory(){
+        super.resetFactory();        
+        this.#INSTANCE_ol_Source = undefined;
     }
 
     /**
@@ -67,16 +65,16 @@ export class SourceFactory {
      * @return {} Openlayers source 파라미터로 사용할 수 있는 URL 폼
      * @memberof MOSourceConfig
      */
-    buildSource() {
+    #buildSource() {
         if (this.#isValid_category_source()) {
             try {
                 return this.#srcBuilder(
-                    this.#mergedLayerCodeElement[KEY.CATEGORY],
-                    this.#mergedLayerCodeElement[KEY.SOURCE_TYPE]
+                    super.getSpec()[KEY.CATEGORY],
+                    super.getSpec()[KEY.SOURCE_TYPE]
                 );
             } catch (e) {
                 console.groupCollapsed(`openlayers source 객체 생성실패`);
-                console.table(this.#mergedLayerCodeElement);
+                console.table(super.getSpec());
                 console.groupEnd();
                 throw new Error(`openlayers source 객체 생성실패`);
             } 
@@ -93,16 +91,14 @@ export class SourceFactory {
      */
     #isValid_category_source() {
         let bool = false;
-        let category, sourceType;
+        let category = super.getSpec()[KEY.CATEGORY]; //vworld, geoserver, emap etc.
+        let sourceType = super.getSpec()[KEY.SOURCE_TYPE]; //vector, xyz, wmts etc.
 
-        try {
-            category = this.#mergedLayerCodeElement[KEY.CATEGORY]; //vworld, geoserver, emap etc.
-            sourceType = this.#mergedLayerCodeElement[KEY.SOURCE_TYPE]; //vector, xyz, wmts etc.
-        } catch (e) {
+        if(!(category && sourceType)){
             console.groupCollapsed(`"category" 및 "source_type" 지정안됨`);
-            console.table(this.#mergedLayerCodeElement);
+            console.table(super.getSpec());
             console.groupEnd();
-            throw new Error(`"category" 및 "source_type" 지정안됨`);
+            return false;
         }
 
         //현재는 이 도메인과 소스타입으로만 구성중임
@@ -117,7 +113,7 @@ export class SourceFactory {
         );
         if (!bool) {
             console.groupCollapsed(`유효하지 않은 category, sourceType 지정`);
-            console.table(this.#mergedLayerCodeElement);
+            console.table(super.getSpec());
             console.groupEnd();
         }
         return bool;
@@ -130,34 +126,12 @@ export class SourceFactory {
      * @returns {Source}
      */
     #srcBuilder(category, sourceType) {
-        let sourceURL;
-        let srid;
         if (category == `geoserver` && sourceType == `vector`) {
-            let geojson_option;
-            
-            srid = this.#getValidSrid();
-            if(srid) geojson_option(`dataProjection`)=srid;
-
-            sourceURL = this.#urlBuilder_geoserver();
-            return new VectorSource({
-                format: new GeoJSON(geojson_option),
-                url: sourceURL,
-            });
-
+            return this.#srcBuilder_vector();
 
         } else if (category == `vworld` && sourceType == `xyz`) {
             
-            sourceURL = this.#urlBuilder_vworld_xyz();
-            let sourceOpion={
-                url: sourceURL,
-                maxZoom:19,
-                crossOrigin:'anonymous',
-            }
-            srid = this.#getValidSrid();
-            if(srid) sourceOpion[`projection`] = srid;
-
-            return new XYZ(sourceOpion);
-
+            return this.#srcBuilder_xyz();
 
         } else if (category == `vworld` && sourceType == `wmts`) {
             return this.#srcBuilder_wmts();
@@ -170,7 +144,7 @@ export class SourceFactory {
     }
 
     #getValidSrid() {
-        let SRID = this.#mergedLayerCodeElement[KEY.SRID];
+        let SRID = super.getSpec()[KEY.SRID];
         if (SRID) {
             //SRID == 'EPSG:5181' <--- 콜론 포함 이 형태가 되어야 함
             //SRID == 'EPSG4326'
@@ -194,12 +168,12 @@ export class SourceFactory {
      * @returns {URL}
      */
     #urlBuilder_geoserver() {
-        let origin = this.#mergedLayerCodeElement[KEY.ORIGIN] ||location.origin;
-        let pathName = this.#mergedLayerCodeElement[KEY.SOURCE_PATHNAME]; // "/geoserver/waternet/wfs/";
+        let origin = super.getSpec()[KEY.ORIGIN] ||location.origin;
+        let pathName = super.getSpec()[KEY.SOURCE_PATHNAME]; // "/geoserver/waternet/wfs/";
         let returnURL;
         if (pathName) {
             returnURL = new URL(pathName, origin); //origin 은 sourceURL 이 absolute 라면 무시됨
-            const typeName = this.#mergedLayerCodeElement[KEY.TYPE_NAME]; // "waternet:WTL_BLSM_AS_YS" etc.
+            const typeName = super.getSpec()[KEY.TYPE_NAME]; // "waternet:WTL_BLSM_AS_YS" etc.
 
             let paramString = new URLSearchParams();
             //WFS getFeature v2.0.0 공통 request
@@ -209,29 +183,28 @@ export class SourceFactory {
             paramString.set("version", "2.0.0");
             paramString.set("typeName", encodeURIComponent(typeName)); // :, %, & 등 특수기호들 uri 유효 형식으로 변환
             paramString.set(
-                `outputFormat`,
-                encodeURIComponent(`application/json`)
+                `outputFormat`,encodeURIComponent(`application/json`)
             );
 
-            const cqlFilter = this.#mergedLayerCodeElement[KEY.CQL_FILTER];
+            const cqlFilter = super.getSpec()[KEY.CQL_FILTER];
             if (cqlFilter) {
                 paramString.set(`cql_filter`, encodeURIComponent(cqlFilter));
             }
             return returnURL;
         } else {
             console.groupCollapsed(`source URL 이 정의되지 않음`);
-            console.log(this.#mergedLayerCodeElement);
+            console.log(super.getSpec());
             throw new Error(`source URL 이 정의되지 않음`);
         }
     }
     #urlBuilder_vworld_xyz() {
-        let origin = this.#mergedLayerCodeElement[this.KEY.ORIGIN] ||location.origin;
-        let pathName = this.#mergedLayerCodeElement[KEY.SOURCE_PATHNAME]; // "http://xdworld.vworld.kr:8080/2d/Satellite/service/{z}/{x}/{y}.jpeg";
+        let origin = super.getSpec()[this.KEY.ORIGIN] ||location.origin;
+        let pathName = super.getSpec()[KEY.SOURCE_PATHNAME]; // "http://xdworld.vworld.kr:8080/2d/Satellite/service/{z}/{x}/{y}.jpeg";
         if (pathName) {
             return new URL(pathName, origin); //origin 은 sourceURL 이 absolute 라면 무시됨
         } else {
             console.groupCollapsed(`source URL 이 정의되지 않음`);
-            console.log(this.#mergedLayerCodeElement);
+            console.log(super.getSpec());
             throw new Error(`source URL 이 정의되지 않음`);
         }
     }
@@ -242,8 +215,8 @@ export class SourceFactory {
      */
     #srcBuilder_wmts(){
         if(this.#isValid_apiKey()){
-            const typeName = this.#mergedLayerCodeElement[KEY.TYPE_NAME];
-            const wmtsConfigTemplate = vworld_compatibilities.replaceAll('{{{ $APIKEY }}}',this.#mergedLayerCodeElement[KEY.APIKEY]);
+            const typeName = super.getSpec()[KEY.TYPE_NAME];
+            const wmtsConfigTemplate = vworld_compatibilities.replaceAll('{{{ $APIKEY }}}',super.getSpec()[KEY.APIKEY]);
             const result = new WMTSCapabilities().read(wmtsConfigTemplate);
             let sourceOption;
             if(typeName){
@@ -254,18 +227,46 @@ export class SourceFactory {
                 throw new Error(`invalid typeName : ${typeName}`);
             }
         }
-        
+    }
+
+    #srcBuilder_vector(){
+        let geojson_option;
+            
+        let srid = this.#getValidSrid();
+        if(srid) geojson_option(`dataProjection`)=srid;
+
+        let vectorOption={
+            format: new GeoJSON(geojson_option),
+            url: this.#urlBuilder_geoserver(),
+        };
+
+        vectorOption = Object.assign({},this.#default_sourceSpec,vectorOption);
+
+        return new VectorSource(vectorOption);
+    }
+
+    #srcBuilder_xyz(){
+        let sourceOption={
+            url: this.#urlBuilder_vworld_xyz(),
+            maxZoom : 19,
+            crossOrigin :'anonymous',
+        }
+        let srid = this.#getValidSrid();
+        if(srid) sourceOption[`projection`] = srid;
+        sourceOption = Object.assign({}, this.#default_sourceSpec, sourceOption);
+
+        return new XYZ(sourceOption);
     }
 
     #isValid_apiKey(){
         let bool = false;
-        let apiKey = this.#mergedLayerCodeElement[KEY.APIKEY];
+        let apiKey = super.getSpec()[KEY.APIKEY];
         if(apiKey){
             //TODO 추가적인 API 키 유효성 검증 로직이 있으면 추가
             bool = true;
         }else{
             console.groupCollapsed(`apiKey 정보가 입력되지 않음`);
-            console.log(this.#mergedLayerCodeElement);
+            console.log(super.getSpec());
             throw new Error (`apiKey 정보가 입력되지 않음`);
         }
         return bool;
