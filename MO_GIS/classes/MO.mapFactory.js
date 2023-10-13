@@ -26,7 +26,7 @@ register(proj4);
  * @param {string} mapSpecObj.fetchURL - 서버로부터 데이터를 가져와야 하는지
  * @param {string} mapSpecObj.targetID - 최종 지도 객체가 연결될 화면의 DIV id
  */
-const mapFactory = function(mapConfig){
+const MapFactory = function(mapConfig){
     let mapObj;
 
     if(mapConfig instanceof MOMapConfig){

@@ -2,7 +2,7 @@ import Control from "../../lib/openlayers_v7.5.1/control/Control.js";
 import Map from '../../lib/openlayers_v7.5.1/Map.js'
 import View from '../../lib/openlayers_v7.5.1/View.js'
 import { LayerTree } from "./MO.LayerTree.js";
-import { MOSourceConfig } from "./MO.SourceConfig.js";
+import { SourceFactory } from "./MO.SourceFactory.js";
 import VectorImageLayer from '../../lib/openlayers_v7.5.1/layer/VectorImage.js'
 
 export class MOGISMap extends Map {
@@ -87,6 +87,6 @@ export class MOGISMap extends Map {
 
     createLayer(){
         let layer = new VectorImageLayer();
-        layer.setSource(new MOSourceConfig())
+        layer.setSource(new SourceFactory())
     }
 }

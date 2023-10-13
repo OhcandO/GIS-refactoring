@@ -3,7 +3,7 @@
  * MindOne GIS Openlayers 라이브러리 최적 사용을 위한 JS 모듈화 프로젝트
  * 그 중 entry point 로서 사용하기 위한 core 파일
  */
-import { MOSourceConfig } from "./classes/MO.SourceConfig.js";
+import { SourceFactory } from "./classes/MO.SourceFactory.js";
 import Map from "../lib/openlayers_v7.5.1/Map.js";
 import TileLayer from '../lib/openlayers_v7.5.1/layer/Tile.js';
 import View from "../lib/openlayers_v7.5.1/View.js";
@@ -63,7 +63,7 @@ default_mapSpec = {
     target: 'map',
 };
 
-let wmtsSource = new MOSourceConfig(layerSpec.sate);
+let wmtsSource = new SourceFactory(layerSpec.sate);
 
 let map = new Map({
     target: "map",
