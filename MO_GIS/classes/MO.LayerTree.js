@@ -211,7 +211,7 @@ export class LayerTree {
                     let layer = realLayer.find((el) => el[KEY.ELEMENT_ID] == id);
                     if (layer) layer.setVisible(visible);
                     else {
-                        me.#INSTANCE_MOGISMAP
+                        me.#INSTANCE_MOGISMAP  //TODO 레이어 트리와 LayerFactoru 연동
                     }
                 });
             }

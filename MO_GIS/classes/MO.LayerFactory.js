@@ -73,29 +73,38 @@ class LayerFactory extends MOFactory{
         }
         return bool;
     }
-    /** LayerCode 의 Key-Val 에서 Layer 객체 생성에 유효한 항목만 필터링 */ 
-    #getValidLayerObject(){
-        return Object.fromEntries(Object.entries(super.getSpec())
-                    .filter(([spec_key,v])=>Object.keys(this.#default_leyerSpec)
-                                            .some(default_key=>default_key===spec_key)));
+    /** default Object에 source Object 를 합침
+     *  Default Object Key 들만 수행
+     *  결과적으로 Default Object 키만 유효하게 남음 */ 
+    #getDefaultMergedObject(default_obj, source_obj){
+        return Object.entries(default_obj).reduce((pre,[key,val])=>(pre[key]=source_obj[key]?source_obj[key]:val, pre),{});
     }    
     #layerBuilder(){
-        let tileOption=this.#getValidLayerObject();
+        let tileOption=this.#getDefaultMergedObject(this.#default_leyerSpec, super.getSpec());
 
-        //1. 배경지도용 WMTS 소스
-        if(this.#INSTANCE_ol_Source instanceof WMTS){
-            return new TileLayer(tileOption);
-        }
+        let returnlayer;
 
-        //2. 배경지도용 XYZ 소스
-        else if (this.#INSTANCE_ol_Source instanceof XYZ){ //TODO : 타일레이어는 하나로 붙일까?
-            return new TileLayer(tileOption)
-        }
+        try{
 
-        //3. VectorImage 레이어용
-        else if (this.#INSTANCE_ol_Source instanceof VectorSource){
-            return new VectorImageLayer(tileOption);
+            //1. 배경지도용 WMTS 소스
+            if(this.#INSTANCE_ol_Source instanceof WMTS){
+                returnlayer = new TileLayer(tileOption);
+            }
+    
+            //2. 배경지도용 XYZ 소스
+            else if (this.#INSTANCE_ol_Source instanceof XYZ){ //TODO : 타일레이어는 하나로 붙일까?
+                returnlayer = new TileLayer(tileOption)
+            }
+    
+            //3. VectorImage 레이어용
+            else if (this.#INSTANCE_ol_Source instanceof VectorSource){
+                returnlayer = new VectorImageLayer(tileOption);
+            }
+        } catch(e){
+            console.log(`레이어 생성 실패 #layerBuilder`);
+            console.error(e);
         }
+        return returnlayer;
     }
 
 }
