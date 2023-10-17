@@ -13,11 +13,12 @@ import XYZ              from '../../lib/openlayers_v7.5.1/source/XYZ.js';
 import VectorSource     from '../../lib/openlayers_v7.5.1/source/Vector.js';
 import { vworld_compatibilities } from '../external/vworldCompatibilities.js';
 import {MOFactory} from './MO.Factory.js';
+// import { LoadingStrategy } from '../../lib/openlayers_v7.5.1/source/Vector.js';
 
 export class SourceFactory extends MOFactory{
     
     #default_sourceSpec = {
-        strategy : all,//loading strategy. out of : all, bbox, tile
+        // strategy : LoadingStrategy,//loading strategy. out of : all, bbox, tile
         crossOrigin : 'anonymous', //XYZ 
         minZoom : 19 //XYZ
     };

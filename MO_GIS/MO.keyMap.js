@@ -40,5 +40,3 @@ export const CQL_FILTER = `cqlfilter`;
 export const APIKEY = `apiKey`;
 export const SRID = `srid`;
 export const CATEGORY = `category`;
-
-/* Openlayers 고정 키 값 관련 */

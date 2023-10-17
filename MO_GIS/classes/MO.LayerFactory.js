@@ -15,10 +15,11 @@ import VectorImageLayer from '../../lib/openlayers_v7.5.1/layer/VectorImage.js';
  * @class LayerFactory
  * @author jhoh
  */
-class LayerFactory extends MOFactory{
+export class LayerFactory extends MOFactory{
 
     /**Openlayers 라이브러리의 Layer 객체에서 사용하는 키 값  */
     #default_leyerSpec = {
+        id:undefined,
         zIndex: 5,
         opacity: 1, //투명도. 0~1 범위 소숫점 가능
         minZoom: undefined, // 설정된 줌 보다 멀리 떨어지면 레이어 비활성
@@ -73,17 +74,20 @@ class LayerFactory extends MOFactory{
         }
         return bool;
     }
-    /** default Object에 source Object 를 합침
+    /** default Object에 source Object 를 합치되,
      *  Default Object Key 들만 수행
-     *  결과적으로 Default Object 키만 유효하게 남음 */ 
-    #getDefaultMergedObject(default_obj, source_obj){
-        return Object.entries(default_obj).reduce((pre,[key,val])=>(pre[key]=source_obj[key]?source_obj[key]:val, pre),{});
-    }    
+     *  결과적으로 Default Object의 키만 유효하게 남음 */ 
+    // #getDefaultMergedObject(default_obj, source_obj){
+    //     return Object.entries(default_obj).reduce((pre,[key,val])=>(pre[key]=source_obj[key]?source_obj[key]:val, pre),{});
+    // }    
+    /**
+     * Source 인스턴스에 따라 레이어를 생성해 반환
+     * default layer 특성에 layerCode 의 내용을 합쳐 생성 parameter로 삼음
+     * @returns {Layer}
+     */
     #layerBuilder(){
-        let tileOption=this.#getDefaultMergedObject(this.#default_leyerSpec, super.getSpec());
-
+        let tileOption=super.getDefaultMergedObject(this.#default_leyerSpec, super.getSpec());
         let returnlayer;
-
         try{
 
             //1. 배경지도용 WMTS 소스
@@ -92,7 +96,7 @@ class LayerFactory extends MOFactory{
             }
     
             //2. 배경지도용 XYZ 소스
-            else if (this.#INSTANCE_ol_Source instanceof XYZ){ //TODO : 타일레이어는 하나로 붙일까?
+            else if (this.#INSTANCE_ol_Source instanceof XYZ){
                 returnlayer = new TileLayer(tileOption)
             }
     

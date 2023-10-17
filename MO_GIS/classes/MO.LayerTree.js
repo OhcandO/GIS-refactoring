@@ -32,7 +32,7 @@ export class LayerTree {
         tree_div:`<div id="${this.#TARGET_ID_TREE}" style="${this.#style.tree_div}"></div>`,
     }
 
-    #INSTANCE_TREE;
+    #INSTANCE_JS_TREE;
     #INSTANCE_MOGISMAP;
 
     /** 소스+레이어 정보 코드 리스트 
@@ -54,7 +54,7 @@ export class LayerTree {
             this.#TARGET_ID_MAP = mo_gis_map.getTarget(); //ol.Map 메서드
             this.#TARGET_ID_TREE = `${this.#TARGET_ID_MAP}-layer-tree`;
             // mo_gis_map.setTree(mo_gis_map);
-            mo_gis_map.setTree(this);
+            mo_gis_map.tree=this;
         }else{
             throw new Error (`MOGISMap 객체가 아님`);
         }
@@ -114,7 +114,7 @@ export class LayerTree {
             plugins: ["wholerow", "checkbox"],
         });
 
-        this.#INSTANCE_TREE = $(`#${this.#TARGET_ID_TREE}`).jstree(true);
+        this.#INSTANCE_JS_TREE = $(`#${this.#TARGET_ID_TREE}`).jstree(true);
     }
 
     #createTreeDiv(){
@@ -171,10 +171,10 @@ export class LayerTree {
             }
 
             if (visible === "Y") {
-                let tnode = this.#INSTANCE_TREE.get_node("layerid_" + id);
+                let tnode = this.#INSTANCE_JS_TREE.get_node("layerid_" + id);
                 if (!tnode) continue;
                 if (tnode.state.selected == false) {
-                    this.#INSTANCE_TREE.check_node(tnode);
+                    this.#INSTANCE_JS_TREE.check_node(tnode);
                 }
             }
         }
@@ -211,7 +211,9 @@ export class LayerTree {
                     let layer = realLayer.find((el) => el[KEY.ELEMENT_ID] == id);
                     if (layer) layer.setVisible(visible);
                     else {
-                        me.#INSTANCE_MOGISMAP  //TODO 레이어 트리와 LayerFactoru 연동
+                        //MOGisMap 통해 레이어 생성하는 로직 진행
+                        //me.#INSTANCE_MOGISMAP  //TODO 레이어 트리와 LayerFactory 연동
+
                     }
                 });
             }
@@ -293,9 +295,9 @@ export class LayerTree {
      * gis.edit.js 에서 사용했었음
      */
     checkTreeOfId(id) {
-        let boolean = this.#INSTANCE_TREE.is_selected(id);
+        let boolean = this.#INSTANCE_JS_TREE.is_selected(id);
         if (!boolean) {
-            this.#INSTANCE_TREE.select_node(id);
+            this.#INSTANCE_JS_TREE.select_node(id);
         }
     }
 
@@ -307,7 +309,7 @@ export class LayerTree {
         let tempTreeIdArr = this.#getTreeIdArr(typeName);
         if (tempTreeIdArr.length > 0) {
             tempTreeIdArr.forEach((treeId) => {
-                this.#INSTANCE_TREE.deselect_node(treeId);
+                this.#INSTANCE_JS_TREE.deselect_node(treeId);
             });
         }
     }
@@ -317,7 +319,7 @@ export class LayerTree {
             let tempTreeIdArr = this.#getTreeIdArr(typeName, ftrIdn);
             if (tempTreeIdArr.length > 0) {
                 tempTreeIdArr.forEach((treeId) => {
-                    this.#INSTANCE_TREE.select_node(treeId);
+                    this.#INSTANCE_JS_TREE.select_node(treeId);
                 });
             }
         } else {
@@ -368,7 +370,7 @@ export class LayerTree {
         /**treeID 배열의 모든 요소가 선택된 상태인지 확인. instance는 jstree임 객체
          */
         const isEveryNodeSelected=(treeIdArr)=> {
-            return treeIdArr.every((nodeId) =>this.#INSTANCE_TREE.is_selected(nodeId));
+            return treeIdArr.every((nodeId) =>this.#INSTANCE_JS_TREE.is_selected(nodeId));
         }
 
         // 입력된 typeName 을 속성으로 하는 GisApp.LayerCode 의 요소들의 id 를 추출
@@ -392,7 +394,7 @@ export class LayerTree {
                 //전역함수 showloadingbar
                 showLoadingBar(`#${this.#TARGET_ID_MAP}`);
                 tempTreeIdArr.forEach((treeId) => {
-                    this.#INSTANCE_TREE.select_node(treeId);
+                    this.#INSTANCE_JS_TREE.select_node(treeId);
                 });
             }
         });
