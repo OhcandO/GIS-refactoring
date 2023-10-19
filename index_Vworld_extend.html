@@ -10,6 +10,7 @@
     <title>브이월드 오픈API</title>
     <title>2DMap</title>
     <link rel="stylesheet" href="./lib/openlayers_v7.5.1/ol.css">
+    <link rel="stylesheet" href="./lib/spin.js/spin.css">
     <script type="module" src="./MO_GIS/MO.main.js"></script>
     <style>
         .olControlAttribution {
@@ -22,15 +23,20 @@
         }
 
         #map {
+            position: relative;
             height: 600px;
             border: 1px solid brown;
+        }
+        #spin {
+            height: 100px;
+            width: 50%;
+            border: 1px solid blue;
         }
     </style>
 </head>
 
 <body>
     <div id="map"></div>
-
 </body>
 
 </html>

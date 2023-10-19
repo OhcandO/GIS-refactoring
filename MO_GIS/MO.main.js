@@ -5,8 +5,9 @@
  */
 import { SourceFactory } from "./classes/MO.SourceFactory.js";
 import Map from "../lib/openlayers_v7.5.1/Map.js";
-import TileLayer from '../lib/openlayers_v7.5.1/layer/Tile.js';
 import View from "../lib/openlayers_v7.5.1/View.js";
+import { LayerFactory } from "./classes/MO.LayerFactory.js";
+import {Spinner} from '../lib/spin.js/spin.js';
 
 const layerSpec = {
     base: {
@@ -45,7 +46,7 @@ const layerSpec = {
     },
 };
 
-default_viewSpec = {
+const default_viewSpec = {
     /**
      * Openlayers 뷰 포트 객체가 표현하는 좌표계.
      * 배경지도의 원본 좌표계를 설정해 이미지가 열화 없이 표출되도록 함
@@ -58,12 +59,30 @@ default_viewSpec = {
     enableRotation : false,
 };
 
-default_mapSpec = {
+const default_mapSpec = {
     /** Map 이 생성될 기본 DIV id */
     target: 'map',
 };
 
-let wmtsSource = new SourceFactory(layerSpec.sate);
+let srcFactory = new SourceFactory();
+srcFactory.setSpec(layerSpec.base);
+let source;
+try{
+    source = srcFactory.getSource();
+    // console.log(source)
+}catch(e){
+    console.error(e);
+}
+let layerFactory = new LayerFactory();
+layerFactory.setSpec(layerSpec.base);
+layerFactory.setSource(source);
+let layer;
+try{
+    layer = layerFactory.getLayer();
+    // console.log(layer)
+}catch(e){
+    console.error(e);
+}
 
 let map = new Map({
     target: "map",
@@ -75,6 +94,36 @@ let map = new Map({
     }),
 });
 
-map.addLayer(new TileLayer({source: wmtsSource}));
+map.addLayer(layer);
+
+
+//----SPINNER
+
+ let op = {
+     lines: 15,
+     length: 38,
+     width: 12,
+     radius: 38,
+     scale: 1,
+     corners: 1,
+     speed: 1,
+     rotate: 0,
+     animation: "spinner-line-fade-more",
+     direction: "1",
+     color: "#ffffff",
+     fadeColor: "transparent",
+     top: "50%",
+     left: "50%",
+     shadow: "grey 3px 4px 8px 1px",
+     zIndex: 2000000000,
+     className: "spinner",
+     position: "absolute",
+ };
+
+let spin = new Spinner(op).spin(document.querySelector('#map'))
+
 
 globalThis.map = map;
+globalThis.srcFactory = srcFactory;
+globalThis.layerFactory = layerFactory;
+globalThis.spin = spin;
