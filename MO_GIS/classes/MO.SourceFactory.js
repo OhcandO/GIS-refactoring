@@ -1,18 +1,19 @@
 /**
  * DB 에 있는 자료를 개별 레이어의 ol/source 로 구성하는 클래스.
+ * (원래는 이 클래스가 Abstact Class 화 되어 WMTSSourceFactory 등으로 구현되었어야 함)
  * @export
  * @class MOSourceConfig
  * @author jhoh
  */
-import * as KEY from '../MO.keyMap.js';
+import * as KEY from '../common/MO.keyMap.js';
 import GeoJSON          from '../../lib/openlayers_v7.5.1/format/GeoJSON.js';
 import WMTSCapabilities from '../../lib/openlayers_v7.5.1/format/WMTSCapabilities.js';
 import WMTS, {optionsFromCapabilities} from '../../lib/openlayers_v7.5.1/source/WMTS.js';
 import Source           from '../../lib/openlayers_v7.5.1/source/Source.js';
 import XYZ              from '../../lib/openlayers_v7.5.1/source/XYZ.js';
 import VectorSource     from '../../lib/openlayers_v7.5.1/source/Vector.js';
-import { vworld_compatibilities } from '../external/vworldCompatibilities.js';
-import {MOFactory} from './MO.Factory.js';
+import { vworld_compatibilities } from '../vworld/vworldCompatibilities.js';
+import {MOFactory} from './abstract/MO.Factory.js';
 // import { LoadingStrategy } from '../../lib/openlayers_v7.5.1/source/Vector.js';
 
 export class SourceFactory extends MOFactory{
@@ -25,8 +26,6 @@ export class SourceFactory extends MOFactory{
     
     #INSTANCE_ol_Source; //생성자에 입력된 내용이 default 와 합쳐져 등록됨
     
-    #SourceRecipe;
-
     constructor(default_param){
         super();
         Object.assign(this.#default_sourceSpec, default_param);

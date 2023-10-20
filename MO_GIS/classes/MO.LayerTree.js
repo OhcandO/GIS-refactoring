@@ -1,4 +1,5 @@
-import * as KEY from '../MO.keyMap.js';
+import { Spinner } from '../../lib/spin.js/spin.js';
+import * as KEY from '../common/MO.keyMap.js';
 import { MOGISMap } from './MO.MOGISMap.js';
 
 /**
@@ -37,7 +38,7 @@ export class LayerTree {
 
     /** 소스+레이어 정보 코드 리스트 
      * @type {JSON} */
-    layerCode;
+    layerCodeArr;
 
     /** 코드 리스트를 계층구조로 만든 것
      * @type {JSON} */
@@ -53,6 +54,8 @@ export class LayerTree {
             this.#INSTANCE_MOGISMAP = mo_gis_map;
             this.#TARGET_ID_MAP = mo_gis_map.getTarget(); //ol.Map 메서드
             this.#TARGET_ID_TREE = `${this.#TARGET_ID_MAP}-layer-tree`;
+
+            if(mo_gis_map.layerCodeArr) this.#setLayerCodeArr(mo_gis_map.layerCodeArr);
             // mo_gis_map.setTree(mo_gis_map);
             mo_gis_map.tree=this;
         }else{
@@ -69,11 +72,11 @@ export class LayerTree {
      * @param {String} child_mark NESTED 구조체 만들기 위한 (childList)
      * @memberof LayerTree
      */
-    setLayerCode(layerCodeArr, target_id =`${KEY.ELEMENT_ID}`, parent_id =`${KEY.PARENT_ID}`, child_mark=`${KEY.CHILD_MARK}`){
+    #setLayerCodeArr(layerCodeArr, target_id =`${KEY.LAYER_ID}`, parent_id =`${KEY.PARENT_ID}`, child_mark=`${KEY.CHILD_MARK}`){
         if(layerCodeArr instanceof Array){
-            this.layerCode = layerCodeArr;
+            this.layerCodeArr = layerCodeArr;
             try{
-                this.layerStructure = jsonNestor(this.layerCode, target_id, parent_id, child_mark);
+                this.layerStructure = jsonNestor(this.layerCodeArr, target_id, parent_id, child_mark);
             }catch(e){
                 console.error(e);
             }
@@ -88,6 +91,14 @@ export class LayerTree {
      * @memberof LayerTree
      */
     activate(){
+        if(!(this.layerCodeArr?.length > 0)){
+            try{
+                this.#setLayerCodeArr(this.#INSTANCE_MOGISMAP.layerCodeArr);
+            }catch(e){
+                console.log(`layerCodeArr (JSON) 이 등록되어야 함`)
+                console.error(e);
+            }
+        }
         this.#createTree(this.layerStructure);
         this.checkEventListener();
         this.selectableTree(this.defaults.treeList);
@@ -130,20 +141,21 @@ export class LayerTree {
         let html = ``;
         level = level || 1;
         array.forEach(layer => {
-            const id = layer[KEY.ELEMENT_ID];
+            const id = layer[KEY.LAYER_ID];
             const name = layer[KEY.LAYER_NAME];
             const type = layer[KEY.LAYER_TYPE];
-            const isLayer = layer[KEY.BOOL_VISIBLE] || "N";
+            const isGroup = layer[KEY.BOOL_IS_GROUP] || "N";
             let hasChild = false;
 
             if (layer[KEY.CHILD_MARK]?.length > 0) hasChild = true;
             if (level == 1) html += `<ul>`;
-            if (isLayer == "Y") {
-                let src = this.#makeLegendSrc(layer);
-                html += `<li id="layerid_${id}" data-layerid="${id}" data-type="${type}" class="${type} ${id}"><img src="${src}" style="width:16px;"/>&nbsp;&nbsp;${name}</li>`;
-            } else {
+            if(isGroup == "Y") {
                 html += `<li id="${id}">${name}<ul>`;
             }
+            else {
+                let src = this.#makeLegendSrc(layer);
+                html += `<li id="layerid_${id}" data-layerid="${id}" data-type="${type}" class="${type} ${id}"><img src="${src}" style="width:16px;"/>&nbsp;&nbsp;${name}</li>`;
+            } 
             if (hasChild) {
                 level++;
                 html += this.#createWrap(layer[KEY.CHILD_MARK], level);
@@ -204,16 +216,14 @@ export class LayerTree {
                 nodeId = data.node.id;
                 pushLayerList(nodeId, layerList);
             }
-            // core.setLayerOnMap(layerList, visible); // Map 객체에 의존적임
             if (layerList.length > 0) {
                 const realLayer = me.#INSTANCE_MOGISMAP.map.getLayers().getArray();
                 layerList.forEach((id) => {
-                    let layer = realLayer.find((el) => el[KEY.ELEMENT_ID] == id);
+                    let layer = realLayer.find((el) => el[KEY.LAYER_ID] == id);
                     if (layer) layer.setVisible(visible);
                     else {
                         //MOGisMap 통해 레이어 생성하는 로직 진행
-                        //me.#INSTANCE_MOGISMAP  //TODO 레이어 트리와 LayerFactory 연동
-
+                        me.#INSTANCE_MOGISMAP.addLayerWithID(id);
                     }
                 });
             }
@@ -327,8 +337,8 @@ export class LayerTree {
         }
     }
     #getTreeIdArr(typeName, ftrIdn = "") {
-        let codeObjArr = structuredClone(this.layerCode.filter(layCD => layCD[KEY.TYPE_NAME] == typeName && layCD[KEY.BOOL_IS_GROUP] !== "Y"))
-        if (codeObjArr?.length > 0) return codeObjArr.map(codeObj => "layerid_" + codeObj[KEY.ELEMENT_ID]);
+        let codeObjArr = structuredClone(this.layerCodeArr.filter(layCD => layCD[KEY.TYPE_NAME] == typeName && layCD[KEY.BOOL_IS_GROUP] !== "Y"))
+        if (codeObjArr?.length > 0) return codeObjArr.map(codeObj => "layerid_" + codeObj[KEY.LAYER_ID]);
         else return [];
     }
 
@@ -381,18 +391,30 @@ export class LayerTree {
             });
         }
         return new Promise((reso, _reje) => {
+            let spin = new Spinner({
+                lines: 15, length: 38, width: 12, radius: 38,
+                scale: 1, corners: 1, speed: 1, rotate: 0,
+                animation: "spinner-line-fade-more",
+                direction: "1", color: "#ffffff",
+                fadeColor: "transparent",
+                top: "50%", left: "50%", shadow: "grey 3px 4px 8px 1px",
+                zIndex: 2000000000,
+                className: "spinner", position: "absolute",
+            })
             //1. 노드가 이미 선택되어 있다면 바로 다음 Prmomise chaining 호출
             if (isEveryNodeSelected(tempTreeIdArr)) {
                 reso();
             } else {
                 this.#INSTANCE_MOGISMAP.view.setZoom(minZoom + 0.2);
                 this.#INSTANCE_MOGISMAP.map.once("rendercomplete",  (e)=> {
-                    hideLoadingBar(`#${this.#TARGET_ID_MAP}`);
+                    // hideLoadingBar(`#${this.#TARGET_ID_MAP}`);
+                    spin.stop();
                     reso();
                 });
 
                 //전역함수 showloadingbar
-                showLoadingBar(`#${this.#TARGET_ID_MAP}`);
+                // showLoadingBar(`#${this.#TARGET_ID_MAP}`);
+                spin.spin(document.querySelector(`#${this.#TARGET_ID_MAP}`));
                 tempTreeIdArr.forEach((treeId) => {
                     this.#INSTANCE_JS_TREE.select_node(treeId);
                 });
@@ -410,7 +432,7 @@ export class LayerTree {
  * @param {String} child_mark NESTED 구조체 만들기 위한 
  * @returns 
  */
-function jsonNestor (array, target_id =`${KEY.ELEMENT_ID}`, parent_id =`${KEY.PARENT_ID}`, child_mark=`${KEY.CHILD_MARK}`){
+function jsonNestor (array, target_id =`${KEY.LAYER_ID}`, parent_id =`${KEY.PARENT_ID}`, child_mark=`${KEY.CHILD_MARK}`){
     if(array?.length>0){
         function FINDER (srcArr, targetElem){    
             let rere

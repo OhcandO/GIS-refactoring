@@ -1,12 +1,12 @@
-import * as KEY from '../MO.keyMap.js';
+import * as KEY from '../common/MO.keyMap.js';
 import Control from "../../lib/openlayers_v7.5.1/control/Control.js";
 import Map from '../../lib/openlayers_v7.5.1/Map.js'
 import View from '../../lib/openlayers_v7.5.1/View.js'
-import VectorImageLayer from '../../lib/openlayers_v7.5.1/layer/VectorImage.js'
 import { LayerTree } from "./MO.LayerTree.js";
-import { MOFactory } from "./MO.Factory.js";
+import { MOFactory } from "./abstract/MO.Factory.js";
 import { SourceFactory } from "./MO.SourceFactory.js";
 import { LayerFactory } from "./MO.LayerFactory.js";
+import { StyleFactory } from './MO.StyleFactory.js';
 
 /**
  * ol.Map 확장하고 지도와 레이어 생성을 관장하는 Controller 역할수행
@@ -37,15 +37,24 @@ export class MOGISMap extends Map {
     #INSTANCE_OL_VIEW;
     #INSTANCE_OL_MAP;
     #INSTANCE_LAYERTREE;
-    
-    #Factory={
-        source:undefined,
-        style:undefined,
-        layer:undefined,
-    }
-    #LayerFactory;
-    #SourceFactory;
 
+    #Factory = {
+        source: undefined,
+        style: undefined,
+        layer: undefined,
+    };
+
+    /**
+     * Vector 레이어들의 소스+레이어 정보 코드 리스트
+     * @type {JSON}
+     */
+    layerCodeArr;
+
+    /**
+     * 기본 배경지도의 소스(API키 포함)+레이어 정보 코드 리스트
+     * @type {JSON}
+     */
+    layerCodeArrBase;
     /**
      * 입력한 변수들을 Map 또는 View 객체 생성을 위한 변수로 할당
      * @param {Object} mapConfigSpec Map 또는 View 객체 생성을 위한 key-value Object
@@ -54,7 +63,8 @@ export class MOGISMap extends Map {
         if (mapConfigSpec instanceof Object) {
             Object.entries(mapConfigSpec).forEach(([key, val]) => {
                 if (this.default_mapSpec[key]) this.default_mapSpec[key] = val;
-                if (this.default_viewSpec[key]) this.default_viewSpec[key] = val;
+                if (this.default_viewSpec[key])
+                    this.default_viewSpec[key] = val;
             });
         }
         // 결과로서 Map 객체를 반환
@@ -101,62 +111,179 @@ export class MOGISMap extends Map {
         }
     }
 
+    //🔻⬜⬜⬜⬜⬜LayerCode 관련⬜⬜⬜⬜
+
+    /**
+     * 레이어 소스 + 스타일 JSON 등록
+     * @param {JSON} layerCDArr
+     * @memberof MOGISMap
+     */
+    setLayerCodeArr(layerCDArr) {
+        if (layerCDArr instanceof Array) {
+            this.layerCodeArr = layerCDArr;
+        } else {
+            console.error(`layerCode JSON 객체가 적합하지 않음`);
+            throw new Error(`layerCode JSON 객체가 적합하지 않음`);
+        }
+    }
+
+    /**
+     * 레이어 소스 + 스타일 JSON 등록
+     * @param {JSON} layerCDArr
+     * @memberof MOGISMap
+     */
+    setBaseLayerCodeArr(layerCDArr) {
+        if (layerCDArr instanceof Array) {
+            this.LayerCodeArrBase = layerCDArr;
+        } else {
+            console.error(`layerCode JSON 객체가 적합하지 않음`);
+            throw new Error(`layerCode JSON 객체가 적합하지 않음`);
+        }
+    }
+
+    /**
+     * 레이어 아이디로 LayerCode 를 찾아 반환
+     * @param {String} layerID
+     * @return {Object} 
+     * @memberof MOGISMap
+     */
+    getALayerCode(layerID) {
+        if (layerID) {
+            return this.layerCodeArr.find(code=>code[KEY.LAYER_ID]);
+        }else{
+            throw new Error(`레이어아이디 적합하지 않음 : ${layerID}`)
+        }
+    }
+    //🔺⬜⬜⬜LayerCode 관련 끝⬜⬜⬜
+
+    //🔻🔵🔵🔵Factory 관련🔵🔵🔵🔵
     /**
      * MOFactory subClass 를 등록 (레이어 Factory, 소스 Factory);
      *
      * @param {MOFactory} factory
      * @memberof MOGISMap
      */
-    setFactory(factory){
-        if(factory instanceof MOFactory){
-
-            if(factory instanceof SourceFactory){
+    setFactory(factory) {
+        if (factory instanceof MOFactory) {
+            if (factory instanceof SourceFactory) {
                 this.#Factory.source = factory;
-            }else if (factory instanceof LayerFactory){
+            } else if (factory instanceof LayerFactory) {
                 this.#Factory.layer = factory;
+            } else if (factory instanceof StyleFactory) {
+                this.#Factory.style = factory;
             }
-            //TODO StyleFactory 들어가야 함
-        }else{
+        } else {
             console.log(factory);
-            throw new Error (`입력된 Factory가 적합한 인스턴스 아님`);
+            throw new Error(`입력된 Factory가 적합한 인스턴스 아님`);
         }
     }
 
-    #isValid_factories(){
+    #isValid_factories() {
         let bool = false;
         // Factory 에 등록된 모든 요소들이 MOFactory 의 서브클래스인지 확인
-        bool = Object.values(this.#Factory).every(fac=>fac instanceof MOFactory);
+        bool = Object.values(this.#Factory).every(
+            (fac) => fac instanceof MOFactory
+        );
         return bool;
     }
+
+    #ERROR_factory() {
+        let notAssignedFactoryKeyArr = Object.keys(this.#Factory).filter(
+            (key) => !this.#Factory[key]
+        );
+        console.error(
+            `다음 Factory들이 정의되지 않음 : ${notAssignedFactoryKeyArr.toString()}`
+        );
+        throw new Error();
+    }    
+    //🔺🔵🔵🔵Factory 관련🔵🔵🔵🔵
+
     /* ===================================
     =======레이어 생성 관련 ============= 
     =====================================*/
-    #ERROR_factory(){
-        let notAssignedFactoryKeyArr = Object.keys(this.#Factory).filter(key=>!this.#Factory[key]);
-        console.error(`다음 Factory들이 정의되지 않음 : ${notAssignedFactoryKeyArr.toString()}`);
-        throw new Error()
-    }
+   
     //1. 배경지도 레이어 생성 및 지도에 포함
-    setBaseLayer(){
-        if(this.#isValid_factories()){
+    setBaseLayer() {
+        if (this.layerCodeArrBase?.length > 0 && this.#isValid_factories()) {
+            let baseLayers = [];
+            baseLayers = this.layerCodeArrBase.map(baseConfig=>{
+                this.assignLayerCodeToFactories(baseConfig);
 
-        }else this.#ERROR_factory();
+                let source ;
+                try{
+                    source = this.#Factory.source.getSource();
+                }catch(e){
+                    console.error(e);
+                }
+                this.#Factory.layer.setSource(source);
+                let layer ;
+                try{
+                    layer = this.#Factory.layer.getLayer();
+                }catch(e){
+                    console.error(e);
+                }
+                return layer;
+            });
+            if(baseLayers.length >0){
+                this.#INSTANCE_OL_MAP.setLayers(baseLayers);
+            }
+        } else this.#ERROR_factory();
     }
 
     /**
-     * 레이어를 생성하기위한 소스,스타일이 정의된 설정
+     * 레이어아이디로 Factory 통해 ol.Layer 생성 및 반환
+     *
+     * @param {String} layerCodeId
+     * @memberof MOGISMap
+     */
+    getLayerWithID(layerCodeId) {
+        let layerCode;
+        try {
+            layerCode = this.getALayerCode(layerCodeId);
+            this.assignLayerCodeToFactories(layerCode);
+        } catch (e) {console.error(e)}
+
+        let source,layer;
+        try{
+            source = this.#Factory.source.getSource();
+            this.#Factory.layer.setSource(source);
+        }catch(e){console.error(e);}
+
+        try{
+            layer = this.#Factory.layer.getLayer();
+        }catch(e){console.error(e);}
+
+        if(layer) return layer;
+        else throw new Error (`layer 생성되지 않음`);
+    }
+
+    /**
+     * 레이어 아이디로 ol.Map 객체에 레이어 추가
+     *
+     * @param {String} layerCodeID
+     * @memberof MOGISMap
+     */
+    addLayerWithID(layerCodeID){
+        let layer;
+        try { 
+            layer = this.getLayerWithID(layerCodeID);
+        }catch(e){console.error(e)}
+        if(layer) this.#INSTANCE_OL_MAP.addLayer(layer);
+    }
+    /**
+     * 레이어를 생성하기위한 소스,스타일이 정의된 설정을
+     * Factory 서브클래스들에게 전달
      *
      * @param {Object} layerCode
      * @memberof MOGISMap
      */
-    assignLayerCode(layerCode){ //layerCode 를 전달해주는 주체는?
-        if(this.#isValid_factories()){
-            Object.values(this.#Factory).forEach(subFactory=>subFactory.setSpec(layerCode));
+    assignLayerCodeToFactories(layerCode) {
+        if (this.#isValid_factories()) {
+            Object.values(this.#Factory).forEach(subFactory =>subFactory.setSpec(layerCode));
+        }else{
+
         }
     }
 
-    //2. layerTree 가 유발하는 레이어 생성 (소스, 레이어 factory 연관)
-    setLayer(layerCodeId){
-
-    }
+    
 }

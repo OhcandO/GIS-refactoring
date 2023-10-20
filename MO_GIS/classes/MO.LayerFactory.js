@@ -1,12 +1,11 @@
-import * as KEY from '../MO.keyMap.js';
-import { SourceFactory } from "./MO.SourceFactory";
+import * as KEY from '../common/MO.keyMap.js';
 import WMTS from '../../lib/openlayers_v7.5.1/source/WMTS.js';
 import Source from '../../lib/openlayers_v7.5.1/source/Source.js';
 import XYZ from '../../lib/openlayers_v7.5.1/source/XYZ.js';
 import VectorSource  from '../../lib/openlayers_v7.5.1/source/Vector.js';
 import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
 import TileLayer from '../../lib/openlayers_v7.5.1/layer/Tile.js';
-import {MOFactory} from './MO.Factory.js';
+import {MOFactory} from './abstract/MO.Factory.js';
 import VectorImageLayer from '../../lib/openlayers_v7.5.1/layer/VectorImage.js';
 
 /**
@@ -24,10 +23,12 @@ export class LayerFactory extends MOFactory{
         opacity: 1, //투명도. 0~1 범위 소숫점 가능
         minZoom: undefined, // 설정된 줌 보다 멀리 떨어지면 레이어 비활성
         visible : true, //보임 or 보이지 않음
-        className: 'ol-layer',
+        className: undefined, //'ol-layer',
         extent:undefined, //[minX, minY, maxX, maxY] 로 표현된 영역만 표현
         declutter: false, //VectorImage 한정. 요소들 모여있을 때 하나만 표시 여부
     };
+
+
 
     #INSTANCE_ol_Source;
     #INSTANCE_olLayer;
@@ -77,32 +78,49 @@ export class LayerFactory extends MOFactory{
     /** default Object에 source Object 를 합치되,
      *  Default Object Key 들만 수행
      *  결과적으로 Default Object의 키만 유효하게 남음 */ 
-    // #getDefaultMergedObject(default_obj, source_obj){
-    //     return Object.entries(default_obj).reduce((pre,[key,val])=>(pre[key]=source_obj[key]?source_obj[key]:val, pre),{});
-    // }    
+    getValids(){
+        let src = this.layerCode;
+        let temp = {
+            id: src[KEY.LAYER_ID] || this.#default_leyerSpec.id,
+            zIndex: src[KEY.Z_INDEX] || this.#default_leyerSpec.zIndex,
+            minZoom: src[KEY.MIN_ZOOM] || this.#default_leyerSpec.minZoom,
+            visible : src[KEY.BOOL_VISIBLE] || this.#default_leyerSpec.visible,
+        
+            opacity: this.#default_leyerSpec.id,
+            className: this.#default_leyerSpec.className,
+            extent: this.#default_leyerSpec.extent,
+            declutter: this.#default_leyerSpec.declutter
+        };
+        return this.filterNullishVals(temp);
+    }    
     /**
      * Source 인스턴스에 따라 레이어를 생성해 반환
      * default layer 특성에 layerCode 의 내용을 합쳐 생성 parameter로 삼음
      * @returns {Layer}
      */
     #layerBuilder(){
-        let tileOption=super.getDefaultMergedObject(this.#default_leyerSpec, super.getSpec());
+        let layerOption = this.getValids();
+        
+        if(this.#INSTANCE_ol_Source instanceof Source){
+            layerOption['source']=this.#INSTANCE_ol_Source;
+        }else{
+            throw new Error(`layerBuilder 직전 Source 가 적합하지 않음`)
+        }
         let returnlayer;
         try{
-
             //1. 배경지도용 WMTS 소스
             if(this.#INSTANCE_ol_Source instanceof WMTS){
-                returnlayer = new TileLayer(tileOption);
+                returnlayer = new TileLayer(layerOption);
             }
     
             //2. 배경지도용 XYZ 소스
             else if (this.#INSTANCE_ol_Source instanceof XYZ){
-                returnlayer = new TileLayer(tileOption)
+                returnlayer = new TileLayer(layerOption)
             }
     
             //3. VectorImage 레이어용
             else if (this.#INSTANCE_ol_Source instanceof VectorSource){
-                returnlayer = new VectorImageLayer(tileOption);
+                returnlayer = new VectorImageLayer(layerOption);
             }
         } catch(e){
             console.log(`레이어 생성 실패 #layerBuilder`);
