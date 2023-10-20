@@ -21,17 +21,19 @@ export const FONT_STYLE = `font`;
 export const FONT_OUTLINE = `colorFontLine`;
 export const FONT_FILL = `colorFontFill`;
 export const ICON_NAME = `iconName`;
-export const MIN_ZOOM = `minZoom`;
-export const Z_INDEX = `zIndex`;
-export const BOOL_IS_GROUP = `boolIsgroup`
-export const BOOL_VISIBLE = `boolIsdefault`; //'초기에 보여야 하는지' 여부. visible 은 use_yn 과 혼동될 수 있어서 피함
-export const BOOL_SELECTABLE = `boolSelectable`;
 export const LABEL_COLUMN = `label`;
+
+/* 레이어 관련 */
+export const BOOL_SELECTABLE = `boolSelectable`;
+export const BOOL_VISIBLE = `boolIsdefault`; //'초기에 보여야 하는지' 여부. visible 은 use_yn 과 혼동될 수 있어서 피함
+export const Z_INDEX = `zIndex`;
+export const MIN_ZOOM = `minZoom`;
 
 /* ⭕레이어 트리(Tree)용 JSON 관련 🚫 */
 export const LAYER_ID = `id`;
 export const PARENT_ID = `pid`;
 export const CHILD_MARK = `childList`;
+export const BOOL_IS_GROUP = `boolIsgroup` // 해당 레이어가 '형식상' 레이어이며 그룹핑 용도로만 사용되는지 여부
 
 /* ▲▲▲▲▲레이어 소스(Source) 관련▲▲▲▲▲▲▲▲▲△ */
 export const ORIGIN = `origin`;
@@ -42,6 +44,7 @@ export const APIKEY = `apiKey`;
 export const SRID = `srid`;
 export const CATEGORY = `category`;
 
-export const LAYER_TYPE_POINT = 'POINT';
-export const LAYER_TYPE_LINE = 'LINE';
-export const LAYER_TYPE_POLYGON = 'POLYGON';
+/* Openlayers Feature들의 타입 구분 */
+export const OL_FEATURE_TYPE_POINT = 'POINT';
+export const OL_FEATURE_TYPE_LINE = 'LINE';
+export const OL_FEATURE_TYPE_POLYGON = 'POLYGON';
