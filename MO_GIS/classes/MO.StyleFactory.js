@@ -86,7 +86,7 @@ export class StyleFactory extends MOFactory {
      * @memberof StyleFactory
      */
     getStyleFunction() {
-        this.updateLayerCode();
+        this.#updateLayerCode();
         let styleFunc;
 
         let type;
@@ -111,20 +111,21 @@ export class StyleFactory extends MOFactory {
      *  (nullish 가 아니라면) 디폴트 설정에 덮어씌움
      * @memberof StyleFactory
      */
-    updateLayerCode() {
-        if (this.layerCode[KEY.ICON_NAME]) this.#default_icon.src = iconPath + this.layerCode[KEY.ICON_NAME];
+    #updateLayerCode() {
+        let src = this.layerCode;
+        if (src[KEY.ICON_NAME]) this.#default_icon.src = iconPath + src[KEY.ICON_NAME];
         else delete this.#default_icon.src; 
         
-        this.#default_text.font = this.layerCode[KEY.FONT_STYLE] ?? this.#default_text;
+        this.#default_text.font = src[KEY.FONT_STYLE] ?? this.#default_text;
         
-        this.#default_text_stroke.color = this.layerCode[KEY.FONT_OUTLINE] ?? this.#default_text_stroke.color;
-        this.#default_text_fill.color = this.layerCode[KEY.FONT_FILL] ?? this.#default_text_fill.color;
+        this.#default_text_stroke.color = src[KEY.FONT_OUTLINE] ?? this.#default_text_stroke.color;
+        this.#default_text_fill.color = src[KEY.FONT_FILL] ?? this.#default_text_fill.color;
 
-        this.#default_stroke.color = this.layerCode[KEY.COLOR_LINE] ?? this.#default_stroke.color;
-        this.#default_stroke.width = this.layerCode[KEY.LINE_WIDTH] ?? this.#default_stroke.width;
-        this.#default_stroke.lineDash = this.layerCode[KEY.LINE_STYLE] ?? this.#default_stroke.lineDash;
+        this.#default_stroke.color = src[KEY.COLOR_LINE] ?? this.#default_stroke.color;
+        this.#default_stroke.width = src[KEY.LINE_WIDTH] ?? this.#default_stroke.width;
+        this.#default_stroke.lineDash = src[KEY.LINE_STYLE] ?? this.#default_stroke.lineDash;
 
-        this.#deafult_fill.color = this.layerCode[KEY.COLOR_FILL] ?? this.#deafult_fill.color;
+        this.#deafult_fill.color = src[KEY.COLOR_FILL] ?? this.#deafult_fill.color;
 
         //레이어 구성하는 피쳐 타입에 따라 특수한 스타일 오버라이딩
         let layerType;

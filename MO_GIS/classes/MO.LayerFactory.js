@@ -1,11 +1,11 @@
 import * as KEY from '../common/MO.keyMap.js';
+import {MOFactory} from './abstract/MO.Factory.js';
 import WMTS from '../../lib/openlayers_v7.5.1/source/WMTS.js';
 import Source from '../../lib/openlayers_v7.5.1/source/Source.js';
 import XYZ from '../../lib/openlayers_v7.5.1/source/XYZ.js';
 import VectorSource  from '../../lib/openlayers_v7.5.1/source/Vector.js';
 import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
 import TileLayer from '../../lib/openlayers_v7.5.1/layer/Tile.js';
-import {MOFactory} from './abstract/MO.Factory.js';
 import VectorImageLayer from '../../lib/openlayers_v7.5.1/layer/VectorImage.js';
 
 /**
@@ -75,16 +75,14 @@ export class LayerFactory extends MOFactory{
         }
         return bool;
     }
-    /** default Object에 source Object 를 합치되,
-     *  Default Object Key 들만 수행
-     *  결과적으로 Default Object의 키만 유효하게 남음 */ 
+    
     getValids(){
         let src = this.layerCode;
         let temp = {
-            id: src[KEY.LAYER_ID] || this.#default_leyerSpec.id,
-            zIndex: src[KEY.Z_INDEX] || this.#default_leyerSpec.zIndex,
-            minZoom: src[KEY.MIN_ZOOM] || this.#default_leyerSpec.minZoom,
-            visible : src[KEY.BOOL_VISIBLE] || this.#default_leyerSpec.visible,
+            id: src[KEY.LAYER_ID] ?? this.#default_leyerSpec.id,
+            zIndex: src[KEY.Z_INDEX] ?? this.#default_leyerSpec.zIndex,
+            minZoom: src[KEY.MIN_ZOOM] ?? this.#default_leyerSpec.minZoom,
+            visible : src[KEY.BOOL_VISIBLE] ?? this.#default_leyerSpec.visible,
         
             opacity: this.#default_leyerSpec.id,
             className: this.#default_leyerSpec.className,
@@ -92,17 +90,31 @@ export class LayerFactory extends MOFactory{
             declutter: this.#default_leyerSpec.declutter
         };
         return this.filterNullishVals(temp);
-    }    
+    }
+
+    /** default Object에 source Object 를 합치되,
+     *  nullish 들은 제외시킴
+     *   */ 
+    #upateLayerCode(){
+        let src = this.layerCode;
+        this.#default_leyerSpec.id = src[KEY.LAYER_ID] ?? this.#default_leyerSpec.id;
+        this.#default_leyerSpec.zIndex = src[KEY.Z_INDEX] ?? this.#default_leyerSpec.zIndex;
+        this.#default_leyerSpec.minZoom = src[KEY.MIN_ZOOM] ?? this.#default_leyerSpec.minZoom;
+        this.#default_leyerSpec.visible = src[KEY.BOOL_VISIBLE] ?? this.#default_leyerSpec.visible;
+
+        this.#default_leyerSpec = this.filterNullishVals(this.#default_leyerSpec);
+    }
+
     /**
      * Source 인스턴스에 따라 레이어를 생성해 반환
      * default layer 특성에 layerCode 의 내용을 합쳐 생성 parameter로 삼음
      * @returns {Layer}
      */
     #layerBuilder(){
-        let layerOption = this.getValids();
+        this.#upateLayerCode();        
         
         if(this.#INSTANCE_ol_Source instanceof Source){
-            layerOption['source']=this.#INSTANCE_ol_Source;
+            this.#default_leyerSpec['source']=this.#INSTANCE_ol_Source;
         }else{
             throw new Error(`layerBuilder 직전 Source 가 적합하지 않음`)
         }
@@ -110,17 +122,17 @@ export class LayerFactory extends MOFactory{
         try{
             //1. 배경지도용 WMTS 소스
             if(this.#INSTANCE_ol_Source instanceof WMTS){
-                returnlayer = new TileLayer(layerOption);
+                returnlayer = new TileLayer(this.#default_leyerSpec);
             }
     
             //2. 배경지도용 XYZ 소스
             else if (this.#INSTANCE_ol_Source instanceof XYZ){
-                returnlayer = new TileLayer(layerOption)
+                returnlayer = new TileLayer(this.#default_leyerSpec)
             }
     
             //3. VectorImage 레이어용
             else if (this.#INSTANCE_ol_Source instanceof VectorSource){
-                returnlayer = new VectorImageLayer(layerOption);
+                returnlayer = new VectorImageLayer(this.#default_leyerSpec);
             }
         } catch(e){
             console.log(`레이어 생성 실패 #layerBuilder`);

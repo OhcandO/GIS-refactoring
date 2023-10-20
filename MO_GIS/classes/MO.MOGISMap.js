@@ -2,11 +2,13 @@ import * as KEY from '../common/MO.keyMap.js';
 import Control from "../../lib/openlayers_v7.5.1/control/Control.js";
 import Map from '../../lib/openlayers_v7.5.1/Map.js'
 import View from '../../lib/openlayers_v7.5.1/View.js'
+import OSM from '../../lib/openlayers_v7.5.1/source/OSM.js'
 import { LayerTree } from "./MO.LayerTree.js";
 import { MOFactory } from "./abstract/MO.Factory.js";
 import { SourceFactory } from "./MO.SourceFactory.js";
 import { LayerFactory } from "./MO.LayerFactory.js";
 import { StyleFactory } from './MO.StyleFactory.js';
+import TileLayer from '../../lib/openlayers_v7.5.1/layer/Tile.js';
 
 /**
  * ol.Map 확장하고 지도와 레이어 생성을 관장하는 Controller 역할수행
@@ -194,7 +196,7 @@ export class MOGISMap extends Map {
         console.error(
             `다음 Factory들이 정의되지 않음 : ${notAssignedFactoryKeyArr.toString()}`
         );
-        throw new Error();
+        throw new Error(`Factory들이 정의되지 않음`);
     }    
     //🔺🔵🔵🔵Factory 관련🔵🔵🔵🔵
 
@@ -227,7 +229,12 @@ export class MOGISMap extends Map {
             if(baseLayers.length >0){
                 this.#INSTANCE_OL_MAP.setLayers(baseLayers);
             }
-        } else this.#ERROR_factory();
+        } else{
+            //this.#ERROR_factory()
+            let source = new OSM();
+            let layer = new TileLayer({source:source});
+            this.#INSTANCE_OL_MAP.setLayers([layer]);
+        };
     }
 
     /**
