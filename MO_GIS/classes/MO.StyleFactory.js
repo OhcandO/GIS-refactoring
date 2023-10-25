@@ -59,23 +59,25 @@ export class StyleFactory extends MOFactory {
         color: "rgba(31, 238, 115, 0.8)", //옅은 연두색
     };
 
-
-
     /**
      * 적합한 레이어 타입을 판별하고 대문자로 반환
      * @returns {String}
      */
     #getLayerType() {
-        const validLayerTypes = ['POINT','LINE','POLYGON' /* ,'group','BASE' */]; //'group', 'BASE' 는 DB상 나눠놓은 코드이고, 벡터 데이터는 아니므로 여기서는 제외
+        //'group', 'BASE' 는 DB상 나눠놓은 코드이고, 벡터 데이터는 아니므로 여기서는 제외
+        const validLayerTypes = ["POINT","LINE","POLYGON" /* ,'group','BASE' */,];
+        
         let layerType = this.layerCode[KEY.LAYER_TYPE];
-        if(layerType){
+        if (layerType) {
             layerType = layerType.toUpperCase();
-            if(validLayerTypes.some(type=>type.toUpperCase()===layerType)){
+            if (
+                validLayerTypes.some((type) => type.toUpperCase() === layerType)
+            ) {
                 return layerType;
             }
-        }else{
+        } else {
             console.log(`valid layerTypes : `, validLayerTypes);
-            throw new Error(`layerType이 적합하지 않음 : ${layerType}`)
+            throw new Error(`layerType이 적합하지 않음 : ${layerType}`);
         }
     }
 
@@ -90,21 +92,26 @@ export class StyleFactory extends MOFactory {
         let styleFunc;
 
         let type;
-        try{
+        try {
             type = this.#getLayerType();
-        }catch(e){console.error(e)}
+        } catch (e) {
+            console.error(e);
+        }
         if (type === KEY.OL_FEATURE_TYPE_POINT) {
             styleFunc = this.#getStyleFunc_POINT();
         } else if (type === KEY.OL_FEATURE_TYPE_LINE) {
             styleFunc = this.#getStyleFunc_LINE();
         } else if (type === KEY.OL_FEATURE_TYPE_POLYGON) {
             styleFunc = this.#getStyleFunc_POLYGON();
-        }
+        } 
 
         if (styleFunc instanceof StyleFunction) return styleFunc;
         else {
             throw new Error(`StyleFunction 생성할 수 없음`);
         }
+    }
+    getStyleFunction_highlight(){
+        return this.#getStyleFunc_HIGHTLIGHT();
     }
     /**
      * layerCode 에서 스타일과 관련된 항목들을
@@ -114,10 +121,10 @@ export class StyleFactory extends MOFactory {
     #updateLayerCode() {
         let src = this.layerCode;
         if (src[KEY.ICON_NAME]) this.#default_icon.src = iconPath + src[KEY.ICON_NAME];
-        else delete this.#default_icon.src; 
-        
+        else delete this.#default_icon.src;
+
         this.#default_text.font = src[KEY.FONT_STYLE] ?? this.#default_text;
-        
+
         this.#default_text_stroke.color = src[KEY.FONT_OUTLINE] ?? this.#default_text_stroke.color;
         this.#default_text_fill.color = src[KEY.FONT_FILL] ?? this.#default_text_fill.color;
 
@@ -129,13 +136,15 @@ export class StyleFactory extends MOFactory {
 
         //레이어 구성하는 피쳐 타입에 따라 특수한 스타일 오버라이딩
         let layerType;
-        try{
+        try {
             layerType = this.#getLayerType();
-        }catch(e){console.error(e)}
+        } catch (e) {
+            console.error(e);
+        }
 
-        if(layerType == KEY.OL_FEATURE_TYPE_LINE){
-            this.#default_text.placement='line';
-        }else if (layerType == KEY.OL_FEATURE_TYPE_POLYGON){
+        if (layerType == KEY.OL_FEATURE_TYPE_LINE) {
+            this.#default_text.placement = "line";
+        } else if (layerType == KEY.OL_FEATURE_TYPE_POLYGON) {
             this.#default_icon.scale = 1.5;
         }
     }
@@ -179,7 +188,8 @@ export class StyleFactory extends MOFactory {
         let textOption = structuredClone(this.#default_text);
         textOption["stroke"] = new Stroke(this.#default_text_stroke);
         textOption["fill"] = new Fill(this.#default_text_fill);
-        textOption["text"] = feature.get(this.layerCode[KEY.LABEL_COLUMN]) ?? "";
+        textOption["text"] =
+            feature.get(this.layerCode[KEY.LABEL_COLUMN]) ?? "";
         return new Text(textOption);
     }
 
@@ -204,10 +214,10 @@ export class StyleFactory extends MOFactory {
     #getStyleFunc_POLYGON() {
         let me = this;
         /**
-         * 
-         * @param {Feature} feature 
-         * @param {Number} resolution 
-         * @returns 
+         *
+         * @param {Feature} feature
+         * @param {Number} resolution
+         * @returns
          */
         function styleFunc(feature, resolution) {
             let style = new Style();
@@ -218,31 +228,50 @@ export class StyleFactory extends MOFactory {
             if (me.layerCode[KEY.LABEL_COLUMN]) {
                 style.setText(me.#getTextStyle(feature, resolution));
             }
-            
+
             //3. 아이콘이 있을 때 폴리곤 스타일과 중심좌표 아이콘 둘 다 반환한다
             if (me.layerCode[KEY.ICON_NAME]) {
                 let styleArr = [style];
-                
+
                 let geom = feature.getGeometry();
                 let targetGeom;
-                if(geom instanceof Polygon){
+                if (geom instanceof Polygon) {
                     targetGeom = geom.getInteriorPoint();
-                }else if(geom instanceof MultiPolygon){
+                } else if (geom instanceof MultiPolygon) {
                     targetGeom = geom.getInteriorPoints();
-                }else{
+                } else {
                     console.table(me.layerCode);
-                    throw new Error (`Feature 가 폴리곤 또는 멀티폴리곤 아님`)
+                    throw new Error(`Feature 가 폴리곤 또는 멀티폴리곤 아님`);
                 }
                 let style2 = new Style();
                 let icon = new Icon(me.#default_icon);
-                if(icon) style2.setImage(icon);
+                if (icon) style2.setImage(icon);
                 style2.setGeometry(targetGeom);
 
                 styleArr.push(style2);
                 return styleArr;
-            }else{
+            } else {
                 return style;
-            }            
+            }
+        }
+        return styleFunc;
+    }
+
+    #getStyleFunc_HIGHTLIGHT(){
+        let me = this;
+        function styleFunc(feature, resolution){
+            let style = new Style();
+            let circle = new CircleStyle({
+                fill: new Fill(me.#deafult_fill),
+                radius: 4,
+                stroke: new Stroke(me.#default_stroke),
+            });
+
+            style.setImage(circle);
+
+
+
+            return style;
         }
         return styleFunc;
     }

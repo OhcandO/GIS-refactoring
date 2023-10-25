@@ -9,6 +9,7 @@ import { SourceFactory } from "./MO.SourceFactory.js";
 import { LayerFactory } from "./MO.LayerFactory.js";
 import { StyleFactory } from './MO.StyleFactory.js';
 import TileLayer from '../../lib/openlayers_v7.5.1/layer/Tile.js';
+import Select from '../../lib/openlayers_v7.5.1/interaction/Select.js';
 
 /**
  * ol.Map 확장하고 지도와 레이어 생성을 관장하는 Controller 역할수행
@@ -36,8 +37,14 @@ export class MOGISMap extends Map {
         target: "map",
     };
 
+    default_select = {
+        hitTolerance : 10,
+        multi: false,
+    }
+
     #INSTANCE_OL_VIEW;
     #INSTANCE_OL_MAP;
+    #INSTANCE_OL_SELECT;
     #INSTANCE_LAYERTREE;
 
     #Factory = {
@@ -69,7 +76,15 @@ export class MOGISMap extends Map {
                     this.default_viewSpec[key] = val;
             });
         }
-        // 결과로서 Map 객체를 반환
+
+        //deafult highlight 초기화
+        this.default_select[KEY.FONT_STYLE] = '15px Malgun Gothic';
+        this.default_select[KEY.FONT_OUTLINE] = 'rgba(15,15,15,1)';
+        this.default_select[KEY.FONT_FILL] = 'rgba(255,255,0,1)';
+        this.default_select[KEY.COLOR_LINE] = 'rgba(226, 51, 51, 1)';
+        this.default_select[KEY.LINE_WIDTH] = 5;
+        this.default_select[KEY.LINE_STYLE] = '[3,3]';
+        this.default_select[KEY.COLOR_FILL] = 'rgba(226, 51, 51, 0.54)';
     }
 
     get map() {
@@ -149,7 +164,7 @@ export class MOGISMap extends Map {
      * @return {Object} 
      * @memberof MOGISMap
      */
-    getALayerCode(layerID) {
+    #getALayerCode(layerID) {
         if (layerID) {
             return this.layerCodeArr.find(code=>code[KEY.LAYER_ID]);
         }else{
@@ -183,9 +198,7 @@ export class MOGISMap extends Map {
     #isValid_factories() {
         let bool = false;
         // Factory 에 등록된 모든 요소들이 MOFactory 의 서브클래스인지 확인
-        bool = Object.values(this.#Factory).every(
-            (fac) => fac instanceof MOFactory
-        );
+        bool = Object.values(this.#Factory).every(fac => fac instanceof MOFactory);
         return bool;
     }
 
@@ -209,7 +222,7 @@ export class MOGISMap extends Map {
         if (this.layerCodeArrBase?.length > 0 && this.#isValid_factories()) {
             let baseLayers = [];
             baseLayers = this.layerCodeArrBase.map(baseConfig=>{
-                this.assignLayerCodeToFactories(baseConfig);
+                this.#assignLayerCodeToFactories(baseConfig);
 
                 let source ;
                 try{
@@ -231,7 +244,7 @@ export class MOGISMap extends Map {
             }
         } else{
             //this.#ERROR_factory()
-            let source = new OSM();
+            let source = new OSM(); //OpenStreetMap 소스를 미봉책으로 설정
             let layer = new TileLayer({source:source});
             this.#INSTANCE_OL_MAP.setLayers([layer]);
         };
@@ -243,11 +256,11 @@ export class MOGISMap extends Map {
      * @param {String} layerCodeId
      * @memberof MOGISMap
      */
-    getLayerWithID(layerCodeId) {
+    #getLayerWithID(layerCodeId) {
         let layerCode;
         try {
-            layerCode = this.getALayerCode(layerCodeId);
-            this.assignLayerCodeToFactories(layerCode);
+            layerCode = this.#getALayerCode(layerCodeId);
+            this.#assignLayerCodeToFactories(layerCode);
         } catch (e) {console.error(e)}
 
         let source,layer;
@@ -273,7 +286,7 @@ export class MOGISMap extends Map {
     addLayerWithID(layerCodeID){
         let layer;
         try { 
-            layer = this.getLayerWithID(layerCodeID);
+            layer = this.#getLayerWithID(layerCodeID);
         }catch(e){console.error(e)}
         if(layer) this.#INSTANCE_OL_MAP.addLayer(layer);
     }
@@ -284,13 +297,30 @@ export class MOGISMap extends Map {
      * @param {Object} layerCode
      * @memberof MOGISMap
      */
-    assignLayerCodeToFactories(layerCode) {
+    #assignLayerCodeToFactories(layerCode) {
         if (this.#isValid_factories()) {
             Object.values(this.#Factory).forEach(subFactory =>subFactory.setSpec(layerCode));
-        }else{
-
         }
     }
 
+    /* 🔷SELECT Interaction 관련🔷 */
+    enableSelect(){
+        if(!this.#INSTANCE_OL_SELECT) this.createSelectInteraction();
+    }
+
+    createSelectInteraction(){
+        let styleFac = this.#Factory.style;
+        if(styleFac instanceof MOFactory){
+            styleFac.setSpec(this.default_select);
+        }else{
+            console.log(`등록된 styleFactory 없어 OL 기본 select 스타일 따름`)
+        }
+        let select;
+        select = new Select({
+            hitTolerance : this.default_select.hitTolerance,
+            multi : this.default_select.multi,
+            style : this.#Factory.style.g
+        })
+    }
     
 }
