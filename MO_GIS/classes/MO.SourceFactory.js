@@ -182,14 +182,14 @@ export class SourceFactory extends MOFactory{
             paramString.set("request", "getFeature");
             paramString.set("version", "2.0.0");
             paramString.set("typeName", encodeURIComponent(typeName)); // :, %, & 등 특수기호들 uri 유효 형식으로 변환
-            paramString.set(
-                `outputFormat`,encodeURIComponent(`application/json`)
-            );
+            paramString.set(`outputFormat`,encodeURIComponent(`application/json`));
 
             const cqlFilter = super.getSpec()[KEY.CQL_FILTER];
             if (cqlFilter) {
                 paramString.set(`cql_filter`, encodeURIComponent(cqlFilter));
             }
+            returnURL.searchParams=paramString;
+
             return returnURL;
         } else {
             console.groupCollapsed(`source URL 이 정의되지 않음`);

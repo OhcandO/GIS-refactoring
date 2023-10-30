@@ -10,6 +10,8 @@ import { LayerFactory } from "./MO.LayerFactory.js";
 import { StyleFactory } from './MO.StyleFactory.js';
 import TileLayer from '../../lib/openlayers_v7.5.1/layer/Tile.js';
 import Select from '../../lib/openlayers_v7.5.1/interaction/Select.js';
+import Feature from '../../lib/openlayers_v7.5.1/Feature.js';
+import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
 
 /**
  * ol.Map 확장하고 지도와 레이어 생성을 관장하는 Controller 역할수행
@@ -42,6 +44,10 @@ export class MOGISMap extends Map {
         multi: false,
     }
 
+    default_toolbar = {
+        
+    }
+
     #INSTANCE_OL_VIEW;
     #INSTANCE_OL_MAP;
     #INSTANCE_OL_SELECT;
@@ -72,8 +78,8 @@ export class MOGISMap extends Map {
         if (mapConfigSpec instanceof Object) {
             Object.entries(mapConfigSpec).forEach(([key, val]) => {
                 if (this.default_mapSpec[key]) this.default_mapSpec[key] = val;
-                if (this.default_viewSpec[key])
-                    this.default_viewSpec[key] = val;
+                if (this.default_viewSpec[key]) this.default_viewSpec[key] = val;
+                if (this.default_select[key]) this.default_select[key] = val;
             });
         }
 
@@ -305,22 +311,61 @@ export class MOGISMap extends Map {
 
     /* 🔷SELECT Interaction 관련🔷 */
     enableSelect(){
-        if(!this.#INSTANCE_OL_SELECT) this.createSelectInteraction();
+        if(!this.#INSTANCE_OL_SELECT) this.#createSelectInteraction();
     }
 
-    createSelectInteraction(){
+    #createSelectInteraction(){
         let styleFac = this.#Factory.style;
         if(styleFac instanceof MOFactory){
             styleFac.setSpec(this.default_select);
         }else{
             console.log(`등록된 styleFactory 없어 OL 기본 select 스타일 따름`)
         }
-        let select;
-        select = new Select({
-            hitTolerance : this.default_select.hitTolerance,
-            multi : this.default_select.multi,
-            style : this.#Factory.style.g
-        })
+        let selectInteraction;
+        try{
+            selectInteraction = new Select({
+                hitTolerance : this.default_select.hitTolerance,
+                multi : this.default_select.multi,
+                style : this.#Factory.style.getStyleFunction_highlight(),
+                layers: function(layer){
+                    return layer.get(KEY.BOOL_SELECTABLE)?.toUpperCase() ==='Y'
+                }
+            });
+        }catch(e){
+            console.error(e);
+        }
+        if(selectInteraction instanceof Select) {
+            this.#INSTANCE_OL_SELECT = selectInteraction;
+            this.#INSTANCE_OL_MAP.addInteraction(selectInteraction);
+        }
     }
     
+    /**
+     * openlayers 피쳐와 레이어를 파라미터로 하는 callback 함수 사용자 정의
+     * @callback featureCallback
+     * @param {Feature} feature 첫번째로 선택된, zIndex 가장 큰 feature
+     * @param {Layer} layer feature가 포함된 ol.Layer 객체
+     */
+    /**
+     * 
+     * @param {featureCallback} callback 피쳐, 레이어를 인자로 하는 콜백
+     */
+    setSelectCallback(callback){
+        if(this.#INSTANCE_OL_SELECT instanceof Select){
+            let me = this;
+            this.#INSTANCE_OL_SELECT.on('select',function(e){
+                if(!e.auto){
+                    // let features = me.selectInteraction.getFeatures();
+                    let feature = me.#INSTANCE_OL_SELECT.getFeatures()?.getArray()[0];
+                    let layer = feature? me.#INSTANCE_OL_SELECT.getLayer(feature): undefined;
+                    // for(let i in features.getArray()){
+                    //     let feature = features.getArray()[0];
+                    //     let layer = me.selectInteraction.getLayer(feature);
+                    //     layers.push(layer);
+                    // }
+                    callback(feature,layer);
+                }
+            });
+        }
+    }
 }
