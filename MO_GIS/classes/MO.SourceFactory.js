@@ -218,6 +218,7 @@ export class SourceFactory extends MOFactory{
             const typeName = super.getSpec()[KEY.TYPE_NAME];
             const wmtsConfigTemplate = vworld_compatibilities.replaceAll('{{{ $APIKEY }}}',super.getSpec()[KEY.APIKEY]);
             const result = new WMTSCapabilities().read(wmtsConfigTemplate);
+            console.log(result);
             let sourceOption;
             if(typeName){
                 sourceOption = optionsFromCapabilities(result, {layer:typeName});

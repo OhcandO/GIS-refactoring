@@ -1,6 +1,6 @@
 import * as KEY from '../common/MO.keyMap.js';
-import { MOFactory } from './abstract/MO.Factory';
-import Style,{StyleFunction} from '../../lib/openlayers_v7.5.1/style/Style.js';
+import { MOFactory } from './abstract/MO.Factory.js';
+import Style from '../../lib/openlayers_v7.5.1/style/Style.js';
 import Stroke from '../../lib/openlayers_v7.5.1/style/Stroke.js';
 import Fill from '../../lib/openlayers_v7.5.1/style/Fill.js';
 import Text from '../../lib/openlayers_v7.5.1/style/Text.js';
@@ -84,7 +84,6 @@ export class StyleFactory extends MOFactory {
     /**
      * layerCode에 등록된 스타일 정보로 StyleFunction 반환
      *
-     * @return {StyleFunction}
      * @memberof StyleFactory
      */
     getStyleFunction() {
@@ -105,7 +104,7 @@ export class StyleFactory extends MOFactory {
             styleFunc = this.#getStyleFunc_POLYGON();
         } 
 
-        if (styleFunc instanceof StyleFunction) return styleFunc;
+        if (styleFunc) return styleFunc;
         else {
             throw new Error(`StyleFunction 생성할 수 없음`);
         }
@@ -151,7 +150,6 @@ export class StyleFactory extends MOFactory {
 
     /**
      * 점 형 피쳐를 렌더링하는
-     * @returns {StyleFunction}
      */
     #getStyleFunc_POINT() {
         let me = this;
@@ -195,7 +193,6 @@ export class StyleFactory extends MOFactory {
 
     /**
      *
-     * @returns {StyleFunction}
      */
     #getStyleFunc_LINE() {
         let me = this;

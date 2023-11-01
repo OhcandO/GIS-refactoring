@@ -1,5 +1,4 @@
 import * as KEY from '../common/MO.keyMap.js';
-import Control from "../../lib/openlayers_v7.5.1/control/Control.js";
 import Map from '../../lib/openlayers_v7.5.1/Map.js'
 import View from '../../lib/openlayers_v7.5.1/View.js'
 import OSM from '../../lib/openlayers_v7.5.1/source/OSM.js'
@@ -18,9 +17,8 @@ import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
  *
  * @export
  * @class MOGISMap
- * @extends {Map}
  */
-export class MOGISMap extends Map {
+export class MOGISMap {
     default_viewSpec = {
         /**
          * Openlayers 뷰 포트 객체가 표현하는 좌표계.
@@ -45,7 +43,7 @@ export class MOGISMap extends Map {
     }
 
     default_toolbar = {
-        
+
     }
 
     #INSTANCE_OL_VIEW;
@@ -94,15 +92,15 @@ export class MOGISMap extends Map {
     }
 
     get map() {
-        if (!this.#INSTANCE_OL_MAP) {
-            this.#INSTANCE_OL_MAP = super({
+        if (!this.#INSTANCE_OL_MAP) this.#createMapObj(); 
+        return this.#INSTANCE_OL_MAP;
+    }
+	#createMapObj (){
+		this.#INSTANCE_OL_MAP = new Map({
                 target: this.default_mapSpec.target,
                 view: this.view,
             });
-        }
-        return this.#INSTANCE_OL_MAP;
-    }
-
+	}
     get view() {
         if (!this.#INSTANCE_OL_VIEW) {
             this.#INSTANCE_OL_VIEW = new View(this.default_viewSpec);
@@ -157,7 +155,7 @@ export class MOGISMap extends Map {
      */
     setBaseLayerCodeArr(layerCDArr) {
         if (layerCDArr instanceof Array) {
-            this.LayerCodeArrBase = layerCDArr;
+            this.layerCodeArrBase = layerCDArr;
         } else {
             console.error(`layerCode JSON 객체가 적합하지 않음`);
             throw new Error(`layerCode JSON 객체가 적합하지 않음`);
@@ -225,6 +223,8 @@ export class MOGISMap extends Map {
    
     //1. 배경지도 레이어 생성 및 지도에 포함
     setBaseLayer() {
+		if(!(this.#INSTANCE_OL_MAP instanceof Map)) this.#createMapObj();
+		
         if (this.layerCodeArrBase?.length > 0 && this.#isValid_factories()) {
             let baseLayers = [];
             baseLayers = this.layerCodeArrBase.map(baseConfig=>{
@@ -252,6 +252,7 @@ export class MOGISMap extends Map {
             //this.#ERROR_factory()
             let source = new OSM(); //OpenStreetMap 소스를 미봉책으로 설정
             let layer = new TileLayer({source:source});
+            console.log(this.#INSTANCE_OL_MAP);
             this.#INSTANCE_OL_MAP.setLayers([layer]);
         };
     }
@@ -369,3 +370,7 @@ export class MOGISMap extends Map {
         }
     }
 }
+
+
+//TODO 측정 도구
+//https://openlayers.org/en/latest/examples/measure-style.html
