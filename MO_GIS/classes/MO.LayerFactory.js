@@ -57,6 +57,7 @@ export class LayerFactory extends MOFactory{
     getLayer(){
         if(!this.#INSTANCE_olLayer) this.#INSTANCE_olLayer = this.#layerBuilder();
         if(this.#INSTANCE_olLayer instanceof Layer){
+//        if(this.#INSTANCE_olLayer instanceof ol.Layer){
             return this.#INSTANCE_olLayer;
         }else{
             console.groupCollapsed(`해당 layer 객체는 openlayers Layer 인스턴스 아님`);
@@ -69,6 +70,7 @@ export class LayerFactory extends MOFactory{
     #isValid_ol_Source(sourceInstance){
         let bool = false;
         if(sourceInstance instanceof Source){
+//        if(sourceInstance instanceof ol.source.Source){
             bool = true;
         }else{
             bool = false;
@@ -100,7 +102,7 @@ export class LayerFactory extends MOFactory{
         this.#default_leyerSpec.id = src[KEY.LAYER_ID] ?? this.#default_leyerSpec.id;
         this.#default_leyerSpec.zIndex = src[KEY.Z_INDEX] ?? this.#default_leyerSpec.zIndex;
         this.#default_leyerSpec.minZoom = src[KEY.MIN_ZOOM] ?? this.#default_leyerSpec.minZoom;
-        this.#default_leyerSpec.visible = src[KEY.BOOL_VISIBLE] ?? this.#default_leyerSpec.visible;
+        this.#default_leyerSpec.visible = src[KEY.BOOL_VISIBLE]?.toUpperCase()==='Y' ? true:false;
 
         this.#default_leyerSpec = this.filterNullishVals(this.#default_leyerSpec);
     }
@@ -114,6 +116,7 @@ export class LayerFactory extends MOFactory{
         this.#upateLayerCode();        
         
         if(this.#INSTANCE_ol_Source instanceof Source){
+//        if(this.#INSTANCE_ol_Source instanceof ol.source.Source){
             this.#default_leyerSpec['source']=this.#INSTANCE_ol_Source;
         }else{
             throw new Error(`layerBuilder 직전 Source 가 적합하지 않음`)
@@ -122,17 +125,23 @@ export class LayerFactory extends MOFactory{
         try{
             //1. 배경지도용 WMTS 소스
             if(this.#INSTANCE_ol_Source instanceof WMTS){
+//            if(this.#INSTANCE_ol_Source instanceof ol.source.WMTS){
                 returnlayer = new TileLayer(this.#default_leyerSpec);
+//                returnlayer = new ol.layer.Tile(this.#default_leyerSpec);
             }
     
             //2. 배경지도용 XYZ 소스
             else if (this.#INSTANCE_ol_Source instanceof XYZ){
+//            else if (this.#INSTANCE_ol_Source instanceof ol.source.XYZ){
                 returnlayer = new TileLayer(this.#default_leyerSpec)
+//                returnlayer = new ol.layer.Tile(this.#default_leyerSpec)
             }
     
             //3. VectorImage 레이어용
             else if (this.#INSTANCE_ol_Source instanceof VectorSource){
+//            else if (this.#INSTANCE_ol_Source instanceof ol.source.Vector){
                 returnlayer = new VectorImageLayer(this.#default_leyerSpec);
+//                returnlayer = new ol.layer.VectorImage(this.#default_leyerSpec);
             }
         } catch(e){
             console.log(`레이어 생성 실패 #layerBuilder`);

@@ -1,12 +1,12 @@
 import * as KEY from '../common/MO.keyMap.js';
-import Map from '../../lib/openlayers_v7.5.1/Map.js'
-import View from '../../lib/openlayers_v7.5.1/View.js'
-import OSM from '../../lib/openlayers_v7.5.1/source/OSM.js'
 import { LayerTree } from "./MO.LayerTree.js";
 import { MOFactory } from "./abstract/MO.Factory.js";
 import { SourceFactory } from "./MO.SourceFactory.js";
 import { LayerFactory } from "./MO.LayerFactory.js";
 import { StyleFactory } from './MO.StyleFactory.js';
+import Map from '../../lib/openlayers_v7.5.1/Map.js'
+import View from '../../lib/openlayers_v7.5.1/View.js'
+import OSM from '../../lib/openlayers_v7.5.1/source/OSM.js'
 import TileLayer from '../../lib/openlayers_v7.5.1/layer/Tile.js';
 import Select from '../../lib/openlayers_v7.5.1/interaction/Select.js';
 import Feature from '../../lib/openlayers_v7.5.1/Feature.js';
@@ -30,6 +30,7 @@ export class MOGISMap {
         /** mindone */
         center: [127.043879, 37.482099],
         enableRotation: false,
+        zoom:15,
     };
 
     default_mapSpec = {
@@ -97,6 +98,7 @@ export class MOGISMap {
     }
 	#createMapObj (){
 		this.#INSTANCE_OL_MAP = new Map({
+//		this.#INSTANCE_OL_MAP = new ol.Map({
                 target: this.default_mapSpec.target,
                 view: this.view,
             });
@@ -104,12 +106,14 @@ export class MOGISMap {
     get view() {
         if (!this.#INSTANCE_OL_VIEW) {
             this.#INSTANCE_OL_VIEW = new View(this.default_viewSpec);
+//            this.#INSTANCE_OL_VIEW = new ol.View(this.default_viewSpec);
         }
         return this.#INSTANCE_OL_VIEW;
     }
 
     set view(view_inst) {
         if (view_inst instanceof View) {
+//        if (view_inst instanceof ol.View) {
             this.#INSTANCE_OL_VIEW = view_inst;
         } else {
             console.log(view_inst);
@@ -224,6 +228,7 @@ export class MOGISMap {
     //1. 배경지도 레이어 생성 및 지도에 포함
     setBaseLayer() {
 		if(!(this.#INSTANCE_OL_MAP instanceof Map)) this.#createMapObj();
+//		if(!(this.#INSTANCE_OL_MAP instanceof ol.Map)) this.#createMapObj();
 		
         if (this.layerCodeArrBase?.length > 0 && this.#isValid_factories()) {
             let baseLayers = [];
@@ -234,7 +239,7 @@ export class MOGISMap {
                 try{
                     source = this.#Factory.source.getSource();
                 }catch(e){
-                    console.error(e);
+                    console.error(e); 
                 }
                 this.#Factory.layer.setSource(source);
                 let layer ;
@@ -250,8 +255,10 @@ export class MOGISMap {
             }
         } else{
             //this.#ERROR_factory()
-            let source = new OSM(); //OpenStreetMap 소스를 미봉책으로 설정
+            let source = new OSM(); 
             let layer = new TileLayer({source:source});
+//            let source = new ol.sourceOSM(); 
+//            let layer = new ol.layer.Tile({source:source});
             console.log(this.#INSTANCE_OL_MAP);
             this.#INSTANCE_OL_MAP.setLayers([layer]);
         };
@@ -325,6 +332,7 @@ export class MOGISMap {
         let selectInteraction;
         try{
             selectInteraction = new Select({
+//            selectInteraction = new ol.interaction.Select({
                 hitTolerance : this.default_select.hitTolerance,
                 multi : this.default_select.multi,
                 style : this.#Factory.style.getStyleFunction_highlight(),
@@ -336,6 +344,7 @@ export class MOGISMap {
             console.error(e);
         }
         if(selectInteraction instanceof Select) {
+//        if(selectInteraction instanceof ol.interaction.Select) {
             this.#INSTANCE_OL_SELECT = selectInteraction;
             this.#INSTANCE_OL_MAP.addInteraction(selectInteraction);
         }
@@ -353,6 +362,7 @@ export class MOGISMap {
      */
     setSelectCallback(callback){
         if(this.#INSTANCE_OL_SELECT instanceof Select){
+//        if(this.#INSTANCE_OL_SELECT instanceof ol.interaction){
             let me = this;
             this.#INSTANCE_OL_SELECT.on('select',function(e){
                 if(!e.auto){
