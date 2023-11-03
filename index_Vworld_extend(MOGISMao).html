@@ -17,6 +17,7 @@
     import { LayerFactory } from "./MO_GIS/classes/MO.LayerFactory.js";
     import { StyleFactory } from "./MO_GIS/classes/MO.StyleFactory.js";
     import {MOGISMap} from './MO_GIS/classes/MO.MOGISMap.js';
+    import { Spinner } from '../lib/spin.js/spin.js';
         //DB에서 관리
         const baseLayerCode = 
         [
@@ -24,101 +25,159 @@
                 sourceType: "wmts", category: "vworld", srid: "EPSG:3857", origin: "https://api.vworld.kr",
                 sourcePathname: "/req/wmts/1.0.0/{key}/{layer}/{tileMatrix}/{tileRow}/{tileCol}.{tileType}",
                 id: 1, layerTitle: "vworld_base", typeName: "Base", boolIsdefault: "Y",
-                apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60", 
+                apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60",  layerType: "BASE", 
             },
             {
                 sourceType: "wmts", category: "vworld", srid: "EPSG:3857", origin: "https://api.vworld.kr",
                 sourcePathname: "/req/wmts/1.0.0/{key}/{layer}/{tileMatrix}/{tileRow}/{tileCol}.{tileType}",
                 id: 2, layerTitle: "vworld_Satellite", typeName: "Satellite", boolIsdefault: "N",
-                apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60",
+                apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60", layerType: "BASE", 
             },
             {
                 sourceType: "wmts", category: "vworld", srid: "EPSG:3857", origin: "https://api.vworld.kr",
                 sourcePathname: "/req/wmts/1.0.0/{key}/{layer}/{tileMatrix}/{tileRow}/{tileCol}.{tileType}",
                 id: 3, layerTitle: "vworld_gray", typeName: "gray", boolIsdefault: "N",
-                apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60",
+                apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60", layerType: "BASE", 
             },
             {
                 sourceType: "wmts", category: "vworld", srid: "EPSG:3857", origin: "https://api.vworld.kr",
                 sourcePathname: "/req/wmts/1.0.0/{key}/{layer}/{tileMatrix}/{tileRow}/{tileCol}.{tileType}",
                 id: 4, layerTitle: "vworld_midnight", typeName: "midnight", boolIsdefault: "N",
-                apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60",
+                apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60", layerType: "BASE", 
             },
             {
                 sourceType: "wmts", category: "vworld", srid: "EPSG:3857", origin: "https://api.vworld.kr",
                 sourcePathname: "/req/wmts/1.0.0/{key}/{layer}/{tileMatrix}/{tileRow}/{tileCol}.{tileType}",
                 id: 5, layerTitle: "vworld_Hybrid", typeName: "Hybrid", boolIsdefault: "N",
-                apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60",
+                apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60", layerType: "BASE", zIndex:10,
             }
         ]
         ;
 
         const default_spec = {
             /** Map 이 생성될 기본 DIV id */
-            target: 'mainMap',
+            target: 'map',
             projection: `EPSG:3857`,
-            center: [128.463659, 36.647830],  //예천소방서 [경도,위도] [y,x] [latitude, longitude]
+            center: [14184534.901084, 4433272.596271],  
+            zoom:11
+        };
+
+        const default_spinner = {
+            lines: 15, length: 38, width: 12, radius: 38,
+            scale: 1, corners: 1, speed: 1, rotate: 0,
+            animation: "spinner-line-fade-more",
+            direction: "1", color: "#ffffff",
+            fadeColor: "transparent",
+            top: "50%", left: "50%", shadow: "grey 3px 4px 8px 1px",
+            zIndex: 2000000000,
+            className: "spinner", position: "absolute",
         };
 
         let mainMap = new MOGISMap(default_spec);
-        const srcFactory = new SourceFactory();
-        const layerFactory = new LayerFactory();
-        const styleFactory = new StyleFactory();
-        mainMap.setFactory(srcFactory);
-        mainMap.setFactory(layerFactory);
-        mainMap.setFactory(styleFactory);
+        mainMap.setFactory(new SourceFactory());
+        mainMap.setFactory(new LayerFactory());
+        mainMap.setFactory(new StyleFactory());
 
         mainMap.setBaseLayerCodeArr(baseLayerCode);
 
+        //----SPINNER
+        let spin = new Spinner(default_spinner);
+        mainMap.map.once("rendercomplete",()=>{spin.stop();})
         //기본 지도 생성
         mainMap.setBaseLayer();
 
-        //----SPINNER
+        //지도 위 이벤트들
+         //배경지도 선택기 노출 버튼
+        document.querySelector(`#baseLayerShifter_btn`).addEventListener(`click`,function(e){
+            let options = document.querySelector(`#baseLayerShifter_option`);
+            if(options.style.display ==='') options.style.display='block';
+            else options.style.display ='';
+        });
+        //배경지도 선택기
+        document.querySelectorAll(`.layerChanger`).forEach(node => {
+            const baseLayers= ['Base','midnight','gray','Satellite'];
+            const hybridLayer= 'Hybrid';
 
-        // let op = {
-        //     lines: 15, length: 38, width: 12, radius: 38,
-        //     scale: 1, corners: 1, speed: 1, rotate: 0,
-        //     animation: "spinner-line-fade-more",
-        //     direction: "1", color: "#ffffff",
-        //     fadeColor: "transparent",
-        //     top: "50%", left: "50%", shadow: "grey 3px 4px 8px 1px",
-        //     zIndex: 2000000000,
-        //     className: "spinner", position: "absolute",
-        // };
-        //
-        //let spin = new Spinner(op).spin(document.querySelector('#mainMap'))
-        //globalThis.spin = spin;
+                node.addEventListener(`click`, function (e) {
+                    let layerName = node.dataset[`layer`];
+                    //하이브리드 레이어 켜고 끄기
+                    if(layerName===hybridLayer) {
+                        let hyb = mainMap.map.getLayers().getArray().find(layer=>layer.get('typeName')==hybridLayer);
+                        if(hyb) hyb.getVisible()? hyb.setVisible(false): hyb.setVisible(true);
+                    }else{
+                        //다른 레이어들은 바꾸기
+                        mainMap.map.getLayers().getArray().filter(layer=>baseLayers.includes(layer.get('typeName')))
+                        .forEach(layer => {
+                            if (baseLayers.includes(layerName) && layer.get('typeName') === layerName) {
+                                layer.setVisible(true);
+                            } else layer.setVisible(false);
+                        })
+                    }
+                });
+            })
+        
 
+        function showMapLoading(){spin.spin(document.querySelector(`#${default_spec.target}`));}
+        function hideMapLoading(){spin.stop();}
 
+        globalThis.mainMap_prepare = showMapLoading;
+        globalThis.mainMap_done= hideMapLoading;
         globalThis.mainMap = mainMap;
-
-
     </script>
     <style>
-        .olControlAttribution {
-            right: 20px;
-        }
-
-        .olControlLayerSwitcher {
-            right: 20px;
-            top: 20px;
-        }
-
         #map {
             position: relative;
             height: 600px;
             border: 1px solid brown;
         }
-        #spin {
-            height: 100px;
-            width: 50%;
-            border: 1px solid blue;
+        #baseLayerShifter{
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            flex-direction: row-reverse;
+            justify-content: space-between;
+        }
+        #baseLayerShifter_option{
+            display: none;
+            padding-right: 13px;
+        }
+        button#baseLayerShifter_btn {
+          height: 34px;
+        }
+        .layerChanger {
+            background-color: antiquewhite;
+            border: 1px solid black;
+            width: 90px;
+            margin-right: 6px;
+        }
+        .mogis.flex{
+            display: flex;
+        }
+        .mogis.flex.options {
+            flex-direction: row;
+            height: 65px;
         }
     </style>
 </head>
 
 <body>
     <div id="map"></div>
+    <!-- 지도 우측 툴바 -->
+		<div>
+			<!-- 레이어 변경 -->
+			<div class="mogis control flex container" id="baseLayerShifter">
+				<button id="baseLayerShifter_btn" type="button" data-toggle="false">레이어 선택</button>
+				<div id="baseLayerShifter_option">
+                    <div class="mogis flex options">
+                        <div class="layerChanger" data-layer="Base">기본</div>
+                        <div class="layerChanger" data-layer="Satellite">위성</div>
+                        <div class="layerChanger" data-layer="midnight">야간</div>
+                        <div class="layerChanger" data-layer="gray">백지도</div>
+                        <div class="layerChanger" data-layer="Hybrid">하이브리드</div>
+                    </div>
+				</div>
+			</div>
+		</div>
 </body>
 
 </html>

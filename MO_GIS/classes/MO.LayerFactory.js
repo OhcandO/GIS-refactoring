@@ -16,16 +16,20 @@ import VectorImageLayer from '../../lib/openlayers_v7.5.1/layer/VectorImage.js';
  */
 export class LayerFactory extends MOFactory{
 
-    /**Openlayers 라이브러리의 Layer 객체에서 사용하는 키 값  */
+     /**Openlayers 라이브러리의 Layer 객체에서 사용하는 키 값  */
     #default_leyerSpec = {
-        id:undefined,
         zIndex: 5,
-        opacity: 1, //투명도. 0~1 범위 소숫점 가능
+        opacity: 1, //
         minZoom: undefined, // 설정된 줌 보다 멀리 떨어지면 레이어 비활성
         visible : true, //보임 or 보이지 않음
         className: undefined, //'ol-layer',
         extent:undefined, //[minX, minY, maxX, maxY] 로 표현된 영역만 표현
         declutter: false, //VectorImage 한정. 요소들 모여있을 때 하나만 표시 여부
+        properties:{
+            id:undefined,
+            typeName:undefined,
+            isBase:false,
+        },
     };
 
 
@@ -33,6 +37,17 @@ export class LayerFactory extends MOFactory{
     #INSTANCE_ol_Source;
     #INSTANCE_olLayer;
 
+	/**
+     * 레이어 팩토리 생성
+     * @param {object} [default_param] 레이어팩토리 옵션 
+     * @param {boolean} [default_param.declutter] 서로겹침허용 여부
+     * @param {boolean} [default_param.visible] 레이어 초기 보임여부 
+     * @param {boolean} [default_param.isBase] 기본 배경 레이어로서 사용될지 여부 
+     * @param {number} [default_param.opacity] 투명도. 0~1 범위 소숫점 가능
+     * @param {number} [default_param.minZoom] 설정된 줌 보다 멀리 떨어지면 레이어 비활성
+     * @param {number} [default_param.zIndex] 레이어들이 서로 겹쳐있을 때 숫자가 클수록 위쪽에 위치 (다른 레이어 가림)
+     * @memberof LayerFactory
+     */
     constructor(default_param){
         super();
         Object.assign(this.#default_leyerSpec, default_param);
@@ -99,10 +114,13 @@ export class LayerFactory extends MOFactory{
      *   */ 
     #upateLayerCode(){
         let src = this.layerCode;
-        this.#default_leyerSpec.id = src[KEY.LAYER_ID] ?? this.#default_leyerSpec.id;
         this.#default_leyerSpec.zIndex = src[KEY.Z_INDEX] ?? this.#default_leyerSpec.zIndex;
         this.#default_leyerSpec.minZoom = src[KEY.MIN_ZOOM] ?? this.#default_leyerSpec.minZoom;
         this.#default_leyerSpec.visible = src[KEY.BOOL_VISIBLE]?.toUpperCase()==='Y' ? true:false;
+        
+        this.#default_leyerSpec.properties.id = src[KEY.LAYER_ID] ?? this.#default_leyerSpec.properties.id;
+        this.#default_leyerSpec.properties.typeName = src[KEY.TYPE_NAME] ?? this.#default_leyerSpec.properties.typeName;
+        this.#default_leyerSpec.properties.isBase = src[KEY.LAYER_TYPE]?.toUpperCase()==='BASE' ? true:false;
 
         this.#default_leyerSpec = this.filterNullishVals(this.#default_leyerSpec);
     }

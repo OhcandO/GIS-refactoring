@@ -13,6 +13,17 @@ import Feature from '../../lib/openlayers_v7.5.1/Feature.js';
 import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
 
 /**
+ * MOGISMap 객체를 생성하기 위한 파라미터 정의
+ * @typedef {object} MOGIS_param
+ * @property {string} target - Map 객체가 정의될 DIV element의 id 값. 해당 div 의 height, width 가 유효해야 함. 'map'
+ * @property {string} [projection] - Openlayers 뷰 포트 객체가 표현하는 좌표계. 배경지도의 원본 좌표계를 설정해 이미지가 열화 없이 표출되도록 함. 'EPSG:3857'
+ * @property {number[]} [center] - "projection" 좌표계에서 중심좌표 위치. 미지정시 회사 좌표 '[14142459.590502, 4506517.583030]'
+ * @property {number} [zoom] - view 객체의 초기 줌 수준 '12'
+ * @property {number} [hitTolerance] - select interaction 의 클릭위치 반경 조정. 숫자가 커질수록 클릭 선택영역이 넓어짐 '10'
+ * @property {boolean} [multi] - select interaction 다중 선택 여부 'false'
+ */
+
+/**
  * ol.Map 확장하고 지도와 레이어 생성을 관장하는 Controller 역할수행
  *
  * @export
@@ -23,14 +34,14 @@ export class MOGISMap {
         /**
          * Openlayers 뷰 포트 객체가 표현하는 좌표계.
          * 배경지도의 원본 좌표계를 설정해 이미지가 열화 없이 표출되도록 함
-         * @default 'EPSG:4326' vworld 배경지도 좌표계
+         * @default 'EPSG:3857' vworld 배경지도 좌표계
          * @memberof MOMapConfig
          */
         projection: `EPSG:3857`, //google map projected Pseudo-Mercator coordinate system. Also Vworld basemap coordinate
         /** mindone */
-        center: [127.043879, 37.482099],
+        center: [14142459.590502, 4506517.583030],
         enableRotation: false,
-        zoom:15,
+        zoom:12,
     };
 
     default_mapSpec = {
@@ -71,15 +82,17 @@ export class MOGISMap {
     layerCodeArrBase;
     /**
      * 입력한 변수들을 Map 또는 View 객체 생성을 위한 변수로 할당
-     * @param {Object} mapConfigSpec Map 또는 View 객체 생성을 위한 key-value Object
+     * @param {MOGIS_param} mapConfigSpec 
      */
     constructor(mapConfigSpec) {
-        if (mapConfigSpec instanceof Object) {
+        if (mapConfigSpec instanceof Object && mapConfigSpec.target) {
             Object.entries(mapConfigSpec).forEach(([key, val]) => {
                 if (this.default_mapSpec[key]) this.default_mapSpec[key] = val;
                 if (this.default_viewSpec[key]) this.default_viewSpec[key] = val;
                 if (this.default_select[key]) this.default_select[key] = val;
             });
+        }else{
+            throw new Error(`지도객체 위치할 'target'의 아이디 값을 정의해야 합니다.`)
         }
 
         //deafult highlight 초기화
@@ -136,6 +149,14 @@ export class MOGISMap {
         }
     }
 
+    get baseLayers(){
+        if(this.#INSTANCE_OL_MAP){
+            return this.#INSTANCE_OL_MAP.getLayers().getArray().filter(layer=>layer.get('isBase'));
+        }else{
+            console.log(`오픈레이어스 지도 객체 생성되지 않음`)
+            return [];
+        }
+    }
     //🔻⬜⬜⬜⬜⬜LayerCode 관련⬜⬜⬜⬜
 
     /**

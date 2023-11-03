@@ -1,3 +1,9 @@
+/**
+ * 조건에 따라 인스턴스를 생성하는 클래스들의 interface 
+ *
+ * @export
+ * @class MOFactory
+ */
 export class MOFactory{
  
     // static layerSpec;
@@ -10,7 +16,7 @@ export class MOFactory{
     /**
      * 개별 레이어+소스+스타일 설정 정보를 등록함
      *
-     * @param {*} inputLayerSpec
+     * @param {object} inputLayerSpec
      * @memberof MOFactory
      */
     setSpec(inputLayerSpec) {
@@ -68,6 +74,7 @@ export class MOFactory{
     /**
      * factory 객체 내부 변수 초기화
      * 상속 클래스에서 메서드 확장 용도
+     * @abstract
      * @memberof MOFactory
      */
     resetFactory(){

@@ -58,7 +58,7 @@ export const vworld_compatibilities = `<?xml version="1.0" encoding="UTF-8"?><Ca
         <ResourceURL format="image/png" resourceType="tile" template="http://api.vworld.kr/req/wmts/1.0.0/{{{ $APIKEY }}}/Base/{TileMatrix}/{TileRow}/{TileCol}.png"/>
     </Layer>
     <Layer>
-        <ows:Title>VworldGray</ows:Title>
+        <ows:Title>Vworldgray</ows:Title>
         <ows:Identifier>gray</ows:Identifier>
         <ows:BoundingBox crs="urn:ogc:def:crs:EPSG::3857">
             <ows:LowerCorner>12523442.714243278 3130860.6785608195</ows:LowerCorner>
@@ -76,7 +76,7 @@ export const vworld_compatibilities = `<?xml version="1.0" encoding="UTF-8"?><Ca
         <TileMatrixSetLink>
             <TileMatrixSet>GoogleMapsCompatible</TileMatrixSet>
         </TileMatrixSetLink>
-        <ResourceURL format="image/png" resourceType="tile" template="http://api.vworld.kr/req/wmts/1.0.0/{{{ $APIKEY }}}/gray/{TileMatrix}/{TileRow}/{TileCol}.png"/>
+        <ResourceURL format="image/png" resourceType="tile" template="http://api.vworld.kr/req/wmts/1.0.0/{{{ $APIKEY }}}/white/{TileMatrix}/{TileRow}/{TileCol}.png"/>
     </Layer>
     <Layer>
         <ows:Title>VworldMidnight</ows:Title>

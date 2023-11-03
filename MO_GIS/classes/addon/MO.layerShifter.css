@@ -1,0 +1,28 @@
+/* MOLayerShifter 에서 사용하는 css  */
+.mogis.control.flex.layerShifter{
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+}
+.LayerShifter.options.container{
+    display: none;
+    padding-right: 13px;
+}
+button.mogis.LayerShifter {
+  height: 34px;
+}
+.layerChanger {
+    background-color: antiquewhite;
+    border: 1px solid black;
+    width: 90px;
+    margin-right: 6px;
+}
+.mogis.flex{
+    display: flex;
+}
+.mogis.flex.options {
+    flex-direction: row;
+    height: 65px;
+}

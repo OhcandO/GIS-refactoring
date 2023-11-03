@@ -25,9 +25,15 @@ export class SourceFactory extends MOFactory{
     
     #INSTANCE_ol_Source; //생성자에 입력된 내용이 default 와 합쳐져 등록됨
     
-    constructor(default_param){
+    /**
+     * Creates an instance of SourceFactory.
+     * @param {object} par 소스팩토리 생성을 위한 object
+     * @param {number} par.minZoom 소스차원에서 zoom 설정. 10으로 정하면 view가 11로 확대되어도 레이어를 요청하지 않음(ol.source.XYZ 만 해당)
+     * @memberof SourceFactory
+     */
+    constructor(par){
         super();
-        Object.assign(this.#default_sourceSpec, default_param);
+        Object.assign(this.#default_sourceSpec, par);
     }
 
     getSource() {
