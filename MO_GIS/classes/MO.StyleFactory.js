@@ -1,11 +1,11 @@
 import * as KEY from '../common/MO.keyMap.js';
 import { MOFactory } from './abstract/MO.Factory.js';
-import Style from '../../lib/openlayers_v7.5.1/style/Style.js';
-import Stroke from '../../lib/openlayers_v7.5.1/style/Stroke.js';
-import Fill from '../../lib/openlayers_v7.5.1/style/Fill.js';
-import Text from '../../lib/openlayers_v7.5.1/style/Text.js';
-import Icon from '../../lib/openlayers_v7.5.1/style/Icon.js';
-import CircleStyle from '../../lib/openlayers_v7.5.1/style/Circle.js'
+// import Style from '../../lib/openlayers_v7.5.1/style/Style.js';
+// import Stroke from '../../lib/openlayers_v7.5.1/style/Stroke.js';
+// import Fill from '../../lib/openlayers_v7.5.1/style/Fill.js';
+// import Text from '../../lib/openlayers_v7.5.1/style/Text.js';
+// import Icon from '../../lib/openlayers_v7.5.1/style/Icon.js';
+import {Style,Stroke,Fill,Text,Icon,Circle as CircleStyle} from '../../lib/openlayers_v7.5.1/style.js';
 import { MultiPolygon, Polygon } from '../../lib/openlayers_v7.5.1/geom.js';
 import Feature from '../../lib/openlayers_v7.5.1/Feature.js';
 /**
