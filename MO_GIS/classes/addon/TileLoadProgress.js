@@ -1,5 +1,5 @@
 
-class TileLoadProgress {
+export class TileLoadProgress {
 
     DOMElement
     loading=0;
@@ -8,6 +8,9 @@ class TileLoadProgress {
     constructor(el) {
         if(el instanceof Element){
             this.DOMElement = el;
+        }else{
+            console.log(el);
+            throw new Error (`적합한 DOM 요소가 아님`)
         }
     }
     /**
@@ -29,19 +32,19 @@ class TileLoadProgress {
        */
     update() {
         const width = ((this.loaded / this.loading) * 100).toFixed(1) + '%';
-        this.el.style.width = width;
+        this.DOMElement.style.width = width;
     }
     /**
        * Show the progress bar.
        */
     show() {
-        this.el.style.visibility = 'visible';
+        this.DOMElement.style.visibility = 'visible';
     }
     /**
        * Hide the progress bar.
        */
     hide() {
-        const style = this.el.style;
+        const style = this.DOMElement.style;
         setTimeout(function () {
             style.visibility = 'hidden';
             style.width = 0;

@@ -1,20 +1,13 @@
 import { Draw, Modify } from "../../../lib/openlayers_v7.5.1/interaction.js";
 import { LineString, Point } from "../../../lib/openlayers_v7.5.1/geom.js";
-import { Vector as VectorSource } from "../../../lib/openlayers_v7.5.1/source.js";
-import { Vector as VectorLayer } from "../../../lib/openlayers_v7.5.1/layer.js";
+import VectorSource from "../../../lib/openlayers_v7.5.1/source/Vector.js";
+import VectorLayer from "../../../lib/openlayers_v7.5.1/layer/Vector.js";
 import { getArea, getLength } from "../../../lib/openlayers_v7.5.1/sphere.js";
-import {
-    Circle as CircleStyle,
-    Fill,
-    RegularShape,
-    Stroke,
-    Style,
-    Text,
-} from "../../../lib/openlayers_v7.5.1/style.js";
-import { MOGISMap } from "../MO.MOGISMap.js";
+import { Circle as CircleStyle, Fill,
+    RegularShape, Stroke,Style,Text, } from "../../../lib/openlayers_v7.5.1/style.js";
 import Map from "../../../lib/openlayers_v7.5.1/Map.js";
 
-class Measure {
+export class Measure {
     style;
     labelStyle;
     tipStyle;
@@ -31,13 +24,37 @@ class Measure {
     #INSTNACE_OL_MAP;
     #INSTANCE_MEASURE_LAYER;
 
-    constructor(mogisMap) {
-        if (mogisMap instanceof MOGISMap) {
-            this.#INSTNACE_OL_MAP = mogisMap.map;
+    /**
+     * Creates an instance of Measure.
+     * @param {Map} ol_map - Openlayers 맵 객체
+     * @param {boolean} [makeBtn=true] - 측정도구 버튼 필드 생성여부
+     * @memberof Measure
+     */
+    constructor(ol_map, makeBtn=true) {
+        if (ol_map instanceof Map) {
+            this.#INSTNACE_OL_MAP = ol_map;
+            
+            if(makeBtn){
+                this.#createRadio();
+            }
             this.#activate();
+        }else{
+            console.log(ol_map);
+            throw new Error(`입력된 객체가 ol.Map 객체가 아님`);
         }
     }
 
+    #createRadio(){
+        let html = `
+        <div class="mogis control flex container" id="measure">
+            <button type="button" class="mogis measure option" data-value="">기본</button>
+            <button type="button" class="mogis measure option" data-value="LineString">길이 length</button>
+            <button type="button" class="mogis measure option" data-value="Polygon">면적 area</button>
+        </div>
+        `;
+        this.#INSTNACE_OL_MAP.getTarget().insertAdjacentHTML(`afterend`,html);
+    }
+    
     /**
      * 설정 초기화
      */    
@@ -120,7 +137,7 @@ class Measure {
             }),
         });
 
-        this.segmentStyles = [segmentStyle];
+        this.segmentStyles = [this.segmentStyle];
 
         this.source = new VectorSource();
 
@@ -128,7 +145,9 @@ class Measure {
             source: this.source,
             style: this.modifyStyle,
         });
-    }
+
+        // this.enableMeasure();
+    }//#activate
 
     formatLength(line) {
         const length = getLength(line);
@@ -159,7 +178,7 @@ class Measure {
         const type = geometry.getType();
         let point, label, line;
         if (!drawType || drawType === type || type === "Point") {
-            styles.push(style);
+            styles.push(me.style);
             if (type === "Polygon") {
                 point = geometry.getInteriorPoint();
                 label = me.formatArea(geometry);
@@ -188,12 +207,12 @@ class Measure {
         if (label) {
             me.labelStyle.setGeometry(point);
             me.labelStyle.getText().setText(label);
-            styles.push(labelStyle);
+            styles.push(me.labelStyle);
         }
         if (tip && type === "Point" && !me.modify.getOverlay().getSource().getFeatures().length) {
             me.tipPoint = geometry;
             me.tipStyle.getText().setText(tip);
-            styles.push(tipStyle);
+            styles.push(me.tipStyle);
         }
         return styles;
     }
@@ -202,10 +221,12 @@ class Measure {
         let me = this;
 
         this.#INSTANCE_MEASURE_LAYER = new VectorLayer({
-            source: me.source,
+            source: this.source,
             style: function (feature) {
-                return me.styleFunction(feature, showSegments.checked);
+                // return me.styleFunction(feature, showSegments.checked);
+                return me.styleFunction(feature, true);
             },
+            zIndex: 500
         });
 
         if (this.#INSTNACE_OL_MAP instanceof Map) {
@@ -213,7 +234,14 @@ class Measure {
             this.#INSTNACE_OL_MAP.addInteraction(this.modify);
         }
     }
-
+    disableMeasure(){
+        if(this.#INSTANCE_MEASURE_LAYER){
+            this.#INSTNACE_OL_MAP.removeLayer(this.#INSTANCE_MEASURE_LAYER);
+            this.#INSTNACE_OL_MAP.removeInteraction(this.draw);
+            this.#INSTNACE_OL_MAP.removeInteraction(this.modify);
+            this.#activate();
+        }
+    }
     /**
      *
      *
@@ -222,35 +250,44 @@ class Measure {
      */
     activeMeasure(drawType) {
         let me = this;
-        const activeTip = "마우스 클릭으로  " + (drawType === "Polygon" ? "도형" : "선분") + "을 그립니다";
-        const idleTip = "마우스 클릭으로 시작지점 선택합니다";
-        let tip = idleTip;
-        this.draw = new Draw({
-            source: this.source,
-            type: drawType,
-            style: function (feature) {
-                // return me.styleFunction(feature,showSegments.checked,drawType,tip);
-                return me.styleFunction(feature, true,drawType,tip);
-            },
-        });
-        this.draw.on("drawstart", function () {
-            // if (clearPrevious.checked) {
-            if (true) {
-                me.source.clear();
-            }
-            me.modify.setActive(false);
-            tip = activeTip;
-        });
-        this.draw.on("drawend", function () {
-            me.modifyStyle.setGeometry(tipPoint);
-            me.modify.setActive(true);
-            me.#INSTNACE_OL_MAP.once("pointermove", function () {
-                me.modifyStyle.setGeometry();
+        if(me.draw){
+            me.#INSTNACE_OL_MAP.removeInteraction(me.draw);
+            this.disableMeasure();
+        }
+        if(!drawType){
+            console.log('reset');
+        }else{
+            this.enableMeasure();
+            const activeTip = "마우스 클릭으로  " + (drawType === "Polygon" ? "도형" : "선분") + "을 그립니다";
+            const idleTip = "마우스 클릭으로 시작지점 선택합니다";
+            let tip = idleTip;
+            this.draw = new Draw({
+                source: this.source,
+                type: drawType,
+                style: function (feature) {
+                    // return me.styleFunction(feature,showSegments.checked,drawType,tip);
+                    return me.styleFunction(feature, true,drawType,tip);
+                },
             });
-            tip = idleTip;
-        });
-        me.modify.setActive(true);
-        me.#INSTNACE_OL_MAP.addInteraction(draw);
+            this.draw.on("drawstart", function () {
+                // if (clearPrevious.checked) {
+                if (true) {
+                    me.source.clear();
+                }
+                me.modify.setActive(false);
+                tip = activeTip;
+            });
+            this.draw.on("drawend", function () {
+                me.modifyStyle.setGeometry(me.tipPoint);
+                me.modify.setActive(true);
+                me.#INSTNACE_OL_MAP.once("pointermove", function () {
+                    me.modifyStyle.setGeometry();
+                });
+                tip = idleTip;
+            });
+            me.modify.setActive(true);
+            me.#INSTNACE_OL_MAP.addInteraction(me.draw);
+        }
     }
 
     enableEvent() {
@@ -262,10 +299,10 @@ class Measure {
 
         addInteraction();
 
-        showSegments.onchange = function () {
-            me.vector.changed();
-            me.draw.getOverlay().changed();
-        };
+        // showSegments.onchange = function () {
+        //     me.vector.changed();
+        //     me.draw.getOverlay().changed();
+        // };
     }
 }
 

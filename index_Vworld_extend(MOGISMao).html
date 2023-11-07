@@ -65,7 +65,9 @@
     import { StyleFactory } from "./MO_GIS/classes/MO.StyleFactory.js";
     import {MOGISMap} from './MO_GIS/classes/MO.MOGISMap.js';
     import { Spinner } from '../lib/spin.js/spin.js';
-    import {TileLoadProgress} from 'MO_GIS/classes/addon/TileLoadProgress.js';
+    import {TileLoadProgress} from './MO_GIS/classes/addon/TileLoadProgress.js';
+
+    import {Measure} from './MO_GIS/classes/addon/measure.js';
         //DB에서 관리
         const baseLayerCode = 
         [
@@ -144,6 +146,7 @@
         })
         
 
+
         //지도 위 이벤트들
          //배경지도 선택기 노출 버튼
         document.querySelector(`#baseLayerShifter_btn`).addEventListener(`click`,function(e){
@@ -152,7 +155,8 @@
             else options.style.display ='';
         });
         //배경지도 선택기
-        document.querySelectorAll(`.layerChanger`).forEach(node => {
+        document.querySelectorAll(`.layerChanger`)
+        .forEach(node => {
             const baseLayers= ['Base','midnight','gray','Satellite'];
             const hybridLayer= 'Hybrid';
 
@@ -172,8 +176,20 @@
                         })
                     }
                 });
-            })
+        });
         
+        //측정도구
+        let measure = new Measure(mainMap.map, false);
+
+        document.querySelectorAll(`input[name="control_measure"]`).forEach(node=>{
+            node.addEventListener('change',function(e){
+                if(e.target.checked){
+                    measure.activeMeasure(e.target.value);
+                }
+            })
+        })
+        
+
 
         function showMapLoading(){spin.spin(document.querySelector(`#${default_spec.target}`));}
         function hideMapLoading(){spin.stop();}
@@ -181,6 +197,7 @@
         globalThis.mainMap_prepare = showMapLoading;
         globalThis.mainMap_done= hideMapLoading;
         globalThis.mainMap = mainMap;
+        globalThis.mainMap_measure = measure;
     </script>
    
 </head>
@@ -190,30 +207,46 @@
 
         <div id="map"></div>
         <div id="progress"></div>
-        <!-- 지도 우측 툴바 -->
-            <div>
-                <!-- 레이어 변경 -->
-                <div class="mogis control flex container" id="baseLayerShifter">
-                    <button id="baseLayerShifter_btn" type="button" data-toggle="false">레이어 선택</button>
-                    <div id="baseLayerShifter_option">
-                        <div class="mogis flex options">
-                            <div class="layerChanger" data-layer="Base">기본</div>
-                            <div class="layerChanger" data-layer="Satellite">위성</div>
-                            <div class="layerChanger" data-layer="midnight">야간</div>
-                            <div class="layerChanger" data-layer="gray">백지도</div>
-                            <div class="layerChanger" data-layer="Hybrid">하이브리드</div>
-                        </div>
-                    </div>
+    </div>
+<!-- 지도 우측 툴바 -->
+    <div>
+        <!-- 레이어 변경 -->
+        <div class="mogis control flex container" id="baseLayerShifter">
+            <button id="baseLayerShifter_btn" type="button" data-toggle="false">레이어 선택</button>
+            <div id="baseLayerShifter_option">
+                <div class="mogis flex options">
+                    <div class="layerChanger" data-layer="Base">기본</div>
+                    <div class="layerChanger" data-layer="Satellite">위성</div>
+                    <div class="layerChanger" data-layer="midnight">야간</div>
+                    <div class="layerChanger" data-layer="gray">백지도</div>
+                    <div class="layerChanger" data-layer="Hybrid">하이브리드</div>
                 </div>
-    
-                <!-- 길이, 면적 측정도구 (라디오버튼으로 구성할 것) -->
-                <div class="mogis control flex container" id="measure">
-                    <button type="button" data-value="">기본</button>
-                    <button type="button" data-value="LineString">길이 length</button>
-                    <button type="button" data-value="Polygon">면적 area</button>
-                </div>
-    
             </div>
+        </div>
+
+        <!-- 길이, 면적 측정도구 (라디오버튼으로 구성할 것) -->
+        <div class="mogis control flex container" id="measure">
+            <!-- <button type="button" class="mogis measure option" data-value="">기본</button>
+            <button type="button" class="mogis measure option" data-value="LineString">길이 length</button>
+            <button type="button" class="mogis measure option" data-value="Polygon">면적 area</button> -->
+            <div class="mogis measure option">
+                <label for="pan">
+                    <input type="radio" name="control_measure" id="pan" value="">
+                    기본
+                </label>
+            </div>
+            <div class="mogis measure option">
+                <label for="measure_line">
+                    <input type="radio" name="control_measure" id="measure_line" value="LineString">길이
+                </label>
+            </div>
+            <div class="mogis measure option">
+                <label for="poly">
+                    <input type="radio" name="control_measure" id="poly" value="Polygon">면적 area                    
+                </label>
+            </div>
+        </div>
+
     </div>
 </body>
 
