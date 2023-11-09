@@ -10,7 +10,7 @@
 /* △△△△△△레이어 식별 관련△△△△△△△△△△△△△ */
 export const LAYER_NAME = `layerTitle` //화면에서 표현될 레이어 제목
 export const TYPE_NAME = `typeName`; //geoserver 용 레이어 식별자
-export const LAYER_TYPE = `layerType`; //BASE, group, POINT, LINE, POLYGON 등 레이어 타입
+export const LAYER_GEOMETRY_TYPE = `layerType`; //BASE, group, POINT, LINE, POLYGON 등 레이어 타입
 
 /* △△△△△△레이어 스타일(Style) 관련△△△△△△△△△△△△△ */
 export const LINE_WIDTH = `lineWidth`;
@@ -34,6 +34,30 @@ export const LAYER_ID = `id`;
 export const PARENT_ID = `pid`;
 export const CHILD_MARK = `childList`;
 export const BOOL_IS_GROUP = `boolIsgroup` // 해당 레이어가 '형식상' 레이어이며 그룹핑 용도로만 사용되는지 여부
+/**
+ * 레이어들의 목적으로 다르게 운용하기위해 구분
+ * @typedef {object} LAYER_PURPOSE_CATEGORY
+ */
+export const LAYER_PURPOSE_CATEGORY= {
+        /**기본 GIS 시설물 e.g. 관로, 계측기, 블록 등*/
+        BASE:'base', 
+        /** (지능수도플) 리스크맵 */
+        RISKMAP:'risk', 
+        /** (지능수도플) 누수예상지점 */
+        LEAK:'leak', 
+        /** (지능수도플) 공공서비스 */
+        PUBLIC:'public', 
+        /** (지능수도플) 관망해석결과 */
+        PIPENET:'pipnet', 
+        /**(지능수도플) 중점 관리지역 */
+        MANAGE:'manage', 
+        /** (지능수도플) 상습민원지역 */
+        COMPLAINT:'comp', 
+        /** (지능수도플) 실시간 상황감지 */
+        REALTIME:'realtime', 
+        /** (지능수도플) 이동형 누수센서 */
+        PORTABLE:'portable', 
+        }
 
 /* ▲▲▲▲▲레이어 소스(Source) 관련▲▲▲▲▲▲▲▲▲△ */
 export const ORIGIN = `origin`;

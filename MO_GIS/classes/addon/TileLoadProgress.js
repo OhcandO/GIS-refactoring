@@ -1,4 +1,10 @@
-
+/**
+ *
+ * ol.source 와 연동되어, 로딩됨/로딩중 비율을 viewport 밑에 표현하기 위한 객체
+ * @export
+ * @class TileLoadProgress
+ * 출처 : https://openlayers.org/en/latest/examples/tile-load-events.html
+ */
 export class TileLoadProgress {
 
     DOMElement

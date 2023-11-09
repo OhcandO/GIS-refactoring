@@ -133,6 +133,7 @@ export class SourceFactory extends MOFactory{
      */
     #srcBuilder(category, sourceType) {
         if (category == `geoserver` && sourceType == `vector`) {
+            console.log('geoserver vector 생성 준비')
             return this.#srcBuilder_vector();
 
         } else if (category == `vworld` && sourceType == `xyz`) {
@@ -264,7 +265,12 @@ export class SourceFactory extends MOFactory{
         let geojson_option;
             
         let srid = this.#getValidSrid();
-        if(srid) geojson_option(`dataProjection`)=srid;
+
+        if(srid) {
+            geojson_option(`dataProjection`)=srid;
+            console.log(srid);
+            console.log(this.#urlBuilder_geoserver());
+        }
 
         let vectorOption={
             format: new GeoJSON(geojson_option),

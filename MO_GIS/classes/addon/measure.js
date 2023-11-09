@@ -7,6 +7,14 @@ import { Circle as CircleStyle, Fill,
     RegularShape, Stroke,Style,Text, } from "../../../lib/openlayers_v7.5.1/style.js";
 import Map from "../../../lib/openlayers_v7.5.1/Map.js";
 
+/**
+ * ol.map 객체와 상호작용하여, 길이/면적 측정 상호작용할 수 있도록 하는 객체
+ * 지도 당 한개 객체
+ *
+ * @export
+ * @class Measure
+ * 출처 : https://openlayers.org/en/v7.5.2/examples/measure-style.html
+ */
 export class Measure {
     style;
     labelStyle;
@@ -27,7 +35,7 @@ export class Measure {
     /**
      * Creates an instance of Measure.
      * @param {Map} ol_map - Openlayers 맵 객체
-     * @param {boolean} [makeBtn=true] - 측정도구 버튼 필드 생성여부
+     * @param {boolean} [makeBtn=true] - 측정도구 버튼 필드 신규 생성여부
      * @memberof Measure
      */
     constructor(ol_map, makeBtn=true) {
@@ -47,9 +55,15 @@ export class Measure {
     #createRadio(){
         let html = `
         <div class="mogis control flex container" id="measure">
-            <button type="button" class="mogis measure option" data-value="">기본</button>
-            <button type="button" class="mogis measure option" data-value="LineString">길이 length</button>
-            <button type="button" class="mogis measure option" data-value="Polygon">면적 area</button>
+            <div class="mogis measure option">
+                <label for="pan"> <input type="radio" name="control_measure" id="pan" value="">기본</label>
+            </div>
+            <div class="mogis measure option">
+                <label for="measure_line"> <input type="radio" name="control_measure" id="measure_line" value="LineString">길이</label>
+            </div>
+            <div class="mogis measure option">
+                <label for="poly"><input type="radio" name="control_measure" id="poly" value="Polygon">면적</label>
+            </div>
         </div>
         `;
         this.#INSTNACE_OL_MAP.getTarget().insertAdjacentHTML(`afterend`,html);
@@ -305,5 +319,3 @@ export class Measure {
         // };
     }
 }
-
-//TODO https://openlayers.org/en/v7.5.2/examples/measure-style.html

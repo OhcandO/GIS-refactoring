@@ -44,6 +44,7 @@ export class MOGISMap {
         zoom:12,
     };
 
+    /** ol.Map 객체의 기본 정보*/
     default_mapSpec = {
         /** Map 이 생성될 기본 DIV id */
         target: "map",
@@ -71,15 +72,26 @@ export class MOGISMap {
 
     /**
      * Vector 레이어들의 소스+레이어 정보 코드 리스트
-     * @type {JSON}
+     * @type {KEY.LAYER_CATEGORY}
      */
-    layerCodeArr;
+    layerCodeObject = {
+        default:[],
+        risk:[], // (지능수도플) 리스크맵
+        leak:[], // (지능수도플) 누수예상지점
+        public:[], // (지능수도플) 공공서비스
+        pipnet:[], // (지능수도플) 관망해석결과
+        base:[], //기본 GIS 시설물 e.g. 관로, 계측기, 블록 등
+        manage:[], //중점 관리지역
+        comp:[], // (지능수도플) 상습민원지역
+        realtime:[], // (지능수도플) 실시간 상황감지
+        portable:[], // (지능수도플) 이동형 누수센서
+    };
 
     /**
      * 기본 배경지도의 소스(API키 포함)+레이어 정보 코드 리스트
      * @type {JSON}
      */
-    layerCodeArrBase;
+    layerCode_Base;
     /**
      * 입력한 변수들을 Map 또는 View 객체 생성을 위한 변수로 할당
      * @param {MOGIS_param} mapConfigSpec 
@@ -161,12 +173,23 @@ export class MOGISMap {
 
     /**
      * 레이어 소스 + 스타일 JSON 등록
-     * @param {JSON} layerCDArr
+     * @param {JSON} layerCDArr 레이어코드 json 배열
+     * @param {string} [categoryKey] 레이어코드 구분자
      * @memberof MOGISMap
      */
-    setLayerCodeArr(layerCDArr) {
+    setLayerCode(layerCDArr,categoryKey) {
         if (layerCDArr instanceof Array) {
-            this.layerCodeArr = layerCDArr;
+            if(categoryKey){
+                if(Object.values(KEY.LAYER_PURPOSE_CATEGORY).includes(categoryKey)){
+                    this.layerCodeObject[categoryKey] = layerCDArr;
+                }else{
+                    console.error(`레이어 카테고리 키가 적합하지 않음: ${categoryKey}`);
+                    console.error(`default 카테고리로 임시 지정`);
+                    this.layerCodeObject['default'] = layerCDArr;    
+                }
+            }else{
+                this.layerCodeObject['default'] = layerCDArr;
+            }
         } else {
             console.error(`layerCode JSON 객체가 적합하지 않음`);
             throw new Error(`layerCode JSON 객체가 적합하지 않음`);
@@ -180,7 +203,7 @@ export class MOGISMap {
      */
     setBaseLayerCodeArr(layerCDArr) {
         if (layerCDArr instanceof Array) {
-            this.layerCodeArrBase = layerCDArr;
+            this.layerCode_Base = layerCDArr;
         } else {
             console.error(`layerCode JSON 객체가 적합하지 않음`);
             throw new Error(`layerCode JSON 객체가 적합하지 않음`);
@@ -195,7 +218,15 @@ export class MOGISMap {
      */
     #getALayerCode(layerID) {
         if (layerID) {
-            return this.layerCodeArr.find(code=>code[KEY.LAYER_ID]);
+            let tempArr = Object.values(this.layerCodeObject).flat();
+            let layerCodeObj= tempArr.find(code=>code[KEY.LAYER_ID]);
+            if(layerCodeObj){
+                return layerCodeObj;
+            }else{
+                console.error(`적합한 layerCodeObj 없음`)
+                console.log(`찾은 레이어 아이디 : ${layerID}`);
+                throw new Error(`적합한 layerCodeObj 없음`)
+            }
         }else{
             throw new Error(`레이어아이디 적합하지 않음 : ${layerID}`)
         }
@@ -251,9 +282,9 @@ export class MOGISMap {
 		if(!(this.#INSTANCE_OL_MAP instanceof Map)) this.#createMapObj();
 //		if(!(this.#INSTANCE_OL_MAP instanceof ol.Map)) this.#createMapObj();
 		
-        if (this.layerCodeArrBase?.length > 0 && this.#isValid_factories()) {
+        if (this.layerCode_Base?.length > 0 && this.#isValid_factories()) {
             let baseLayers = [];
-            baseLayers = this.layerCodeArrBase.map(baseConfig=>{
+            baseLayers = this.layerCode_Base.map(baseConfig=>{
                 this.#assignLayerCodeToFactories(baseConfig);
 
                 let source ;

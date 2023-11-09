@@ -1,13 +1,14 @@
 /**
- * 드래그 하여 overlay anchor 를 재 배치하고, 원래 자리로 돌아올 수 있게 만드는
- * ol.Overlay 확장 클래스
- */
-/**
  * @module ol/Overlay
- */
+*/
 import {Overlay} from '../lib/openlayers_v7.5.1/Overlay'
 
-class MOOverlay extends Overlay {
+/**
+ * 드래그 하여 overlay anchor 를 재 배치하고, 원래 자리로 돌아올 수 있게 만드는
+ * ol.Overlay 확장 클래스
+ * @author jhoh
+ */
+export class MOOverlay extends Overlay {
     coordOrigin;
     dragstart;
     dragend;

@@ -14,11 +14,12 @@ import Feature from '../../lib/openlayers_v7.5.1/Feature.js';
 const iconPath= `../images/icons/`;
 
 /**
- * 레이어의 스타일을 
+ * 레이어 코드로 부터, 벡터 레이어의 표현 방식을 설정하기 위한 ol.style 객체 생성기
  *
  * @export
  * @class StyleFactory
  * @extends {MOFactory}
+ * @author jhoh
  */
 export class StyleFactory extends MOFactory {
     #default_icon = {
@@ -67,7 +68,7 @@ export class StyleFactory extends MOFactory {
         //'group', 'BASE' 는 DB상 나눠놓은 코드이고, 벡터 데이터는 아니므로 여기서는 제외
         const validLayerTypes = ["POINT","LINE","POLYGON" /* ,'group','BASE' */,];
         
-        let layerType = this.layerCode[KEY.LAYER_TYPE];
+        let layerType = this.layerCode[KEY.LAYER_GEOMETRY_TYPE];
         if (layerType) {
             layerType = layerType.toUpperCase();
             if (

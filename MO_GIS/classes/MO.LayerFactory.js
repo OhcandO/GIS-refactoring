@@ -120,7 +120,7 @@ export class LayerFactory extends MOFactory{
         
         this.#default_leyerSpec.properties.id = src[KEY.LAYER_ID] ?? this.#default_leyerSpec.properties.id;
         this.#default_leyerSpec.properties.typeName = src[KEY.TYPE_NAME] ?? this.#default_leyerSpec.properties.typeName;
-        this.#default_leyerSpec.properties.isBase = src[KEY.LAYER_TYPE]?.toUpperCase()==='BASE' ? true:false;
+        this.#default_leyerSpec.properties.isBase = src[KEY.LAYER_GEOMETRY_TYPE]?.toUpperCase()==='BASE' ? true:false;
 
         this.#default_leyerSpec = this.filterNullishVals(this.#default_leyerSpec);
     }
