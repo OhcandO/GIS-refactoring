@@ -18,10 +18,6 @@ export class LayerTree {
         iconPath: '../images/icons/',
     };
 
-    /**지도 객체의 DIV id 
-     * @type {string} */
-    #TARGET_ID_MAP;
-
     /**트리 객체가 생성될 곳의 DIV id 
      * @type {string} */
     #TREE_DIV_ID;
@@ -45,11 +41,17 @@ export class LayerTree {
      * @type {MOGISMap}*/
     #INSTANCE_MOGISMAP;
 
-    /** 소스+레이어 정보 코드 리스트 
+    /** 레이어코드의 목적을 나타내는 코드
+     * @type {KEY.LAYER_PURPOSE_CATEGORY}
+     */
+    layerObjCategoryKey;
+
+    /**본 레이어트리에서 관리하는 
+     * 소스+레이어 정보 레이어 코드 리스트 
      * @type {JSON} */
     layerCodeArr;
 
-    /** 코드 리스트를 계층구조로 만든 것
+    /** 레이어 코드 리스트를 계층구조로 만든 것
      * @type {JSON} */
     layerStructure;
 
@@ -79,6 +81,7 @@ export class LayerTree {
             //레이어 코드 카테고리 중 하나만 이 layerTree 객체에서 관장함
             if(Object.values(KEY.LAYER_PURPOSE_CATEGORY).includes(layerObjCategoryKey) 
                 && mo_gis_map.layerCodeObject[layerObjCategoryKey]) {
+                    this.layerObjCategoryKey = layerObjCategoryKey;
                 this.#setLayerCodeArr(mo_gis_map.layerCodeObject[layerObjCategoryKey]);
             }
 
@@ -127,7 +130,7 @@ export class LayerTree {
         }
         this.#createTree(this.layerStructure);
         this.#checkEventListener();
-        this.#showInitialLayers(this.layerStructure);
+        // this.#showInitialLayers(this.layerStructure);
     }
 
     /**
@@ -143,11 +146,7 @@ export class LayerTree {
         $(`#${this.#TREE_DIV_ID}`).html(wrap);
         // $(".map_info a").trigger("click");
         $(`#${this.#TREE_DIV_ID}`).jstree({
-            core: {
-                themes: {
-                    icons: false,
-                },
-            },
+            core: {themes: {icons: false,},},
             plugins: ["wholerow", "checkbox"],
         });
 
@@ -202,21 +201,22 @@ export class LayerTree {
      * 초기 선택 노드 셋팅
      */
     #showInitialLayers(structuredLayerCode) {
-        console.log(structuredLayerCode);
-        for (let i = 0; i < structuredLayerCode.length; i++) {
-            let layerCode = structuredLayerCode[i];
-            let id = layerCode[KEY.LAYER_ID];
-            let visible = layerCode[KEY.BOOL_VISIBLE] || "N";
+        if(structuredLayerCode instanceof Array){
 
-            if (layerCode[KEY.CHILD_MARK] && layerCode[KEY.CHILD_MARK].length > 0) {
-                this.#showInitialLayers(layerCode[KEY.CHILD_MARK]);
-            }
-
-            if (visible === "Y") {
-                let tnode = this.#INSTANCE_JS_TREE.get_node("layerid_" + id);
-                if (!tnode) continue;
-                if (tnode.state.selected == false) {
-                    this.#INSTANCE_JS_TREE.check_node(tnode);
+            for(let layerCode of structuredLayerCode){
+                let id = layerCode[KEY.LAYER_ID];
+                let visible = layerCode[KEY.BOOL_VISIBLE] || "N";
+    
+                if (layerCode[KEY.CHILD_MARK] && layerCode[KEY.CHILD_MARK].length > 0) {
+                    this.#showInitialLayers(layerCode[KEY.CHILD_MARK]);
+                }
+    
+                if (visible === "Y") {
+                    let tnode = this.#INSTANCE_JS_TREE.get_node("layerid_" + id);
+                    if (!tnode) continue;
+                    if (tnode.state.selected == false) {
+                        this.#INSTANCE_JS_TREE.check_node(tnode);
+                    }
                 }
             }
         }
@@ -227,32 +227,34 @@ export class LayerTree {
      */
     #checkEventListener() {
         let me = this;
-        //Map 객체에 의존적
         let nodeId;
         $(`#${this.#TREE_DIV_ID}`).bind("changed.jstree", function (e, data) {
             if (data.action === "ready") return;
+            
             let visible = false;
-            if (data.action === "select_node") {
-                visible = true;
-            }
-            let layerList = [];
+            if (data.action === "select_node") visible = true;
+
+            let layerCode_id_arr = [];
             if (data.node.children.length > 0) {
                 for (let id in data.node.children_d) {
                     nodeId = data.node.children_d[id];
-                    pushLayerList(nodeId, layerList);
+                    pushLayerList(nodeId, layerCode_id_arr);
                 }
             } else {
                 nodeId = data.node.id;
-                pushLayerList(nodeId, layerList);
+                pushLayerList(nodeId, layerCode_id_arr);
             }
-            if (layerList.length > 0) {
+            if (layerCode_id_arr.length > 0) {
                 const realLayer = me.#INSTANCE_MOGISMAP.map.getLayers().getArray();
-                layerList.forEach((id) => {
+                console.log(realLayer);
+                layerCode_id_arr.forEach((id) => {
                     let layer = realLayer.find((el) => el[KEY.LAYER_ID] == id);
-                    if (layer) layer.setVisible(visible);
-                    else {
+                    if (layer) {
+                        console.log('here');
+                        layer.setVisible(visible);
+                    } else {
                         //MOGisMap 통해 레이어 생성하는 로직 진행
-                        me.#INSTANCE_MOGISMAP.addLayerWithID(id);
+                        me.#INSTANCE_MOGISMAP.addLayerWithID(id,me.layerObjCategoryKey);
                     }
                 });
             }

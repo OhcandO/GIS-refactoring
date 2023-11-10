@@ -4,7 +4,8 @@ import { MOFactory } from "./abstract/MO.Factory.js";
 import { SourceFactory } from "./MO.SourceFactory.js";
 import { LayerFactory } from "./MO.LayerFactory.js";
 import { StyleFactory } from './MO.StyleFactory.js';
-import Map from '../../lib/openlayers_v7.5.1/Map.js'
+// import {Map as olMap} from '../../lib/openlayers_v7.5.1/Map.js';
+import olMap from '../../lib/openlayers_v7.5.1/Map.js';
 import View from '../../lib/openlayers_v7.5.1/View.js'
 import OSM from '../../lib/openlayers_v7.5.1/source/OSM.js'
 import TileLayer from '../../lib/openlayers_v7.5.1/layer/Tile.js';
@@ -61,7 +62,7 @@ export class MOGISMap {
     #INSTANCE_OL_VIEW;
     #INSTANCE_OL_MAP;
     #INSTANCE_OL_SELECT;
-    #INSTANCE_LAYERTREE;
+    // #INSTANCE_LAYERTREE;
 
     #Factory = {
         /**@type {SourceFactory} */
@@ -72,8 +73,8 @@ export class MOGISMap {
         layer: undefined,
     };
 
-    /**
-     * Vector 레이어들의 소스+레이어 정보 코드 리스트
+    /**목적 별
+     * 소스+레이어 정보 코드 리스트
      * @type {KEY.LAYER_PURPOSE_CATEGORY}
      */
     layerCodeObject = {
@@ -88,6 +89,22 @@ export class MOGISMap {
         realtime:[], // (지능수도플) 실시간 상황감지
         portable:[], // (지능수도플) 이동형 누수센서
     };
+    /**목적 별 
+     * ol.layer 들의 리스트
+     *  layerCodeObject 상 KEY.LAYER_ID 를 key로, 레이어객체를 value 로 함
+     */
+    layers={
+        default: new Map(),
+        risk: new Map(), // (지능수도플) 리스크맵
+        leak: new Map(), // (지능수도플) 누수예상지점
+        public: new Map(), // (지능수도플) 공공서비스
+        pipnet: new Map(), // (지능수도플) 관망해석결과
+        base: new Map(), //기본 GIS 시설물 e.g. 관로, 계측기, 블록 등
+        manage: new Map(), //중점 관리지역
+        comp: new Map(), // (지능수도플) 상습민원지역
+        realtime: new Map(), // (지능수도플) 실시간 상황감지
+        portable: new Map(), // (지능수도플) 이동형 누수센서
+    }
 
     /**
      * 기본 배경지도의 소스(API키 포함)+레이어 정보 코드 리스트
@@ -124,8 +141,7 @@ export class MOGISMap {
         return this.#INSTANCE_OL_MAP;
     }
 	#createMapObj (){
-		this.#INSTANCE_OL_MAP = new Map({
-//		this.#INSTANCE_OL_MAP = new ol.Map({
+		this.#INSTANCE_OL_MAP = new olMap({
                 target: this.default_mapSpec.target,
                 view: this.view,
             });
@@ -133,14 +149,12 @@ export class MOGISMap {
     get view() {
         if (!this.#INSTANCE_OL_VIEW) {
             this.#INSTANCE_OL_VIEW = new View(this.default_viewSpec);
-//            this.#INSTANCE_OL_VIEW = new ol.View(this.default_viewSpec);
         }
         return this.#INSTANCE_OL_VIEW;
     }
 
     set view(view_inst) {
         if (view_inst instanceof View) {
-//        if (view_inst instanceof ol.View) {
             this.#INSTANCE_OL_VIEW = view_inst;
         } else {
             console.log(view_inst);
@@ -148,20 +162,20 @@ export class MOGISMap {
         }
     }
 
-    /**
-     * @param {LayerTree} tree_instrance
-     */
-    set tree(tree_instrance) {
-        if (tree_instrance instanceof LayerTree) {
-            this.#INSTANCE_LAYERTREE = tree_instrance;
-        }
-    }
-    get tree() {
-        if (this.#INSTANCE_LAYERTREE) return this.#INSTANCE_LAYERTREE;
-        else {
-            console.error(`LayerTree 객체 생성되지 않음`);
-        }
-    }
+    // /**
+    //  * @param {LayerTree} tree_instrance
+    //  */
+    // set tree(tree_instrance) {
+    //     if (tree_instrance instanceof LayerTree) {
+    //         this.#INSTANCE_LAYERTREE = tree_instrance;
+    //     }
+    // }
+    // get tree() {
+    //     if (this.#INSTANCE_LAYERTREE) return this.#INSTANCE_LAYERTREE;
+    //     else {
+    //         console.error(`LayerTree 객체 생성되지 않음`);
+    //     }
+    // }
 
     get baseLayers(){
         if(this.#INSTANCE_OL_MAP){
@@ -182,7 +196,7 @@ export class MOGISMap {
     setLayerCode(layerCDArr,categoryKey) {
         if (layerCDArr instanceof Array) {
             if(categoryKey){
-                if(Object.values(KEY.LAYER_PURPOSE_CATEGORY).includes(categoryKey)){
+                if(this.#isValid_layerPurposeCategoryKey(categoryKey)){
                     this.layerCodeObject[categoryKey] = layerCDArr;
                 }else{
                     console.error(`레이어 카테고리 키가 적합하지 않음: ${categoryKey}`);
@@ -215,15 +229,15 @@ export class MOGISMap {
     /**
      * 레이어 아이디로 LayerCode 를 찾아 반환
      * @param {String} layerID
-     * @param {KEY.LAYER_PURPOSE_CATEGORY} layerObjCategoryKey
+     * @param {KEY.LAYER_PURPOSE_CATEGORY} la_pu_cate_key
      * @return {Object} 
      * @memberof MOGISMap
      */
-    #getALayerCode(layerID,layerObjCategoryKey) {
+    #getALayerCode(layerID,la_pu_cate_key) {
         if (layerID) {
             let tempArr;
-            if(layerObjCategoryKey && Object.values(KEY.LAYER_PURPOSE_CATEGORY).includes(layerObjCategoryKey)){
-                tempArr = this.layerCodeObject[layerObjCategoryKey];
+            if(this.#isValid_layerPurposeCategoryKey(la_pu_cate_key)){
+                tempArr = this.layerCodeObject[la_pu_cate_key];
             }else{
                 tempArr = Object.values(this.layerCodeObject).flat();
             }
@@ -270,15 +284,6 @@ export class MOGISMap {
         return bool;
     }
 
-    #ERROR_factory() {
-        let notAssignedFactoryKeyArr = Object.keys(this.#Factory).filter(
-            (key) => !this.#Factory[key]
-        );
-        console.error(
-            `다음 Factory들이 정의되지 않음 : ${notAssignedFactoryKeyArr.toString()}`
-        );
-        throw new Error(`Factory들이 정의되지 않음`);
-    }    
     //🔺🔵🔵🔵Factory 관련🔵🔵🔵🔵
 
     /* ===================================
@@ -288,7 +293,6 @@ export class MOGISMap {
     //1. 배경지도 레이어 생성 및 지도에 포함
     setBaseLayer() {
 		if(!(this.#INSTANCE_OL_MAP instanceof Map)) this.#createMapObj();
-//		if(!(this.#INSTANCE_OL_MAP instanceof ol.Map)) this.#createMapObj();
 		
         if (this.layerCode_Base?.length > 0 && this.#isValid_factories()) {
             let baseLayers = [];
@@ -317,11 +321,24 @@ export class MOGISMap {
             //this.#ERROR_factory()
             let source = new OSM(); 
             let layer = new TileLayer({source:source});
-//            let source = new ol.sourceOSM(); 
-//            let layer = new ol.layer.Tile({source:source});
-            console.log(this.#INSTANCE_OL_MAP);
+            console.log('emergency layer activated');
             this.#INSTANCE_OL_MAP.setLayers([layer]);
         };
+    }
+
+    /**
+     * MOGISMap 이 레이어 코드 아이디로 레이어 켜지고 꺼짐을 관리
+     * @param {number} layer_id 
+     * @param {boolean} visible 
+     * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key]
+     */
+    ctrlLayerOnOff(layer_id,visible, la_pu_cate_key){
+        if(this.#isValid_layerPurposeCategoryKey(la_pu_cate_key)){
+            let targetLayer = this.layers[la_pu_cate_key].get(layer_id);
+            if(targetLayer instanceof Layer){
+
+            }
+        }
     }
 
     /**
@@ -331,12 +348,18 @@ export class MOGISMap {
      * @param {KEY.LAYER_PURPOSE_CATEGORY} [layerObjCategoryKey]
      * @memberof MOGISMap
      */
-    #getLayerWithID(layerCodeId, layerObjCategoryKey) {
+    #createLayerWithID(layerCodeId, layerObjCategoryKey) {
         let layerCode;
         try {
             layerCode = this.#getALayerCode(layerCodeId,layerObjCategoryKey);
+        } catch (e) {
+            console.error(e)
+        }
+        if(layerCode){
             this.#assignLayerCodeToFactories(layerCode);
-        } catch (e) {console.error(e)}
+        }else{
+            
+        }
 
         let source,layer;
         try{
@@ -356,15 +379,30 @@ export class MOGISMap {
      * 레이어 아이디로 ol.Map 객체에 레이어 추가
      *
      * @param {String} layerCodeID
-     * @param {KEY.LAYER_PURPOSE_CATEGORY} [layerObjCategoryKey]
+     * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key]
      * @memberof MOGISMap
      */
-    addLayerWithID(layerCodeID, layerObjCategoryKey){
+    addLayerWithID(layerCodeID, la_pu_cate_key){
         let layer;
         try { 
-            layer = this.#getLayerWithID(layerCodeID, layerObjCategoryKey);
+            layer = this.#createLayerWithID(layerCodeID, la_pu_cate_key);
         }catch(e){console.error(e)}
-        if(layer) this.#INSTANCE_OL_MAP.addLayer(layer);
+        if(layer) {
+            //레이어를 맵에 등록
+            if(this.#isValid_layerPurposeCategoryKey(la_pu_cate_key)){
+                this.layers[la_pu_cate_key].set(layerCodeID,layer);
+            }else{
+                this.layers['default'].set(layerCodeID,layer);
+            }
+            this.#INSTANCE_OL_MAP.addLayer(layer);
+        }
+    }
+    #isValid_layerPurposeCategoryKey(key){
+        let bool = false;
+        if(key){
+            bool = Object.values(KEY.LAYER_PURPOSE_CATEGORY).includes(key);
+        }
+        return bool;
     }
     /**
      * 레이어를 생성하기위한 소스,스타일이 정의된 설정을
