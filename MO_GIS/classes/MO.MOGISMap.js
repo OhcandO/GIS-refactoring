@@ -38,7 +38,6 @@ export class MOGISMap {
          * @memberof MOMapConfig
          */
         projection: `EPSG:3857`, //google map projected Pseudo-Mercator coordinate system. Also Vworld basemap coordinate
-        /** mindone */
         center: [14142459.590502, 4506517.583030],
         enableRotation: false,
         zoom:12,
@@ -65,14 +64,17 @@ export class MOGISMap {
     #INSTANCE_LAYERTREE;
 
     #Factory = {
+        /**@type {SourceFactory} */
         source: undefined,
+        /**@type {StyleFactory} */
         style: undefined,
+        /**@type {LayerFactory} */
         layer: undefined,
     };
 
     /**
      * Vector 레이어들의 소스+레이어 정보 코드 리스트
-     * @type {KEY.LAYER_CATEGORY}
+     * @type {KEY.LAYER_PURPOSE_CATEGORY}
      */
     layerCodeObject = {
         default:[],
@@ -197,7 +199,7 @@ export class MOGISMap {
     }
 
     /**
-     * 레이어 소스 + 스타일 JSON 등록
+     * 레이어 소스 JSON 등록
      * @param {JSON} layerCDArr
      * @memberof MOGISMap
      */
@@ -213,13 +215,19 @@ export class MOGISMap {
     /**
      * 레이어 아이디로 LayerCode 를 찾아 반환
      * @param {String} layerID
+     * @param {KEY.LAYER_PURPOSE_CATEGORY} layerObjCategoryKey
      * @return {Object} 
      * @memberof MOGISMap
      */
-    #getALayerCode(layerID) {
+    #getALayerCode(layerID,layerObjCategoryKey) {
         if (layerID) {
-            let tempArr = Object.values(this.layerCodeObject).flat();
-            let layerCodeObj= tempArr.find(code=>code[KEY.LAYER_ID]);
+            let tempArr;
+            if(layerObjCategoryKey && Object.values(KEY.LAYER_PURPOSE_CATEGORY).includes(layerObjCategoryKey)){
+                tempArr = this.layerCodeObject[layerObjCategoryKey];
+            }else{
+                tempArr = Object.values(this.layerCodeObject).flat();
+            }
+            let layerCodeObj= tempArr.find(code=>code[KEY.LAYER_ID]==layerID);
             if(layerCodeObj){
                 return layerCodeObj;
             }else{
@@ -320,12 +328,13 @@ export class MOGISMap {
      * 레이어아이디로 Factory 통해 ol.Layer 생성 및 반환
      *
      * @param {String} layerCodeId
+     * @param {KEY.LAYER_PURPOSE_CATEGORY} [layerObjCategoryKey]
      * @memberof MOGISMap
      */
-    #getLayerWithID(layerCodeId) {
+    #getLayerWithID(layerCodeId, layerObjCategoryKey) {
         let layerCode;
         try {
-            layerCode = this.#getALayerCode(layerCodeId);
+            layerCode = this.#getALayerCode(layerCodeId,layerObjCategoryKey);
             this.#assignLayerCodeToFactories(layerCode);
         } catch (e) {console.error(e)}
 
@@ -347,12 +356,13 @@ export class MOGISMap {
      * 레이어 아이디로 ol.Map 객체에 레이어 추가
      *
      * @param {String} layerCodeID
+     * @param {KEY.LAYER_PURPOSE_CATEGORY} [layerObjCategoryKey]
      * @memberof MOGISMap
      */
-    addLayerWithID(layerCodeID){
+    addLayerWithID(layerCodeID, layerObjCategoryKey){
         let layer;
         try { 
-            layer = this.#getLayerWithID(layerCodeID);
+            layer = this.#getLayerWithID(layerCodeID, layerObjCategoryKey);
         }catch(e){console.error(e)}
         if(layer) this.#INSTANCE_OL_MAP.addLayer(layer);
     }

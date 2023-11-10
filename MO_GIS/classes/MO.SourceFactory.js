@@ -1,4 +1,5 @@
 import * as KEY from '../common/MO.keyMap.js';
+import {MOFactory} from './abstract/MO.Factory.js';
 import GeoJSON          from '../../lib/openlayers_v7.5.1/format/GeoJSON.js';
 import WMTSCapabilities from '../../lib/openlayers_v7.5.1/format/WMTSCapabilities.js';
 import WMTS, {optionsFromCapabilities} from '../../lib/openlayers_v7.5.1/source/WMTS.js';
@@ -6,7 +7,9 @@ import Source           from '../../lib/openlayers_v7.5.1/source/Source.js';
 import XYZ              from '../../lib/openlayers_v7.5.1/source/XYZ.js';
 import VectorSource     from '../../lib/openlayers_v7.5.1/source/Vector.js';
 import { vworld_compatibilities } from '../vworld/vworldCompatibilities.js';
-import {MOFactory} from './abstract/MO.Factory.js';
+
+import { register } from '../../lib/openlayers_v7.5.1/proj/proj4.js';
+import proj4 from '../../lib/proj4js-2.9.2/proj4j-2.9.2_esm.js';
 
 /**
  * DB 에 있는 자료를 개별 레이어의 ol/source 로 구성하는 클래스.
@@ -34,6 +37,10 @@ export class SourceFactory extends MOFactory{
     constructor(par){
         super();
         Object.assign(this.#default_sourceSpec, par);
+
+        //EPSG:5186 초기등록
+        proj4.defs("EPSG:5186","+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
+        register(proj4);
     }
 
     getSource() {
@@ -46,7 +53,6 @@ export class SourceFactory extends MOFactory{
             }
         }
         if(this.#INSTANCE_ol_Source instanceof Source){
-//        if(this.#INSTANCE_ol_Source instanceof ol.source.Source){
             return this.#INSTANCE_ol_Source;
         }else{
             console.groupCollapsed(`해당 source 객체는 openlayers 인스턴스 아님`);
@@ -112,6 +118,7 @@ export class SourceFactory extends MOFactory{
             { category: `vworld`, sourceType: `wmts` },
             { category: `vworld`, sourceType: `xyz` },
             { category: `geoserver`, sourceType: `geojson` },
+            { category: `geoserver`, sourceType: `vector` },
         ];
 
         bool = AVAILABLE_CATEGORY_SOURCE.some(
@@ -133,7 +140,6 @@ export class SourceFactory extends MOFactory{
      */
     #srcBuilder(category, sourceType) {
         if (category == `geoserver` && sourceType == `vector`) {
-            console.log('geoserver vector 생성 준비')
             return this.#srcBuilder_vector();
 
         } else if (category == `vworld` && sourceType == `xyz`) {
@@ -166,8 +172,8 @@ export class SourceFactory extends MOFactory{
             } else {
                 SRID = undefined;
             }
+            return SRID;
         }
-        return SRID;
     }
 
     /**
@@ -181,21 +187,21 @@ export class SourceFactory extends MOFactory{
         if (pathName) {
             returnURL = new URL(pathName, origin); //origin 은 sourceURL 이 absolute 라면 무시됨
             const typeName = super.getSpec()[KEY.TYPE_NAME]; // "waternet:WTL_BLSM_AS_YS" etc.
-
+            const srsName = super.getSpec()[KEY.SRID];
             let paramString = new URLSearchParams();
             //WFS getFeature v2.0.0 공통 request
             //https://docs.geoserver.org/2.23.x/en/user/services/wfs/reference.html#getfeature
             paramString.set("service", "wfs");
             paramString.set("request", "getFeature");
             paramString.set("version", "2.0.0");
-            paramString.set("typeName", encodeURIComponent(typeName)); // :, %, & 등 특수기호들 uri 유효 형식으로 변환
-            paramString.set(`outputFormat`,encodeURIComponent(`application/json`));
-
+            paramString.set("typeName", typeName); // :, %, & 등 특수기호들 uri 유효 형식으로 변환
+            paramString.set(`outputFormat`,`application/json`);
             const cqlFilter = super.getSpec()[KEY.CQL_FILTER];
             if (cqlFilter) {
-                paramString.set(`cql_filter`, encodeURIComponent(cqlFilter));
+                paramString.set(`cql_filter`, cqlFilter);
             }
-            returnURL.searchParams=paramString;
+            // if (srsName) paramString.set('srsName',srsName);
+            returnURL.search=paramString.toString();
 
             return returnURL;
         } else {
@@ -221,29 +227,6 @@ export class SourceFactory extends MOFactory{
      * @returns 
      */
     #srcBuilder_wmts(){
-        /*if(this.#isValid_apiKey()){
-            const typeName = super.getSpec()[KEY.TYPE_NAME];
-            let wmtsConfigTemplate = vworld_compatibilities.replaceAll('{{{ $APIKEY }}}',super.getSpec()[KEY.APIKEY]);
-            let parcer = new WMTSCapabilities();
-            let result ;
-            console.log(parcer);
-            console.log(wmtsConfigTemplate);
-            try{
-				result = parcer.read(wmtsConfigTemplate);
-			}catch(e){
-				console.error(e);
-			}
-            console.log(3,result)
-            let sourceOption;
-            if(typeName){
-                sourceOption = optionsFromCapabilities(result, {layer:typeName});
-                console.log(sourceOption);
-                return new WMTS(sourceOption);
-            }else{
-                console.error(`invalid typeName : ${typeName}`);
-                throw new Error(`invalid typeName : ${typeName}`);
-            }
-        }*/
          if(this.#isValid_apiKey()){
             const typeName = super.getSpec()[KEY.TYPE_NAME];
             const wmtsConfigTemplate = vworld_compatibilities.replaceAll('{{{ $APIKEY }}}',super.getSpec()[KEY.APIKEY]);
@@ -251,9 +234,7 @@ export class SourceFactory extends MOFactory{
             let sourceOption;
             if(typeName){
                 sourceOption = optionsFromCapabilities(result, {layer:typeName});
-//                sourceOption = ol.source.WMTS.optionsFromCapabilities(result, {layer:typeName});
                 return new WMTS(sourceOption);
-//                return new ol.source.WMTS(sourceOption);
             }else{
                 console.error(`invalid typeName : ${typeName}`);
                 throw new Error(`invalid typeName : ${typeName}`);
@@ -262,26 +243,37 @@ export class SourceFactory extends MOFactory{
     }
 
     #srcBuilder_vector(){
-        let geojson_option;
+        let geojson_option={};
             
         let srid = this.#getValidSrid();
-
-        if(srid) {
-            geojson_option(`dataProjection`)=srid;
-            console.log(srid);
-            console.log(this.#urlBuilder_geoserver());
+        let geoUrl ;
+        try{
+            geoUrl = this.#urlBuilder_geoserver();
+        }catch(e){
+            console.error(e);
         }
-
-        let vectorOption={
-            format: new GeoJSON(geojson_option),
-//            format: new ol.format.GeoJSON(geojson_option),
-            url: this.#urlBuilder_geoserver(),
-        };
-
+        if(srid) {
+            geojson_option[`dataProjection`]='EPSG:5186';
+            geojson_option[`featureProjection`]='EPSG:3857';
+        }
+        let vectorOption;
+        try{
+            vectorOption={
+                format: new GeoJSON(geojson_option),
+                url: this.#urlBuilder_geoserver().toString(),
+            };
+        }catch(e){
+            console.log(e);
+        }
         vectorOption = Object.assign({},this.#default_sourceSpec,vectorOption);
-
-        return new VectorSource(vectorOption);
-//        return new ol.source.Vector(vectorOption);
+        let vectorSource;
+        try{
+            vectorSource = new VectorSource(vectorOption);
+        }catch(e){
+            console.error(e)
+        }finally{
+            return vectorSource;
+        }
     }
 
     #srcBuilder_xyz(){
