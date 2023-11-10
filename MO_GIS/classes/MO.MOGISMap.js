@@ -321,7 +321,7 @@ export class MOGISMap {
             //this.#ERROR_factory()
             let source = new OSM(); 
             let layer = new TileLayer({source:source});
-            console.log('emergency layer activated');
+            console.log('%cemergency layer activated',KEY.CONSOLE_DECO.BODY);
             this.#INSTANCE_OL_MAP.setLayers([layer]);
         };
     }
