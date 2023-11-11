@@ -53,7 +53,7 @@ export class LayerTree {
 
     /** 레이어 코드 리스트를 계층구조로 만든 것
      * @type {JSON} */
-    layerStructure;
+    #layerStructure;
 
     /**
      * MOGISMap 의 레이어 관장하는 Tree 생성
@@ -105,7 +105,7 @@ export class LayerTree {
         if(layerCodeArr instanceof Array){
             this.layerCodeArr = layerCodeArr;
             try{
-                this.layerStructure = jsonNestor(this.layerCodeArr, target_id, parent_id, child_mark);
+                this.#layerStructure = jsonNestor(this.layerCodeArr, target_id, parent_id, child_mark);
             }catch(e){
                 console.error(e);
             }
@@ -128,7 +128,7 @@ export class LayerTree {
                 console.error(e);
             }
         }
-        this.#createTree(this.layerStructure);
+        this.#createTree(this.#layerStructure);
         this.#checkEventListener();
         // this.#showInitialLayers(this.layerStructure);
     }
@@ -368,6 +368,7 @@ export class LayerTree {
      * 레이어 활성화 안됐을 때 GisApp.LayerCode 에서 레이어 코드 찾아 노드 선택 이벤트 진행
      */
     showLayerWithTypeName(typeName) {
+        let me = this;
         let minZoom = 16;
         const default_spinner = {lines: 15, length: 38, width: 12, radius: 38, scale: 1, corners: 1,
             speed: 1, animation: "spinner-line-fade-more", color: "#ffffff", 
@@ -393,7 +394,7 @@ export class LayerTree {
         /**입력된 typeName 을 속성으로 하는 GisApp.LayerCode 의 요소들을 추출
          */
         function getCodeObjArrFromTypeName(typeName) {
-            let codeObjArr = structuredClone(this.layerCode.filter(
+            let codeObjArr = structuredClone(me.layerCodeArr.filter(
                 (layCD) => layCD[KEY.TYPE_NAME]=== typeName && layCD[KEY.BOOL_IS_GROUP] !== "Y"
             ));
 

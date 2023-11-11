@@ -49,8 +49,14 @@
     let tileLoadProgress = new TileLoadProgress(document.querySelector(`#progress`));
     //----SPINNER
     let spin = new Spinner(default_spinner);
-    mainMap.map.on("loadstart",()=>{showMapLoading(); tileLoadProgress.show();})
-    mainMap.map.on("loadend",()=>{hideMapLoading(); tileLoadProgress.hide();})
+    mainMap.map.on("loadstart",()=>{
+        // showMapLoading(); 
+        tileLoadProgress.show();
+    })
+    mainMap.map.on("loadend",()=>{
+        // hideMapLoading(); 
+        tileLoadProgress.hide();
+    })
 
 
     mainMap.map.getLayers().getArray().filter(layer=>layer.get(`isBase`))
