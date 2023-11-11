@@ -245,17 +245,8 @@ export class LayerTree {
                 pushLayerList(nodeId, layerCode_id_arr);
             }
             if (layerCode_id_arr.length > 0) {
-                const realLayer = me.#INSTANCE_MOGISMAP.map.getLayers().getArray();
-                console.log(realLayer);
-                layerCode_id_arr.forEach((id) => {
-                    let layer = realLayer.find((el) => el[KEY.LAYER_ID] == id);
-                    if (layer) {
-                        console.log('here');
-                        layer.setVisible(visible);
-                    } else {
-                        //MOGisMap 통해 레이어 생성하는 로직 진행
-                        me.#INSTANCE_MOGISMAP.addLayerWithID(id,me.layerObjCategoryKey);
-                    }
+                layerCode_id_arr.forEach((layer_id) => {
+                    me.#INSTANCE_MOGISMAP.ctrlLayerOnOff(layer_id,visible,me.layerObjCategoryKey);
                 });
             }
             

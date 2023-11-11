@@ -4,7 +4,6 @@ import { MOFactory } from "./abstract/MO.Factory.js";
 import { SourceFactory } from "./MO.SourceFactory.js";
 import { LayerFactory } from "./MO.LayerFactory.js";
 import { StyleFactory } from './MO.StyleFactory.js';
-// import {Map as olMap} from '../../lib/openlayers_v7.5.1/Map.js';
 import olMap from '../../lib/openlayers_v7.5.1/Map.js';
 import View from '../../lib/openlayers_v7.5.1/View.js'
 import OSM from '../../lib/openlayers_v7.5.1/source/OSM.js'
@@ -329,15 +328,23 @@ export class MOGISMap {
     /**
      * MOGISMap 이 레이어 코드 아이디로 레이어 켜지고 꺼짐을 관리
      * @param {number} layer_id 
-     * @param {boolean} visible 
-     * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key]
+     * @param {boolean} visible 레이어객체 setVisible 값
+     * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key] 레이어 목적구분
      */
     ctrlLayerOnOff(layer_id,visible, la_pu_cate_key){
+        let targetLayer;
         if(this.#isValid_layerPurposeCategoryKey(la_pu_cate_key)){
-            let targetLayer = this.layers[la_pu_cate_key].get(layer_id);
-            if(targetLayer instanceof Layer){
-
-            }
+            targetLayer = this.layers[la_pu_cate_key].get(layer_id);
+        }else{
+            const allLayers = this.#INSTANCE_OL_MAP.getLayers().getArray();
+            targetLayer = allLayers.find(layer=>layer.get(KEY.LAYER_ID)===layer_id);
+        }
+        if(targetLayer instanceof Layer){ //기 발행 레이어 있는 경우
+            targetLayer.setVisible(visible);
+        }else if(visible){ //기 발행 레이어 없는데 켜야하는 경우
+            this.#addLayerWithID(layer_id,la_pu_cate_key);
+        }else{
+            // 기 발행되지도 않았고, setVisible(false)인 상황
         }
     }
 
@@ -382,7 +389,7 @@ export class MOGISMap {
      * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key]
      * @memberof MOGISMap
      */
-    addLayerWithID(layerCodeID, la_pu_cate_key){
+    #addLayerWithID(layerCodeID, la_pu_cate_key){
         let layer;
         try { 
             layer = this.#createLayerWithID(layerCodeID, la_pu_cate_key);
