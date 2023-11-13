@@ -112,12 +112,12 @@ export class StyleFactory extends MOFactory {
      *
      * @memberof StyleFactory
      */
-    getStyleFunction(layer) {
+    getStyleFunction() {
         if(!this.#INSTANCE_styleFunction) {
 
             let styleFunc;
     
-            let type = layer.get(KEY.LAYER_GEOMETRY_TYPE);
+            let type = this.getSpec()[KEY.LAYER_GEOMETRY_TYPE];
             if (type === KEY.OL_FEATURE_TYPE_POINT) {
                 styleFunc = this.#getStyleFunc_POINT();
             } else if (type === KEY.OL_FEATURE_TYPE_LINE) {
@@ -125,8 +125,7 @@ export class StyleFactory extends MOFactory {
             } else if (type === KEY.OL_FEATURE_TYPE_POLYGON) {
                 styleFunc = this.#getStyleFunc_POLYGON();
             } 
-    //TODO 스타일이 덮어씌워지는 오류
-            if (styleFunc) return styleFunc;
+            if (styleFunc) this.#INSTANCE_styleFunction = styleFunc;
             else {
                 throw new Error(`StyleFunction 생성할 수 없음`);
             }
@@ -188,7 +187,8 @@ export class StyleFactory extends MOFactory {
     #getStyleFunc_POINT() {
         let me = this;
 
-        function styleFunc(feature, resolution) {
+        // let styleFunc =function (feature, resolution) {
+        return new function (feature, resolution) {
             let style = new Style();
             //1. 포인트 객체에 아이콘 이름 할당되엇으
             let icon;
@@ -205,11 +205,11 @@ export class StyleFactory extends MOFactory {
 
             //2. layerCode에 텍스트 컬럼 지정되었으면
             if (me.getSpec()[KEY.LABEL_COLUMN]) {
+                // console.log(`label column : ${me.getSpec()[KEY.LABEL_COLUMN]}`)
                 style.setText(me.#getTextStyle(feature, resolution));
             }
             return style;
         }
-        return styleFunc;
     }
 
     /**
@@ -230,7 +230,8 @@ export class StyleFactory extends MOFactory {
      */
     #getStyleFunc_LINE() {
         let me = this;
-        function styleFunc(feature, resolution) {
+        // let styleFunc = function (feature, resolution) {
+        return new function (feature, resolution) {
             let style = new Style();
             style.setStroke(new Stroke(me.updatedLayerCode.stroke));
 
@@ -240,7 +241,7 @@ export class StyleFactory extends MOFactory {
             }
             return style;
         }
-        return styleFunc;
+        // return styleFunc;
     }
     #getStyleFunc_POLYGON() {
         let me = this;
@@ -250,7 +251,7 @@ export class StyleFactory extends MOFactory {
          * @param {Number} resolution
          * @returns
          */
-        function styleFunc(feature, resolution) {
+        let styleFunc= function (feature, resolution) {
             let style = new Style();
             style.setStroke(new Stroke(me.updatedLayerCode.stroke));
             style.setFill(new Fill(me.updatedLayerCode.fill));
@@ -285,12 +286,12 @@ export class StyleFactory extends MOFactory {
                 return style;
             }
         }
-        return styleFunc;
+        return new styleFunc;
     }
 
     #getStyleFunc_HIGHTLIGHT(){
         let me = this;
-        function styleFunc(feature, resolution){
+        let styleFunc= function (feature, resolution){
             let style = new Style();
             let circle = new CircleStyle({
                 fill: new Fill(me.updatedLayerCode.fill),

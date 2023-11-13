@@ -384,7 +384,7 @@ export class MOGISMap {
         }catch(e){console.error(e);}
 
         if(layerCode[KEY.SOURCE_TYPE]=='vector'){
-            layer.setStyle (this.#Factory.style.getStyleFunction(layer))
+            layer.setStyle (this.#Factory.style.getStyleFunction())
         }
         if(layer) return layer;
         else throw new Error (`layer 생성되지 않음`);
