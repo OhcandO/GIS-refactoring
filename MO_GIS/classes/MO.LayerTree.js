@@ -51,6 +51,10 @@ export class LayerTree {
      * @type {JSON} */
     layerCodeArr;
 
+    /** 레이어코드 상 최상위 부모의 코드(layerStructure 구성시 사용)
+     */
+    #most_upper_id;
+
     /** 레이어 코드 리스트를 계층구조로 만든 것
      * @type {JSON} */
     #layerStructure;
@@ -72,11 +76,14 @@ export class LayerTree {
      * Openlayers 레이어 관장 Tree 생성을 위한 기초정보 등록
      * @param {MOGISMap} mo_gis_map 오픈레이어스 맵 객체
      * @param {string} layerObjCategoryKey
+     * @param {string} [most_upper_id] 레이어코드 상 최상위 코드
      */
-    setMapAndLayer(mo_gis_map, layerObjCategoryKey){
+    setMapAndLayer(mo_gis_map, layerObjCategoryKey,most_upper_id){
         if(mo_gis_map instanceof MOGISMap) {
             //MOGISMap 객체 저장
             this.#INSTANCE_MOGISMAP = mo_gis_map;
+
+            if(most_upper_id) this.#most_upper_id = most_upper_id;
 
             //레이어 코드 카테고리 중 하나만 이 layerTree 객체에서 관장함
             if(Object.values(KEY.LAYER_PURPOSE_CATEGORY).includes(layerObjCategoryKey) 
@@ -105,7 +112,7 @@ export class LayerTree {
         if(layerCodeArr instanceof Array){
             this.layerCodeArr = layerCodeArr;
             try{
-                this.#layerStructure = jsonNestor(this.layerCodeArr, target_id, parent_id, child_mark);
+                this.#layerStructure = jsonNestor(this.layerCodeArr, target_id, parent_id, child_mark, this.#most_upper_id);
             }catch(e){
                 console.error(e);
             }
@@ -205,7 +212,7 @@ export class LayerTree {
 
             for(let layerCode of structuredLayerCode){
                 let id = layerCode[KEY.LAYER_ID];
-                let visible = layerCode[KEY.BOOL_VISIBLE] || "N";
+                let visible = layerCode[KEY.BOOL_SHOW_INITIAL] || "N";
     
                 if (layerCode[KEY.CHILD_MARK] && layerCode[KEY.CHILD_MARK].length > 0) {
                     this.#showInitialLayers(layerCode[KEY.CHILD_MARK]);
@@ -246,6 +253,7 @@ export class LayerTree {
             }
             if (layerCode_id_arr.length > 0) {
                 layerCode_id_arr.forEach((layer_id) => {
+                    console.log(layer_id);
                     me.#INSTANCE_MOGISMAP.ctrlLayerOnOff(layer_id,visible,me.layerObjCategoryKey);
                 });
             }
@@ -267,7 +275,7 @@ export class LayerTree {
      */
     #makeLegendSrc(layerInfoElem) {
         let src;
-        let iconPath = this.defaults.contextPath + this.defaults.iconPath;
+        let iconPath = `./MO_GIS/images/icons/`;
         if (layerInfoElem[KEY.ICON_NAME]) {
             src = iconPath + layerInfoElem[KEY.ICON_NAME];
         } else {
@@ -444,27 +452,34 @@ export class LayerTree {
 /**
  * 
  * @param {Array} array javascript Array 객체. JSON 형식이어야 하고, 최상위->중위->하위 순으로 정렬되어 있어야 함
- * @param {String} [target_id] 개별 JSON 요소들의 PK 키 명칭
- * @param {String} [parent_id] 개별 JSON 요소들의 상위 ID 를 참조할 키 명칭
+ * @param {String} [target_id_key] 개별 JSON 요소들의 PK 키 명칭
+ * @param {String} [parent_id_key] 개별 JSON 요소들의 상위 ID 를 참조할 키 명칭
  * @param {String} [child_mark] NESTED 구조체 만들기 위한 
+ * @param {String} [most_upper_id] 최상위 아이디
  * @returns 
  */
-function jsonNestor (array, target_id =`${KEY.LAYER_ID}`, parent_id =`${KEY.PARENT_ID}`, child_mark=`${KEY.CHILD_MARK}`){
+function jsonNestor (array, target_id_key =`${KEY.LAYER_ID}`, parent_id_key =`${KEY.PARENT_ID}`, child_mark=`${KEY.CHILD_MARK}`,most_upper_id){
     if(array?.length>0){
         function FINDER (srcArr, targetElem){    
             let rere
             for(let el of srcArr){
-                if(el[target_id] == targetElem[parent_id]) {rere = el;}
+                if(el[target_id_key] == targetElem[parent_id_key]) {rere = el;}
                 else if (el[child_mark]) rere = FINDER(el[child_mark],targetElem);
                 if (rere) break;
             }
             return rere;
         }
         return array.reduce((pre,cur)=>{
-            let targ = cur[parent_id] ? FINDER(pre,cur) : undefined;
+            let targ = cur[parent_id_key] ? FINDER(pre,cur) : undefined;
             if(targ) targ[child_mark] ? targ[child_mark].push(cur) : targ[child_mark] = [cur];
             return pre;
-        },structuredClone(array.filter(el=>!el[parent_id])))
+        },structuredClone(array.filter(el=>{
+            if(most_upper_id){
+                return el[parent_id_key] == most_upper_id;
+            }else{
+                return !el[parent_id_key];
+            }
+        })))
     }else{
         throw new Error (`jsonNestor 에 입력된 배열이 적합하지 않음`)
     }

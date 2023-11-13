@@ -81,12 +81,12 @@ export class SourceFactory extends MOFactory{
         if (this.#isValid_category_source()) {
             try {
                 return this.#srcBuilder(
-                    super.getSpec()[KEY.CATEGORY],
-                    super.getSpec()[KEY.SOURCE_TYPE]
+                    this.getSpec()[KEY.CATEGORY],
+                    this.getSpec()[KEY.SOURCE_TYPE]
                 );
             } catch (e) {
                 console.groupCollapsed(`openlayers source 객체 생성실패`);
-                console.table(super.getSpec());
+                console.table(this.getSpec());
                 console.groupEnd();
                 throw new Error(`openlayers source 객체 생성실패`);
             } 
@@ -103,12 +103,12 @@ export class SourceFactory extends MOFactory{
      */
     #isValid_category_source() {
         let bool = false;
-        let category = super.getSpec()[KEY.CATEGORY]; //vworld, geoserver, emap etc.
-        let sourceType = super.getSpec()[KEY.SOURCE_TYPE]; //vector, xyz, wmts etc.
+        let category = this.getSpec()[KEY.CATEGORY]; //vworld, geoserver, emap etc.
+        let sourceType = this.getSpec()[KEY.SOURCE_TYPE]; //vector, xyz, wmts etc.
 
         if(!(category && sourceType)){
             console.groupCollapsed(`"category" 및 "source_type" 지정안됨`);
-            console.table(super.getSpec());
+            console.table(this.getSpec());
             console.groupEnd();
             return false;
         }
@@ -126,7 +126,7 @@ export class SourceFactory extends MOFactory{
         );
         if (!bool) {
             console.groupCollapsed(`유효하지 않은 category, sourceType 지정`);
-            console.table(super.getSpec());
+            console.table(this.getSpec());
             console.groupEnd();
         }
         return bool;
@@ -157,7 +157,7 @@ export class SourceFactory extends MOFactory{
     }
 
     #getValidSrid() {
-        let SRID = super.getSpec()[KEY.SRID];
+        let SRID = this.getSpec()[KEY.SRID];
         if (SRID) {
             //SRID == 'EPSG:5181' <--- 콜론 포함 이 형태가 되어야 함
             //SRID == 'EPSG4326'
@@ -181,13 +181,12 @@ export class SourceFactory extends MOFactory{
      * @returns {URL}
      */
     #urlBuilder_geoserver() {
-        let origin = super.getSpec()[KEY.ORIGIN] ||location.origin;
-        let pathName = super.getSpec()[KEY.SOURCE_PATHNAME]; // "/geoserver/waternet/wfs/";
+        let origin = this.getSpec()[KEY.ORIGIN] ||location.origin;
+        let pathName = this.getSpec()[KEY.SOURCE_PATHNAME]; // "/geoserver/waternet/wfs/";
         let returnURL;
         if (pathName) {
             returnURL = new URL(pathName, origin); //origin 은 sourceURL 이 absolute 라면 무시됨
-            const typeName = super.getSpec()[KEY.TYPE_NAME]; // "waternet:WTL_BLSM_AS_YS" etc.
-            const srsName = super.getSpec()[KEY.SRID];
+            const typeName = this.getSpec()[KEY.TYPE_NAME]; // "waternet:WTL_BLSM_AS_YS" etc.
             let paramString = new URLSearchParams();
             //WFS getFeature v2.0.0 공통 request
             //https://docs.geoserver.org/2.23.x/en/user/services/wfs/reference.html#getfeature
@@ -196,28 +195,30 @@ export class SourceFactory extends MOFactory{
             paramString.set("version", "2.0.0");
             paramString.set("typeName", typeName); // :, %, & 등 특수기호들 uri 유효 형식으로 변환
             paramString.set(`outputFormat`,`application/json`);
-            const cqlFilter = super.getSpec()[KEY.CQL_FILTER];
+            const cqlFilter = this.getSpec()[KEY.CQL_FILTER];
             if (cqlFilter) {
                 paramString.set(`cql_filter`, cqlFilter);
             }
-            // if (srsName) paramString.set('srsName',srsName);
+
+            // paramString.set('srsName','EPSG:3857');
+
             returnURL.search=paramString.toString();
 
             return returnURL;
         } else {
             console.groupCollapsed(`source URL 이 정의되지 않음`);
-            console.log(super.getSpec());
+            console.log(this.getSpec());
             throw new Error(`source URL 이 정의되지 않음`);
         }
     }
     #urlBuilder_vworld_xyz() {
-        let origin = super.getSpec()[this.KEY.ORIGIN] ||location.origin;
-        let pathName = super.getSpec()[KEY.SOURCE_PATHNAME]; // "http://xdworld.vworld.kr:8080/2d/Satellite/service/{z}/{x}/{y}.jpeg";
+        let origin = this.getSpec()[this.KEY.ORIGIN] ||location.origin;
+        let pathName = this.getSpec()[KEY.SOURCE_PATHNAME]; // "http://xdworld.vworld.kr:8080/2d/Satellite/service/{z}/{x}/{y}.jpeg";
         if (pathName) {
             return new URL(pathName, origin); //origin 은 sourceURL 이 absolute 라면 무시됨
         } else {
             console.groupCollapsed(`source URL 이 정의되지 않음`);
-            console.log(super.getSpec());
+            console.log(this.getSpec());
             throw new Error(`source URL 이 정의되지 않음`);
         }
     }
@@ -228,8 +229,8 @@ export class SourceFactory extends MOFactory{
      */
     #srcBuilder_wmts(){
          if(this.#isValid_apiKey()){
-            const typeName = super.getSpec()[KEY.TYPE_NAME];
-            const wmtsConfigTemplate = vworld_compatibilities.replaceAll('{{{ $APIKEY }}}',super.getSpec()[KEY.APIKEY]);
+            const typeName = this.getSpec()[KEY.TYPE_NAME];
+            const wmtsConfigTemplate = vworld_compatibilities.replaceAll('{{{ $APIKEY }}}',this.getSpec()[KEY.APIKEY]);
             let result = new WMTSCapabilities().read(wmtsConfigTemplate);
             let sourceOption;
             if(typeName){
@@ -253,14 +254,14 @@ export class SourceFactory extends MOFactory{
             console.error(e);
         }
         if(srid) {
-            geojson_option[`dataProjection`]='EPSG:5186';
+            geojson_option[`dataProjection`]=srid;
             geojson_option[`featureProjection`]='EPSG:3857';
         }
         let vectorOption;
         try{
             vectorOption={
                 format: new GeoJSON(geojson_option),
-                url: this.#urlBuilder_geoserver().toString(),
+                url: geoUrl.toString(),
             };
         }catch(e){
             console.log(e);
@@ -292,13 +293,13 @@ export class SourceFactory extends MOFactory{
 
     #isValid_apiKey(){
         let bool = false;
-        let apiKey = super.getSpec()[KEY.APIKEY];
+        let apiKey = this.getSpec()[KEY.APIKEY];
         if(apiKey){
             //TODO 추가적인 API 키 유효성 검증 로직이 있으면 추가
             bool = true;
         }else{
             console.groupCollapsed(`apiKey 정보가 입력되지 않음`);
-            console.log(super.getSpec());
+            console.log(this.getSpec());
             throw new Error (`apiKey 정보가 입력되지 않음`);
         }
         return bool;
