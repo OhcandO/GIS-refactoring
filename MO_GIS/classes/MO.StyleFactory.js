@@ -12,6 +12,7 @@ const iconPath= `./MO_GIS/images/icons/`;
 /**
  * 레이어 코드로 부터, 벡터 레이어의 표현 방식을 설정하기 위한 ol.style 객체 생성기
  *
+ * @deprecated 선언된 클래스에서 반환되는 함수 (styleFunction) 가 mutable 인 관계로 클래스화 폐기
  * @export
  * @class StyleFactory
  * @extends {MOFactory}
@@ -77,7 +78,7 @@ export class StyleFactory extends MOFactory {
             color: "rgba(31, 238, 115, 0.8)", //옅은 연두색
         },
     }
-
+    tempStyleOption;
     #INSTANCE_styleFunction;
 
     /**
@@ -105,6 +106,7 @@ export class StyleFactory extends MOFactory {
     resetFactory(){
         super.resetFactory();
         this.#INSTANCE_styleFunction= undefined;
+        this.tempStyleOption= undefined;
     }
 
     /**
@@ -113,18 +115,21 @@ export class StyleFactory extends MOFactory {
      * @memberof StyleFactory
      */
     getStyleFunction() {
+        this.updateLayerCode();
         if(!this.#INSTANCE_styleFunction) {
 
             let styleFunc;
     
             let type = this.getSpec()[KEY.LAYER_GEOMETRY_TYPE];
             if (type === KEY.OL_FEATURE_TYPE_POINT) {
-                styleFunc = this.#getStyleFunc_POINT();
+                styleFunc = new this.#getStyleFunc_POINT();
             } else if (type === KEY.OL_FEATURE_TYPE_LINE) {
                 styleFunc = this.#getStyleFunc_LINE();
             } else if (type === KEY.OL_FEATURE_TYPE_POLYGON) {
                 styleFunc = this.#getStyleFunc_POLYGON();
             } 
+
+            console.log(styleFunc);
             if (styleFunc) this.#INSTANCE_styleFunction = styleFunc;
             else {
                 throw new Error(`StyleFunction 생성할 수 없음`);
@@ -142,7 +147,7 @@ export class StyleFactory extends MOFactory {
      * @return {default_style}
      * @readonly
      */
-    get updatedLayerCode() {
+    updateLayerCode() {
         let src = this.getSpec();
         let returnLayerCode = structuredClone(this.#default_style);
 
@@ -178,7 +183,7 @@ export class StyleFactory extends MOFactory {
         } else if (layerType == KEY.OL_FEATURE_TYPE_POLYGON) {
             returnLayerCode.icon.scale = 1.5;
         }
-        return returnLayerCode;
+        this.tempStyleOption = returnLayerCode;
     }
 
     /**
@@ -188,24 +193,23 @@ export class StyleFactory extends MOFactory {
         let me = this;
 
         // let styleFunc =function (feature, resolution) {
-        return new function (feature, resolution) {
+        return function (feature, resolution) {
             let style = new Style();
             //1. 포인트 객체에 아이콘 이름 할당되엇으
             let icon;
             if (me.getSpec()[KEY.ICON_NAME]) {
-                icon = new Icon(me.updatedLayerCode.icon);
+                icon = new Icon(me.tempStyleOption.icon);
             } else {
                 icon = new CircleStyle({
-                    fill: new Fill(me.updatedLayerCode.fill),
+                    fill: new Fill(me.tempStyleOption.fill),
                     radius: 4,
-                    stroke: new Stroke(me.updatedLayerCode.stroke),
+                    stroke: new Stroke(me.tempStyleOption.stroke),
                 });
             }
             if (icon) style.setImage(icon);
 
             //2. layerCode에 텍스트 컬럼 지정되었으면
             if (me.getSpec()[KEY.LABEL_COLUMN]) {
-                // console.log(`label column : ${me.getSpec()[KEY.LABEL_COLUMN]}`)
                 style.setText(me.#getTextStyle(feature, resolution));
             }
             return style;
@@ -218,10 +222,11 @@ export class StyleFactory extends MOFactory {
      * @returns {Text}
      */
     #getTextStyle(feature, resolution) {
-        let textOption = this.updatedLayerCode.text;
-        textOption["stroke"] = new Stroke(this.updatedLayerCode.text_stroke);
-        textOption["fill"] = new Fill(this.updatedLayerCode.text_fill);
-        textOption["text"] = feature.get(this.getSpec()[KEY.LABEL_COLUMN]) ?? "";
+        let textOption = this.tempStyleOption.text;
+        let label = (feature)=>feature.get(this.getSpec()[KEY.LABEL_COLUMN]) ?? "";
+        textOption["stroke"] = new Stroke(this.tempStyleOption.text_stroke);
+        textOption["fill"] = new Fill(this.tempStyleOption.text_fill);
+        textOption["text"] = label(feature);
         return new Text(textOption);
     }
 
@@ -230,10 +235,11 @@ export class StyleFactory extends MOFactory {
      */
     #getStyleFunc_LINE() {
         let me = this;
+        let cnt = 1;
         // let styleFunc = function (feature, resolution) {
-        return new function (feature, resolution) {
+        return function (feature, resolution) {
             let style = new Style();
-            style.setStroke(new Stroke(me.updatedLayerCode.stroke));
+            style.setStroke(new Stroke(me.tempStyleOption.stroke));
 
             //2. layerCode에 텍스트 컬럼 지정되었으면
             if (me.getSpec()[KEY.LABEL_COLUMN]) {
@@ -253,8 +259,8 @@ export class StyleFactory extends MOFactory {
          */
         let styleFunc= function (feature, resolution) {
             let style = new Style();
-            style.setStroke(new Stroke(me.updatedLayerCode.stroke));
-            style.setFill(new Fill(me.updatedLayerCode.fill));
+            style.setStroke(new Stroke(me.tempStyleOption.stroke));
+            style.setFill(new Fill(me.tempStyleOption.fill));
 
             //2. layerCode에 텍스트 컬럼 지정되었으면
             if (me.getSpec()[KEY.LABEL_COLUMN]) {
@@ -276,7 +282,7 @@ export class StyleFactory extends MOFactory {
                     throw new Error(`Feature 가 폴리곤 또는 멀티폴리곤 아님`);
                 }
                 let style2 = new Style();
-                let icon = new Icon(me.updatedLayerCode.icon);
+                let icon = new Icon(me.tempStyleOption.icon);
                 if (icon) style2.setImage(icon);
                 style2.setGeometry(targetGeom);
 
@@ -294,9 +300,9 @@ export class StyleFactory extends MOFactory {
         let styleFunc= function (feature, resolution){
             let style = new Style();
             let circle = new CircleStyle({
-                fill: new Fill(me.updatedLayerCode.fill),
+                fill: new Fill(me.tempStyleOption.fill),
                 radius: 4,
-                stroke: new Stroke(me.updatedLayerCode.stroke),
+                stroke: new Stroke(me.tempStyleOption.stroke),
             });
 
             style.setImage(circle);
@@ -306,3 +312,4 @@ export class StyleFactory extends MOFactory {
         return styleFunc;
     }
 }
+

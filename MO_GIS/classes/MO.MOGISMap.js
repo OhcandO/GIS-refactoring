@@ -3,7 +3,7 @@ import { LayerTree } from "./MO.LayerTree.js";
 import { MOFactory } from "./abstract/MO.Factory.js";
 import { SourceFactory } from "./MO.SourceFactory.js";
 import { LayerFactory } from "./MO.LayerFactory.js";
-import { StyleFactory } from './MO.StyleFactory.js';
+import { createStyleFunction } from './MO.StyleFunctionFactory.js';
 import olMap from '../../lib/openlayers_v7.5.1/Map.js';
 import View from '../../lib/openlayers_v7.5.1/View.js'
 import OSM from '../../lib/openlayers_v7.5.1/source/OSM.js'
@@ -62,13 +62,10 @@ export class MOGISMap {
     #INSTANCE_OL_VIEW;
     #INSTANCE_OL_MAP;
     #INSTANCE_OL_SELECT;
-    // #INSTANCE_LAYERTREE;
 
     #Factory = {
         /**@type {SourceFactory} */
         source: undefined,
-        /**@type {StyleFactory} */
-        style: undefined,
         /**@type {LayerFactory} */
         layer: undefined,
     };
@@ -268,9 +265,10 @@ export class MOGISMap {
                 this.#Factory.source = factory;
             } else if (factory instanceof LayerFactory) {
                 this.#Factory.layer = factory;
-            } else if (factory instanceof StyleFactory) {
-                this.#Factory.style = factory;
-            }
+            } 
+            // else if (factory instanceof StyleFactory) {
+            //     this.#Factory.style = factory;
+            // }
         } else {
             console.log(factory);
             throw new Error(`입력된 Factory가 적합한 인스턴스 아님`);
@@ -381,7 +379,11 @@ export class MOGISMap {
         }catch(e){console.error(e);}
 
         if(layerCode[KEY.SOURCE_TYPE]=='vector'){
-            layer.setStyle (this.#Factory.style.getStyleFunction())
+            try{
+                layer.setStyle (createStyleFunction(layerCode))
+            }catch(e){
+                console.error(e);
+            }
         }
         if(layer) return layer;
         else throw new Error (`layer 생성되지 않음`);
@@ -435,19 +437,19 @@ export class MOGISMap {
     }
 
     #createSelectInteraction(){
-        let styleFac = this.#Factory.style;
-        if(styleFac instanceof MOFactory){
-            styleFac.setSpec(this.default_select);
-        }else{
-            console.log(`등록된 styleFactory 없어 OL 기본 select 스타일 따름`)
-        }
+        // let styleFac = this.#Factory.style;
+        // if(styleFac instanceof MOFactory){
+        //     styleFac.setSpec(this.default_select);
+        // }else{
+        //     console.log(`등록된 styleFactory 없어 OL 기본 select 스타일 따름`)
+        // }
         let selectInteraction;
         try{
             selectInteraction = new Select({
 //            selectInteraction = new ol.interaction.Select({
                 hitTolerance : this.default_select.hitTolerance,
                 multi : this.default_select.multi,
-                style : this.#Factory.style.getStyleFunction_highlight(),
+                // style : this.#Factory.style.getStyleFunction_highlight(),
                 layers: function(layer){
                     return layer.get(KEY.BOOL_SELECTABLE)?.toUpperCase() ==='Y'
                 }

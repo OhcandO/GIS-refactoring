@@ -52,7 +52,6 @@ const default_spec = {
 let mainMap = new MOGISMap(default_spec);
 mainMap.setFactory(new SourceFactory());
 mainMap.setFactory(new LayerFactory());
-mainMap.setFactory(new StyleFactory());
 
 mainMap.setBaseLayerCodeArr(baseLayerCode);
 
