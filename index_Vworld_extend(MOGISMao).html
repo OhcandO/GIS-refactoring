@@ -59,7 +59,7 @@
     })
 
 
-    mainMap.map.getLayers().getArray().filter(layer=>layer.get(`isBase`))
+    mainMap.map.getLayers().getArray().filter(layer=>layer.get(`layerType`)=='BASE')
     .forEach(baseLayer=>{
         baseLayer.getSource().on(`tileloadstart`,function(){tileLoadProgress.addLoading()})
         baseLayer.getSource().on(`tileloadend`,function(){tileLoadProgress.addLoaded()})
