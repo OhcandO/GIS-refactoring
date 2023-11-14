@@ -157,7 +157,6 @@ export class LayerFactory extends MOFactory{
     #baseLayerBuilder(){
         let updatedOption = this.#getUpatedLayerCode();
         updatedOption.visible = this.getSpec()[KEY.BOOL_SHOW_INITIAL]?.toUpperCase()==='Y' ? true:false;
-        console.log(updatedOption);
         if(this.#INSTANCE_ol_Source instanceof Source){
             updatedOption['source']=this.#INSTANCE_ol_Source;
         }else{
