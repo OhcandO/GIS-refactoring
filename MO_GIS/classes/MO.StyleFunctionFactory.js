@@ -56,9 +56,13 @@ const default_style={
  */
 export function createStyleFunction (layerCode) {
 
+    if(layerCode =='HIGHLIGHT'){
+        return getStyleFunc_HIGHTLIGHT();
+    }
+
     let tempStyleOption;
 
-    tempStyleOption = updateLayerCode(layerCode);
+    tempStyleOption = getUpdatedLayerCode(layerCode);
     let layerType;
     try{
         layerType = getLayerType(layerCode);
@@ -85,7 +89,7 @@ export function createStyleFunction (layerCode) {
  */
 function getLayerType(layerCode) {
     //'group', 'BASE' 는 DB상 나눠놓은 코드이고, 벡터 데이터는 아니므로 여기서는 제외
-    const validLayerGeometryTypes = ["POINT","LINE","POLYGON" /*,'group','BASE'*/];
+    const validLayerGeometryTypes = ["POINT","LINE","POLYGON" ,""/*,'group','BASE'*/];
     
     let layerType = layerCode[KEY.LAYER_GEOMETRY_TYPE];
     if (layerType) {
@@ -102,7 +106,7 @@ function getLayerType(layerCode) {
 /**
  * factory에 입력된 레이어코드를 덮어씌운 코드 객체
  */
-function updateLayerCode(layerCode) {
+function getUpdatedLayerCode(layerCode) {
     let returnLayerCode = structuredClone(default_style);
 
     if (layerCode[KEY.ICON_NAME]) returnLayerCode.icon.src = iconPath + layerCode[KEY.ICON_NAME];
@@ -231,16 +235,37 @@ function getStyleFunc_POLYGON(layerCode, tempStyleOption) {
     }
 }
 
-function getStyleFunc_HIGHTLIGHT(layerCode, tempStyleOption){
-    return function (feature, resolution){
-        let style = new Style();
-        let circle = new CircleStyle({
-            fill: new Fill(tempStyleOption.fill),
-            radius: 4,
-            stroke: new Stroke(tempStyleOption.stroke),
-        });
-        style.setImage(circle);
-        return style;
-    }
+function getStyleFunc_HIGHTLIGHT(){
+
+    const stroke = {
+        color: "rgba(249,248,209,0.95)", //
+        // lineDash: [6,6],
+        width: 6,
+    };
+    const fill = {
+        color: "rgba(31, 238, 115, 1)", //옅은 연두색
+    };
+    // return function (feature, resolution){
+
+    let style = [
+        new Style({
+            image: new CircleStyle({
+                fill: new Fill({color:fill.color}),
+                stroke: new Stroke(stroke),
+                radius: 5,
+            }),
+            fill: new Fill({color:fill.color}),
+            stroke: new Stroke(stroke),
+            zIndex: Infinity,
+            }),
+        new Style({
+            stroke: new Stroke({
+                color: 'rgba(233,51,51,1)',
+                width: stroke.width+4,
+            }),
+        }),
+    ];
+    return style;
+    // }
 }
 

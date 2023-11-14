@@ -9,6 +9,7 @@ import View from '../../lib/openlayers_v7.5.1/View.js'
 import OSM from '../../lib/openlayers_v7.5.1/source/OSM.js'
 import TileLayer from '../../lib/openlayers_v7.5.1/layer/Tile.js';
 import Select from '../../lib/openlayers_v7.5.1/interaction/Select.js';
+import PointerInteraction from '../../lib/openlayers_v7.5.1/interaction/Pointer.js'
 import Feature from '../../lib/openlayers_v7.5.1/Feature.js';
 import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
 
@@ -59,16 +60,25 @@ export class MOGISMap {
 
     }
 
-    #INSTANCE_OL_VIEW;
-    #INSTANCE_OL_MAP;
-    #INSTANCE_OL_SELECT;
-
     #Factory = {
         /**@type {SourceFactory} */
         source: undefined,
         /**@type {LayerFactory} */
         layer: undefined,
     };
+
+    #INSTANCE={
+        /** @type {olMap} */
+        MAP:undefined,
+        /**@type {View} */
+        VIEW:undefined,
+        INTERACTION:{
+            /** @type {Select} */
+            SELECT:undefined,
+            
+            POINTER:undefined,
+        }
+    }
 
     /**목적 별
      * 소스+레이어 정보 코드 리스트
@@ -107,7 +117,7 @@ export class MOGISMap {
      * 기본 배경지도의 소스(API키 포함)+레이어 정보 코드 리스트
      * @type {JSON}
      */
-    layerCode_Base;
+    layerCode_Background;
     /**
      * 입력한 변수들을 Map 또는 View 객체 생성을 위한 변수로 할당
      * @param {MOGIS_param} mapConfigSpec 
@@ -122,61 +132,37 @@ export class MOGISMap {
         }else{
             throw new Error(`지도객체 위치할 'target'의 아이디 값을 정의해야 합니다.`)
         }
-
-        //deafult highlight 초기화
-        this.default_select[KEY.FONT_STYLE] = '15px Malgun Gothic';
-        this.default_select[KEY.FONT_OUTLINE] = 'rgba(15,15,15,1)';
-        this.default_select[KEY.FONT_FILL] = 'rgba(255,255,0,1)';
-        this.default_select[KEY.COLOR_LINE] = 'rgba(226, 51, 51, 1)';
-        this.default_select[KEY.LINE_WIDTH] = 5;
-        this.default_select[KEY.LINE_STYLE] = '[3,3]';
-        this.default_select[KEY.COLOR_FILL] = 'rgba(226, 51, 51, 0.54)';
     }
 
     get map() {
-        if (!this.#INSTANCE_OL_MAP) this.#createMapObj(); 
-        return this.#INSTANCE_OL_MAP;
+        if (!this.#INSTANCE.MAP) this.#createMapObj(); 
+        return this.#INSTANCE.MAP;
     }
 	#createMapObj (){
-		this.#INSTANCE_OL_MAP = new olMap({
+		this.#INSTANCE.MAP = new olMap({
                 target: this.default_mapSpec.target,
                 view: this.view,
             });
 	}
     get view() {
-        if (!this.#INSTANCE_OL_VIEW) {
-            this.#INSTANCE_OL_VIEW = new View(this.default_viewSpec);
+        if (!this.#INSTANCE.VIEW) {
+            this.#INSTANCE.VIEW = new View(this.default_viewSpec);
         }
-        return this.#INSTANCE_OL_VIEW;
+        return this.#INSTANCE.VIEW;
     }
 
     set view(view_inst) {
         if (view_inst instanceof View) {
-            this.#INSTANCE_OL_VIEW = view_inst;
+            this.#INSTANCE.VIEW = view_inst;
         } else {
             console.log(view_inst);
             throw new Error(`Openlayers 뷰 인스턴스가 아님`);
         }
     }
 
-    // /**
-    //  * @param {LayerTree} tree_instrance
-    //  */
-    // set tree(tree_instrance) {
-    //     if (tree_instrance instanceof LayerTree) {
-    //         this.#INSTANCE_LAYERTREE = tree_instrance;
-    //     }
-    // }
-    // get tree() {
-    //     if (this.#INSTANCE_LAYERTREE) return this.#INSTANCE_LAYERTREE;
-    //     else {
-    //         console.error(`LayerTree 객체 생성되지 않음`);
-    //     }
-    // }
-
     get baseLayers(){
-        if(this.#INSTANCE_OL_MAP){
-            return this.#INSTANCE_OL_MAP.getLayers().getArray().filter(layer=>layer.get('isBase'));
+        if(this.#INSTANCE.MAP){
+            return this.#INSTANCE.MAP.getLayers().getArray().filter(layer=>layer.get('isBase'));
         }else{
             console.log(`오픈레이어스 지도 객체 생성되지 않음`)
             return [];
@@ -194,7 +180,12 @@ export class MOGISMap {
         if (layerCDArr instanceof Array) {
             if(categoryKey){
                 if(this.#isValid_layerPurposeCategoryKey(categoryKey)){
+                    
+                    //카테고리 키도 입력
+                    layerCDArr.forEach(layerCode=>layerCode['LAYER_PURPOSE_CATEGORY'] = categoryKey);
+                    
                     this.layerCodeObject[categoryKey] = layerCDArr;
+                    
                 }else{
                     console.error(`레이어 카테고리 키가 적합하지 않음: ${categoryKey}`);
                     console.error(`default 카테고리로 임시 지정`);
@@ -216,13 +207,20 @@ export class MOGISMap {
      */
     setBaseLayerCodeArr(layerCDArr) {
         if (layerCDArr instanceof Array) {
-            this.layerCode_Base = layerCDArr;
+            this.layerCode_Background = layerCDArr;
         } else {
             console.error(`layerCode JSON 객체가 적합하지 않음`);
             throw new Error(`layerCode JSON 객체가 적합하지 않음`);
         }
     }
-
+    get example_BaseLayerCodeArr(){
+        const arr = [{  sourceType: "wmts", category: "vworld", srid: "EPSG:3857", origin: "https://api.vworld.kr",sourcePathname: "/req/wmts/1.0.0/{key}/{layer}/{tileMatrix}/{tileRow}/{tileCol}.{tileType}",id: 1, layerTitle: "vworld_base", typeName: "Base", boolIsdefault: "Y", apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60",  layerType: "BASE", }];
+        console.log(arr);
+    }
+    get example_LayerCodeArr(){
+        const arr = [{"names":"YC 전체","ORDR":1,"sourceType":"vector","category":"geoserver","srid":"EPSG:5186","origin":"http:\/\/118.42.103.144:9090","sourcePathname":"\/geoserver\/wfs","apiKey":null,"id":24,"pid":8,"minZoom":9,"layerTitle":"YC 전체","typeName":"swap:wtl_blsm_as_yc","cqlfilter":null,"iconName":null,"label":"BLCK_NM","zIndex":6,"lineWidth":"2","lineStyle":"[3,5,1,4]","layerType":"POLYGON","colorFill":"rgba(88, 187, 78, 0.66)","colorLine":"rgba(21, 80, 0, 0.7)","font":"25px Malgun Gothic","colorFontLine":"rgba(0, 0, 0, 1)","colorFontFill":"rgba(184, 106, 0, 1)","boolUseYn":"Y","boolIsgroup":null,"boolSelectable":null,"boolEditable":null,"boolIsdefault":"Y","boolDownload":null}];
+        console.log(arr);
+    }
     /**
      * 레이어 아이디로 LayerCode 를 찾아 반환
      * @param {String} layerID
@@ -288,13 +286,13 @@ export class MOGISMap {
     =======레이어 생성 관련 ============= 
     =====================================*/
    
-    //1. 배경지도 레이어 생성 및 지도에 포함
+    //1. 배경지도 레이어 생성 및 지도에 발행
     setBaseLayer() {
-		if(!(this.#INSTANCE_OL_MAP instanceof Map)) this.#createMapObj();
+		if(!(this.#INSTANCE.MAP instanceof Map)) this.#createMapObj();
 		
-        if (this.layerCode_Base?.length > 0 && this.#isValid_factories()) {
+        if (this.layerCode_Background?.length > 0 && this.#isValid_factories()) {
             let baseLayers = [];
-            baseLayers = this.layerCode_Base.map(baseConfig=>{
+            baseLayers = this.layerCode_Background.map(baseConfig=>{
                 this.#assignLayerCodeToFactories(baseConfig);
 
                 let source ;
@@ -313,19 +311,19 @@ export class MOGISMap {
                 return layer;
             });
             if(baseLayers.length >0){
-                this.#INSTANCE_OL_MAP.setLayers(baseLayers);
+                this.#INSTANCE.MAP.setLayers(baseLayers);
             }
         } else{
             //this.#ERROR_factory()
             let source = new OSM(); 
             let layer = new TileLayer({source:source});
             console.log('%cemergency layer activated',KEY.CONSOLE_DECO.BODY);
-            this.#INSTANCE_OL_MAP.setLayers([layer]);
+            this.#INSTANCE.MAP.setLayers([layer]);
         };
     }
 
     /**
-     * MOGISMap 이 레이어 코드 아이디로 레이어 켜지고 꺼짐을 관리
+     * MOGISMap 이 레이어 코드 아이디로 레이어 켜지고 꺼짐을 관리 (layerTree 에서)
      * @param {number} layer_id 
      * @param {boolean} visible 레이어객체 setVisible 값
      * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key] 레이어 목적구분
@@ -335,7 +333,7 @@ export class MOGISMap {
         if(this.#isValid_layerPurposeCategoryKey(la_pu_cate_key)){
             targetLayer = this.layers[la_pu_cate_key].get(layer_id);
         }else{
-            const allLayers = this.#INSTANCE_OL_MAP.getLayers().getArray();
+            const allLayers = this.#INSTANCE.MAP.getLayers().getArray();
             targetLayer = allLayers.find(layer=>layer.get(KEY.LAYER_ID)===layer_id);
         }
         if(targetLayer instanceof Layer){ //기 발행 레이어 있는 경우
@@ -408,7 +406,7 @@ export class MOGISMap {
             }else{
                 this.layers['default'].set(layerCodeID,layer);
             }
-            this.#INSTANCE_OL_MAP.addLayer(layer);
+            this.#INSTANCE.MAP.addLayer(layer);
         }
     }
     #isValid_layerPurposeCategoryKey(key){
@@ -432,24 +430,28 @@ export class MOGISMap {
     }
 
     /* 🔷SELECT Interaction 관련🔷 */
-    enableSelect(){
-        if(!this.#INSTANCE_OL_SELECT) this.#createSelectInteraction();
+
+    /**
+     * MOGISMap 객체의 Vector Source Layer 에 대해, Layer 가 선택 가능한 상태라면,
+     * 레이어를 구성하는 feature 들과 상호작용할 수 있도록 켜거나 끔
+     */
+    enableSelect(bool=true){
+        if(bool){
+            this.#createSelectInteraction();
+        }else{
+            this.#INSTANCE.MAP.removeInteraction(this.#INSTANCE.INTERACTION.SELECT);
+            this.#INSTANCE.INTERACTION.SELECT = undefined;
+            this.#INSTANCE.MAP.un('pointermove',this.#INSTANCE.INTERACTION.POINTER);
+        }
     }
 
     #createSelectInteraction(){
-        // let styleFac = this.#Factory.style;
-        // if(styleFac instanceof MOFactory){
-        //     styleFac.setSpec(this.default_select);
-        // }else{
-        //     console.log(`등록된 styleFactory 없어 OL 기본 select 스타일 따름`)
-        // }
         let selectInteraction;
         try{
             selectInteraction = new Select({
-//            selectInteraction = new ol.interaction.Select({
                 hitTolerance : this.default_select.hitTolerance,
                 multi : this.default_select.multi,
-                // style : this.#Factory.style.getStyleFunction_highlight(),
+                style : createStyleFunction('HIGHLIGHT'),
                 layers: function(layer){
                     return layer.get(KEY.BOOL_SELECTABLE)?.toUpperCase() ==='Y'
                 }
@@ -457,11 +459,26 @@ export class MOGISMap {
         }catch(e){
             console.error(e);
         }
+        
         if(selectInteraction instanceof Select) {
-//        if(selectInteraction instanceof ol.interaction.Select) {
-            this.#INSTANCE_OL_SELECT = selectInteraction;
-            this.#INSTANCE_OL_MAP.addInteraction(selectInteraction);
+            this.#INSTANCE.INTERACTION.SELECT = selectInteraction;
+            this.#INSTANCE.MAP.addInteraction(selectInteraction);
         }
+
+        //선택 가능한 레이어 위에서 포인터 변경
+        this.#INSTANCE.INTERACTION.POINTER = (e)=>{
+            if(!e.dragging){
+                let bool = e.map.forEachFeatureAtPixel(e.pixel,(feature,layer)=>{
+                            if(layer.get(KEY.BOOL_SELECTABLE)=='Y') return true;                
+                            else return false;                       
+                        },{hitTolerance:this.default_select.hitTolerance})
+        
+                if(bool) e.map.getTargetElement().style.cursor='pointer';
+                else     e.map.getTargetElement().style.cursor='';                
+            }
+        };
+        
+        this.#INSTANCE.MAP.on('pointermove',this.#INSTANCE.INTERACTION.POINTER);
     }
     
     /**
@@ -471,30 +488,19 @@ export class MOGISMap {
      * @param {Layer} layer feature가 포함된 ol.Layer 객체
      */
     /**
-     * 
+     * 선택가능한 레이어의 피쳐 클릭시 발생할 이벤트 사용자 지정
      * @param {featureCallback} callback 피쳐, 레이어를 인자로 하는 콜백
      */
     setSelectCallback(callback){
-        if(this.#INSTANCE_OL_SELECT instanceof Select){
-//        if(this.#INSTANCE_OL_SELECT instanceof ol.interaction){
+        if(this.#INSTANCE.INTERACTION.SELECT instanceof Select){
             let me = this;
-            this.#INSTANCE_OL_SELECT.on('select',function(e){
+            this.#INSTANCE.INTERACTION.SELECT.on('select',function(e){
                 if(!e.auto){
-                    // let features = me.selectInteraction.getFeatures();
-                    let feature = me.#INSTANCE_OL_SELECT.getFeatures()?.getArray()[0];
-                    let layer = feature? me.#INSTANCE_OL_SELECT.getLayer(feature): undefined;
-                    // for(let i in features.getArray()){
-                    //     let feature = features.getArray()[0];
-                    //     let layer = me.selectInteraction.getLayer(feature);
-                    //     layers.push(layer);
-                    // }
+                    let feature = me.#INSTANCE.INTERACTION.SELECT.getFeatures()?.getArray()[0];
+                    let layer = feature? me.#INSTANCE.INTERACTION.SELECT.getLayer(feature): undefined;
                     callback(feature,layer);
                 }
             });
         }
     }
 }
-
-
-//TODO 측정 도구
-//https://openlayers.org/en/latest/examples/measure-style.html

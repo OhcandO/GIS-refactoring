@@ -137,7 +137,7 @@ export class LayerTree {
         }
         this.#createTree(this.#layerStructure);
         this.#checkEventListener();
-        // this.#showInitialLayers(this.layerStructure);
+        this.#showInitialLayers(this.#layerStructure);
     }
 
     /**
