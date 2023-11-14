@@ -28,6 +28,7 @@ const default_style={
         textAlign: "left", // ['left','right','end','start','center']
         justify: "left", //['left','center','right']
         textBaseline: "middle", // ['bottom', 'top', 'middle', 'alphabetic', 'hanging', 'ideographic']
+        overflow:true,	//라벨이 feature의 크기보다 커져도 보이게 함
     },
     text_stroke : {
         color: "rgba(255,255,225,0.9)", //검정
@@ -67,7 +68,6 @@ export function createStyleFunction (layerCode) {
 
     let styleFunc;
     if(layerType ==KEY.OL_FEATURE_TYPE_POINT){
-        console.log(tempStyleOption)
         styleFunc= getStyleFunc_POINT(layerCode,tempStyleOption);
     }else if (layerType == KEY.OL_FEATURE_TYPE_LINE){
         styleFunc= getStyleFunc_LINE(layerCode, tempStyleOption);
@@ -116,8 +116,7 @@ function updateLayerCode(layerCode) {
     returnLayerCode.stroke.color = layerCode[KEY.COLOR_LINE] ?? returnLayerCode.stroke.color;
     returnLayerCode.stroke.width = layerCode[KEY.LINE_WIDTH] ?? returnLayerCode.stroke.width;
     if(layerCode[KEY.LINE_STYLE] && layerCode[KEY.LINE_STYLE].toUpperCase()!="SOLID"){
-        returnLayerCode.stroke.lineDash = layerCode[KEY.LINE_STYLE];
-        console.log(layerCode[KEY.LINE_STYLE])
+        returnLayerCode.stroke.lineDash = JSON.parse(layerCode[KEY.LINE_STYLE]);
     }else{
         delete returnLayerCode.stroke.lineDash;
     }
@@ -198,12 +197,12 @@ function getStyleFunc_LINE(layerCode, tempStyleOption) {
 function getStyleFunc_POLYGON(layerCode, tempStyleOption) {
     return function (feature, resolution) {
         let style = new Style();
-        style.setStroke(new Stroke(tempStyleOption.stroke));
-        style.setFill(new Fill(tempStyleOption.fill));
+            style.setStroke(new Stroke(tempStyleOption.stroke));
+            style.setFill(new Fill(tempStyleOption.fill));
 
         //2. layerCode에 텍스트 컬럼 지정되었으면
-        if (me.getSpec()[KEY.LABEL_COLUMN]) {
-            style.setText(getTextStyle(feature, layerCode, tempStyleOption));
+        if (layerCode[KEY.LABEL_COLUMN]) {
+                style.setText(getTextStyle(feature, layerCode, tempStyleOption));
         }
 
         //3. 아이콘이 있을 때 폴리곤 스타일과 중심좌표 아이콘 둘 다 반환한다
@@ -232,20 +231,16 @@ function getStyleFunc_POLYGON(layerCode, tempStyleOption) {
     }
 }
 
-function getStyleFunc_HIGHTLIGHT(){
-    let me = this;
-    let styleFunc= function (feature, resolution){
+function getStyleFunc_HIGHTLIGHT(layerCode, tempStyleOption){
+    return function (feature, resolution){
         let style = new Style();
         let circle = new CircleStyle({
-            fill: new Fill(me.tempStyleOption.fill),
+            fill: new Fill(tempStyleOption.fill),
             radius: 4,
-            stroke: new Stroke(me.tempStyleOption.stroke),
+            stroke: new Stroke(tempStyleOption.stroke),
         });
-
         style.setImage(circle);
-
         return style;
     }
-    return styleFunc;
 }
 
