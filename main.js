@@ -71,7 +71,6 @@ let coreLayerTree = new LayerTree('core-LayerTree');
 
 coreLayerTree.setMapAndLayer(mainMap,KEY.LAYER_PURPOSE_CATEGORY.BASE,8);
 
-console.log(coreLayerTree);
 
 
 

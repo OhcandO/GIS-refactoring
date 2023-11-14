@@ -334,7 +334,6 @@ export class MOGISMap {
      */
     ctrlLayerOnOff(layer_id,visible, la_pu_cate_key){
         let targetLayer;
-        console.log(layer_id,visible, la_pu_cate_key);
         if(this.#isValid_layerPurposeCategoryKey(la_pu_cate_key)){
             targetLayer = this.layers[la_pu_cate_key].get(layer_id);
         }else{
@@ -342,10 +341,8 @@ export class MOGISMap {
             targetLayer = allLayers.find(layer=>layer.get(KEY.LAYER_ID)===layer_id);
         }
         if(targetLayer instanceof Layer){ //기 발행 레이어 있는 경우
-            console.log(11111)
             targetLayer.setVisible(visible);
         }else if(visible){ //기 발행 레이어 없는데 켜야하는 경우
-            console.log(22222)
             this.#addLayerWithID(layer_id,la_pu_cate_key);
         }else{
             // 기 발행되지도 않았고, setVisible(false)인 상황

@@ -253,7 +253,6 @@ export class LayerTree {
             }
             if (layerCode_id_arr.length > 0) {
                 layerCode_id_arr.forEach((layer_id) => {
-                    console.log(layer_id);
                     me.#INSTANCE_MOGISMAP.ctrlLayerOnOff(layer_id,visible,me.layerObjCategoryKey);
                 });
             }
