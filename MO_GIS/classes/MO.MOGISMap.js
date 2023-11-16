@@ -1,5 +1,4 @@
 import * as KEY from '../common/MO.keyMap.js';
-import { LayerTree } from "./MO.LayerTree.js";
 import { MOFactory } from "./abstract/MO.Factory.js";
 import { SourceFactory } from "./MO.SourceFactory.js";
 import { LayerFactory } from "./MO.LayerFactory.js";
@@ -9,9 +8,10 @@ import View from '../../lib/openlayers_v7.5.1/View.js'
 import OSM from '../../lib/openlayers_v7.5.1/source/OSM.js'
 import TileLayer from '../../lib/openlayers_v7.5.1/layer/Tile.js';
 import Select from '../../lib/openlayers_v7.5.1/interaction/Select.js';
-import PointerInteraction from '../../lib/openlayers_v7.5.1/interaction/Pointer.js'
 import Feature from '../../lib/openlayers_v7.5.1/Feature.js';
 import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
+import { MOSubscriber } from './abstract/MO.Subscriber.js';
+import { LayerTree } from './MO.LayerTree.js';
 
 /**
  * MOGISMap 객체를 생성하기 위한 파라미터 정의
@@ -31,7 +31,7 @@ import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
  * @class MOGISMap
  * @author jhoh
  */
-export class MOGISMap {
+export class MOGISMap extends MOSubscriber{
     default_viewSpec = {
         /**
          * Openlayers 뷰 포트 객체가 표현하는 좌표계.
@@ -122,7 +122,8 @@ export class MOGISMap {
      * 입력한 변수들을 Map 또는 View 객체 생성을 위한 변수로 할당
      * @param {MOGIS_param} mapConfigSpec 
      */
-    constructor(mapConfigSpec) {
+    constructor(mapConfigSpec,NAME='MOGISMap') {
+        super(NAME);
         if (mapConfigSpec instanceof Object && mapConfigSpec.target) {
             Object.entries(mapConfigSpec).forEach(([key, val]) => {
                 if (this.default_mapSpec[key]) this.default_mapSpec[key] = val;
@@ -321,14 +322,29 @@ export class MOGISMap {
             this.#INSTANCE.MAP.setLayers([layer]);
         };
     }
+    
+
+    //🟨🟩🟦 MOSubscriber 함수 등록
+    update(publisherID){
+        let publisher = this.getPublisher(publisherID);
+
+        if(publisher instanceof LayerTree){
+            let dataArr = publisher.getPublisherData();
+            if(dataArr?.length>0){
+                dataArr.forEach(ctrlObj=>{
+                    this.ctrlLayer(ctrlObj.layerID, ctrlObj.visible, ctrlObj.categoryKEY)
+                })
+            }
+        }
+    }
 
     /**
      * MOGISMap 이 레이어 코드 아이디로 레이어 켜지고 꺼짐을 관리 (layerTree 에서)
      * @param {number} layer_id 
-     * @param {boolean} visible 레이어객체 setVisible 값
+     * @param {boolean} [visible] 레이어객체 setVisible 값
      * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key] 레이어 목적구분
      */
-    ctrlLayerOnOff(layer_id,visible, la_pu_cate_key){
+    ctrlLayer(layer_id,visible=true, la_pu_cate_key){
         let targetLayer;
         if(this.#isValid_layerPurposeCategoryKey(la_pu_cate_key)){
             targetLayer = this.layers[la_pu_cate_key].get(layer_id);
@@ -339,7 +355,7 @@ export class MOGISMap {
         if(targetLayer instanceof Layer){ //기 발행 레이어 있는 경우
             targetLayer.setVisible(visible);
         }else if(visible){ //기 발행 레이어 없는데 켜야하는 경우
-            this.#addLayerWithID(layer_id,la_pu_cate_key);
+            this.#addLayerToMap(layer_id,la_pu_cate_key);
         }else{
             // 기 발행되지도 않았고, setVisible(false)인 상황
         }
@@ -394,7 +410,7 @@ export class MOGISMap {
      * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key]
      * @memberof MOGISMap
      */
-    #addLayerWithID(layerCodeID, la_pu_cate_key){
+    #addLayerToMap(layerCodeID, la_pu_cate_key){
         let layer;
         try { 
             layer = this.#createLayerWithID(layerCodeID, la_pu_cate_key);

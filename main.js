@@ -65,9 +65,9 @@ const coreLayerCode = [{"names":"YC 전체","ORDR":1,"sourceType":"vector","cate
     
 mainMap.setLayerCode(coreLayerCode,KEY.LAYER_PURPOSE_CATEGORY.BASE);
 
-let coreLayerTree = new LayerTree('core-LayerTree');
+let baseLayerTree = new LayerTree('core-LayerTree');
 
-coreLayerTree.setMapAndLayer(mainMap,KEY.LAYER_PURPOSE_CATEGORY.BASE,8);
+baseLayerTree.setMapAndLayer(mainMap,KEY.LAYER_PURPOSE_CATEGORY.BASE,8);
 
 
 mainMap.enableSelect(true);

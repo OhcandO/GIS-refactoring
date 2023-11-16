@@ -3,6 +3,7 @@ import { MOGISMap } from './MO.MOGISMap.js';
 import {Spinner} from '../../lib/spin.js/spin.js';
 import $ from '../../lib/jquery-3.7.1/jquery-3.7.1_esm.js';
 import jstree from '../../lib/jstree-3.3.16/jstree-3.3.16_esm.js';
+import { MOPublisher } from './abstract/MO.Publisher.js';
 
 /**
  * MOGISMap 을 인자로 받아, 해당 Map 객체의 레이어를 관장하는 
@@ -12,7 +13,7 @@ import jstree from '../../lib/jstree-3.3.16/jstree-3.3.16_esm.js';
  * @class LayerTree
  * @author jhoh
  */
-export class LayerTree {
+export class LayerTree extends MOPublisher {
     defaults = {
         contextPath: "",
         iconPath: '../images/icons/',
@@ -62,8 +63,10 @@ export class LayerTree {
     /**
      * MOGISMap 의 레이어 관장하는 Tree 생성
      * @param {string} tree_div_id 레이어트리 객체가 생성될 div id
+     * @param {string} NAME MOPublisher 로서의 이름 지정
      */
-    constructor(tree_div_id) {
+    constructor(tree_div_id, NAME) {
+        super(NAME);
         if(tree_div_id){
             this.#TREE_DIV_ID = tree_div_id;
             this.#TREE_ELEMENT.id = `${this.#TREE_DIV_ID}-layerTree`;
@@ -82,7 +85,9 @@ export class LayerTree {
         if(mo_gis_map instanceof MOGISMap) {
             //MOGISMap 객체 저장
             this.#INSTANCE_MOGISMAP = mo_gis_map;
-
+            //subscriber 등록
+            this.regist(mo_gis_map);
+            
             if(most_upper_id) this.#most_upper_id = most_upper_id;
 
             //레이어 코드 카테고리 중 하나만 이 layerTree 객체에서 관장함
@@ -153,8 +158,13 @@ export class LayerTree {
         $(`#${this.#TREE_DIV_ID}`).html(wrap);
         // $(".map_info a").trigger("click");
         $(`#${this.#TREE_DIV_ID}`).jstree({
-            core: {themes: {icons: false,},},
-            plugins: ["wholerow", "checkbox"],
+            core: {
+				themes:	{
+					icons: false,
+					dots: false //계층을 점선으로 연결한 요소
+					},
+				},
+		    "plugins" : [ "checkbox" , "wholerow"],
         });
 
         this.#INSTANCE_JS_TREE = $(`#${this.#TREE_DIV_ID}`).jstree(true);
@@ -252,9 +262,14 @@ export class LayerTree {
                 pushLayerList(nodeId, layerCode_id_arr);
             }
             if (layerCode_id_arr.length > 0) {
-                layerCode_id_arr.forEach((layer_id) => {
-                    me.#INSTANCE_MOGISMAP.ctrlLayerOnOff(layer_id,visible,me.layerObjCategoryKey);
-                });
+                // layerCode_id_arr.forEach((layer_id) => {
+                //     me.#INSTANCE_MOGISMAP.ctrlLayer(layer_id,visible,me.layerObjCategoryKey);
+                // });
+                me.#ctrlLayerDataArr = layerCode_id_arr
+                                    .map(id=>({layerID:id, visible:visible, categoryKEY:me.layerObjCategoryKey}));
+
+                //                    
+                me.notify();
             }
             
         });
@@ -269,12 +284,19 @@ export class LayerTree {
         }
     }
 
+    #ctrlLayerDataArr=[
+        {layerID:undefined, visible:true, categoryKEY:this.layerObjCategoryKey},
+    ]
+    /** MOSubscriber 들이 찾게되는  */
+    getPublisherData(){
+        return this.#ctrlLayerDataArr;
+    }
     /**
      * 이미지 정보
      */
     #makeLegendSrc(layerInfoElem) {
         let src;
-        let iconPath = `./MO_GIS/images/icons/`;
+        let iconPath = this.defaults.iconPath;
         if (layerInfoElem[KEY.ICON_NAME]) {
             src = iconPath + layerInfoElem[KEY.ICON_NAME];
         } else {
@@ -328,17 +350,6 @@ export class LayerTree {
         image.src = canvas.toDataURL("image/png");
         return image;
     }
-
-    /**
-     * 아이디로 체크박스 선택
-     * gis.edit.js 에서 사용했었음
-     */
-    /* checkTreeOfId(id) {
-        let boolean = this.#INSTANCE_JS_TREE.is_selected(id);
-        if (!boolean) {
-            this.#INSTANCE_JS_TREE.select_node(id);
-        }
-    } */
 
     /**
      * 레이어 구분자로 연관 레이어들 숨기기
@@ -449,7 +460,7 @@ export class LayerTree {
 
 
 /**
- * 
+ * 1차원으로 구성된 json 자료구조를 계층형 
  * @param {Array} array javascript Array 객체. JSON 형식이어야 하고, 최상위->중위->하위 순으로 정렬되어 있어야 함
  * @param {String} [target_id_key] 개별 JSON 요소들의 PK 키 명칭
  * @param {String} [parent_id_key] 개별 JSON 요소들의 상위 ID 를 참조할 키 명칭
