@@ -26,7 +26,8 @@ export const LABEL_COLUMN = `label`;
 
 /* 레이어 객체 관련 */
 export const BOOL_SELECTABLE = `boolSelectable`;
-export const BOOL_SHOW_INITIAL = `boolIsdefault`; //'초기에 보여야 하는지' 여부. visible 은 use_yn 과 혼동될 수 있어서 피함
+export const BOOL_SHOW_INITIAL = `boolIsdefault`; //'초기에 보여야 하는지' 여부. 상수 constant
+export const BOOL_VISIBLE = `boolVisible`; //'보여야 하는지' 여부. 변수 variable
 export const Z_INDEX = `zIndex`;
 export const MIN_ZOOM = `minZoom`;
 
@@ -34,31 +35,36 @@ export const MIN_ZOOM = `minZoom`;
 export const LAYER_ID = `id`;
 export const PARENT_ID = `pid`;
 export const CHILD_MARK = `childList`;
+export const LAYER_ORDER = 'ordr'; //레이어 표출 순서
 export const BOOL_IS_GROUP = `boolIsgroup` // 해당 레이어가 '형식상' 레이어이며 그룹핑 용도로만 사용되는지 여부
 /**
  * 레이어들의 목적으로 다르게 운용하기위해 구분
  * @typedef {object} LAYER_PURPOSE_CATEGORY
  */
 export const LAYER_PURPOSE_CATEGORY= {
-        /**기본 GIS 시설물 e.g. 관로, 계측기, 블록 등*/
-        BASE:'base', 
+        /**기본 GIS 관망도 e.g. 관로, 계측기, 블록 등*/
+        BASE:['base',5], 
         /** (지능수도플) 리스크맵 */
-        RISKMAP:'risk', 
+        RISKMAP:['risk',1], 
         /** (지능수도플) 누수예상지점 */
-        LEAK:'leak', 
+        LEAK:['leak',2], 
         /** (지능수도플) 공공서비스 */
-        PUBLIC:'public', 
+        PUBLIC:['public',3], 
         /** (지능수도플) 관망해석결과 */
-        PIPENET:'pipnet', 
+        PIPENET:['pipnet',4], 
         /**(지능수도플) 중점 관리지역 */
-        MANAGE:'manage', 
+        MANAGE:['manage',6], 
         /** (지능수도플) 상습민원지역 */
-        COMPLAINT:'comp', 
+        COMPLAINT:['comp',7], 
         /** (지능수도플) 실시간 상황감지 */
-        REALTIME:'realtime', 
+        REALTIME:['realtime',8], 
         /** (지능수도플) 이동형 누수센서 */
-        PORTABLE:'portable', 
-        }
+        PORTABLE:['portable',9], 
+}
+
+/* MOPublisher, MOSubscriber 관련 키*/
+export const LAYER_PURPOSE_CATEGORY_KEY = 'layerPurposeCategory';
+export const LEGEND_HTML_STRING = 'legendHtmlString';
 
 /* ▲▲▲▲▲레이어 소스(Source) 관련▲▲▲▲▲▲▲▲▲△ */
 export const ORIGIN = `origin`;

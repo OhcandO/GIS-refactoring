@@ -32,6 +32,53 @@
             top:150px;
             left:150px;
         }
+
+        /* btn legend */
+        .btn_legend {
+            position: absolute;
+    top: 68px;
+    right: 40px;
+            display:block;width:42px;height:42px;box-sizing:border-box;background-color:black; ;border:2px solid ;border-radius:12px;color:#fff;font-size:13px;font-weight:500;text-align:center;line-height:38px;
+        }
+        .btn_legend:hover,
+        .btn_legend:active,
+        .btn_legend:focus {color:var(--secondary-color);}
+
+        /* legend layer popup */
+    .pop_legend_wrap {display:none;position:absolute;top:10px;right:72px;width:222px;max-height:420px;z-index:3;background:#fff;border-radius:8px;border:2px solid black;box-sizing:border-box;overflow-y:auto;padding:14px;box-shadow:0px 0px 16px rgba(0, 0, 0, 0.2);}
+    .pop_leg_close {display:block;position:absolute;top:19px;right:16px;width:20px;height:20px;border:0;outline:0;z-index:4;}
+    .pop_leg_close > img {width:20px;height:20px;position:relative;top:0;right:0;} 
+
+    .pop_title {color:var(--black-color);font-size:16px;font-weight:500;text-align:left;line-height:25px;margin-bottom:16px;}
+    .pop_title.num {color:var(--black-color);font-size:13px;font-weight:700;text-align:left;line-height:25px;margin-bottom:16px;}
+    .pop_stitle {width:100%;height:30px;line-height:28px;border:1px solid burlywood;border-radius:8px;background:#f8f8f8;margin-bottom:12px;color:#000;font-size:14px;font-weight:500;text-align:center;}
+
+    .pop_legend_cont {width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .pop_legend_cont > .water_leak {width:166px;}
+    .pop_legend_cont > .water_leak > li {display:inline-block;height:20px;line-height:20px;color:var(--black-sub);font-size:14px;font-weight:500;margin-bottom:8px;}
+    .pop_legend_cont > .water_leak > li > img {position:relative;top:2px;width:18px;height:18px;margin-right:4px;}
+    .pop_legend_cont > .water_leak > li:nth-child(even) {padding-left:16px;}
+
+    .pop_legend_cont > .water_leak.n3 > li:nth-child(1) {display:block;width:166px;}
+    .pop_legend_cont > .water_leak.n3 > li:nth-last-child(1) {padding-left:30px;}
+    .pop_legend_cont > .water_leak.n3 > li:nth-child(even) {padding-left:0;}
+
+    .pop_legend_cont > .risk_map {width:106px;}
+    .pop_legend_cont > .risk_map > li {display:inline-block;height:20px;line-height:20px;color:var(--black-sub);font-size:14px;font-weight:500;margin-bottom:8px;}
+    .pop_legend_cont > .risk_map > li > img {position:relative;top:2px;width:18px;height:18px;margin-right:4px;}
+    .pop_legend_cont > .risk_map > li:nth-child(even) {padding-left:30px;}
+
+    /* .pop_legend_cont > .inspection {width:166px;}
+    .pop_legend_cont > .inspection > li {line-height:20px;color:var(--black-sub);font-size:14px;font-weight:500;margin-bottom:8px;vertical-align:middle;margin-top:-5px;}
+
+    .pop_legend_cont > a.link_icon {display:block;margin-bottom:8px;line-height:20px;text-align:center;}
+    .pop_legend_cont > a.link_icon > img {width:16px;height:16px;margin-right:4px;}
+    .pop_legend_cont > a.link_icon.mb0 {margin-bottom:0;}
+
+    .pop_legend_cont > .state {width:100%;}
+    .pop_legend_cont > .state > li {line-height:20px;color:var(--black-sub);font-size:14px;font-weight:500;margin-bottom:8px;vertical-align:middle;padding-left:12px;}
+    .pop_legend_cont > .state > li > img {width:16px;height:16px;margin-right:4px;} */
+
     </style>
 
     <script type="module" src="./main.js"></script>
@@ -115,7 +162,23 @@
     globalThis.mainMap_prepare = showMapLoading;
     globalThis.mainMap_done= hideMapLoading;
     </script>
-   
+   <script>
+
+    function pop_open(i) {
+        var sTop = document.body.scrollTop;
+        if (sTop == 0) {
+            sTop = document.documentElement.scrollTop;
+        }
+        document.getElementById(i).style.top = sTop + 100;
+        document.getElementById(i).style.display = "block";
+        document.body.scrollTop = 0;
+    }
+    function pop_close(i) {
+        document.getElementById(i).style.display = "none";
+        document.body.scrollTop = 0;
+    }
+
+   </script>
 </head>
 
 <body>
@@ -132,6 +195,20 @@
             <button type="button">GIS관망도</button>
             <div id="core-LayerTree"></div>
         </div>
+
+        <!-- legend layer popup width:222px -->
+		<div id="pop_legend" class="pop_legend_wrap">
+			<!-- 누수예상지점 n4 -->
+			<div class="pop_title" tabindex="0">누수예상지점</div>
+			<div class="pop_stitle" tabindex="0">누수예상지점</div>
+			<div class="pop_legend_cont">
+				<ul class="water_leak">
+					<li tabindex="0">누수센서</li>
+					<li tabindex="0">AI모델</li>
+				</ul>
+			</div>
+            <a class="pop_leg_close" href="javascript:pop_close('pop_legend');">X</a>
+        </div>    
     </div>
 <!-- 지도 우측 툴바 -->
     <div>
@@ -148,7 +225,7 @@
                 </div>
             </div>
         </div>
-
+        <button class ="btn_legend" type="button" onclick="pop_open('pop_legend')">범례</button>
         <!-- 길이, 면적 측정도구 (라디오버튼으로 구성할 것) -->
         <div class="mogis control flex container" id="measure">
             <div class="mogis measure option">

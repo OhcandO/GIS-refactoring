@@ -16,25 +16,27 @@ import { MOPublisher } from './abstract/MO.Publisher.js';
 export class LayerTree extends MOPublisher {
     defaults = {
         contextPath: "",
-        iconPath: '../images/icons/',
+        iconPath: "./MO_GIS/images/icons/",
     };
 
-    /**트리 객체가 생성될 곳의 DIV id 
+    /**트리 객체가 생성될 곳의 DIV id
      * @type {string} */
     #TREE_DIV_ID;
 
     /**트리 객체 자체의 ID
      */
-    #TREE_ELEMENT={
+    #TREE_ELEMENT = {
         /**@type {string} */
-        id:undefined,
+        id: undefined,
         style: `position: absolute;
                 top: 20px; left: 0;
                 margin-left: 0px;`,
-        getHTML:function(){return `<div id="${this.id}" style="${this.style}"></div>`;},
-    }
+        getHTML: function () {
+            return `<div id="${this.id}" style="${this.style}"></div>`;
+        },
+    };
 
-    /** JSTree 객체 
+    /** JSTree 객체
      * */
     #INSTANCE_JS_TREE;
 
@@ -47,8 +49,8 @@ export class LayerTree extends MOPublisher {
      */
     layerObjCategoryKey;
 
-    /**본 레이어트리에서 관리하는 
-     * 소스+레이어 정보 레이어 코드 리스트 
+    /**본 레이어트리에서 관리하는
+     * 소스+레이어 정보 레이어 코드 리스트
      * @type {JSON} */
     layerCodeArr;
 
@@ -65,12 +67,12 @@ export class LayerTree extends MOPublisher {
      * @param {string} tree_div_id 레이어트리 객체가 생성될 div id
      * @param {string} NAME MOPublisher 로서의 이름 지정
      */
-    constructor(tree_div_id, NAME) {
-        super(NAME);
-        if(tree_div_id){
+    constructor(tree_div_id) {
+        super(tree_div_id);
+        if (tree_div_id) {
             this.#TREE_DIV_ID = tree_div_id;
             this.#TREE_ELEMENT.id = `${this.#TREE_DIV_ID}-layerTree`;
-        }else{
+        } else {
             throw new Error(`layerTree 객체 생성될 DIV 아이디 입력되어야 함`);
         }
     }
@@ -81,62 +83,81 @@ export class LayerTree extends MOPublisher {
      * @param {string} layerObjCategoryKey
      * @param {string} [most_upper_id] 레이어코드 상 최상위 코드
      */
-    setMapAndLayer(mo_gis_map, layerObjCategoryKey,most_upper_id){
-        if(mo_gis_map instanceof MOGISMap) {
+    setMapAndLayer(mo_gis_map, layerObjCategoryKey, most_upper_id) {
+        if (mo_gis_map instanceof MOGISMap) {
             //MOGISMap 객체 저장
             this.#INSTANCE_MOGISMAP = mo_gis_map;
             //subscriber 등록
             this.regist(mo_gis_map);
-            
-            if(most_upper_id) this.#most_upper_id = most_upper_id;
+
+            if (most_upper_id) this.#most_upper_id = most_upper_id;
 
             //레이어 코드 카테고리 중 하나만 이 layerTree 객체에서 관장함
-            if(Object.values(KEY.LAYER_PURPOSE_CATEGORY).includes(layerObjCategoryKey) 
-                && mo_gis_map.layerCodeObject[layerObjCategoryKey]) {
-                    this.layerObjCategoryKey = layerObjCategoryKey;
-                this.#setLayerCodeArr(mo_gis_map.layerCodeObject[layerObjCategoryKey]);
+            if (
+                Object.values(KEY.LAYER_PURPOSE_CATEGORY).map(e=>e[0]).includes(
+                    layerObjCategoryKey
+                ) &&
+                mo_gis_map.layerCodeObject[layerObjCategoryKey]
+            ) {
+                this.layerObjCategoryKey = layerObjCategoryKey;
+                this.#setLayerCodeArr(
+                    mo_gis_map.layerCodeObject[layerObjCategoryKey]
+                );
             }
 
             //layerTree 화면에 표현
             this.#activate();
-        }else{
-            throw new Error (`MOGISMap 객체가 아님`);
+        } else {
+            throw new Error(`MOGISMap 객체가 아님`);
         }
     }
 
     /**
      * 정렬된 레이어 코드 JSON 을 LayerTree 객체에 등록함
      * 객체 생성 후 가장 먼저 해야할 것
-     * @param {Array} layerCodeArr 
+     * @param {Array} layerCodeArr
      * @param {String} target_id 개별 JSON 요소들의 PK 키 명칭 (id)
      * @param {String} parent_id 개별 JSON 요소들의 상위 ID 를 참조할 키 명칭 (pid)
      * @param {String} child_mark NESTED 구조체 만들기 위한 (childList)
      * @memberof LayerTree
      */
-    #setLayerCodeArr(layerCodeArr, target_id =`${KEY.LAYER_ID}`, parent_id =`${KEY.PARENT_ID}`, child_mark=`${KEY.CHILD_MARK}`){
-        if(layerCodeArr instanceof Array){
+    #setLayerCodeArr(
+        layerCodeArr,
+        target_id = `${KEY.LAYER_ID}`,
+        parent_id = `${KEY.PARENT_ID}`,
+        child_mark = `${KEY.CHILD_MARK}`
+    ) {
+        if (layerCodeArr instanceof Array) {
             this.layerCodeArr = layerCodeArr;
-            try{
-                this.#layerStructure = jsonNestor(this.layerCodeArr, target_id, parent_id, child_mark, this.#most_upper_id);
-            }catch(e){
+            try {
+                this.#layerStructure = jsonNestor(
+                    this.layerCodeArr,
+                    target_id,
+                    parent_id,
+                    child_mark,
+                    this.#most_upper_id
+                );
+            } catch (e) {
                 console.error(e);
             }
-        }else{
-            console.error(`treeLayer 객체에 설정할 JSON 객체가 적합하지 않음`)
-            throw new Error(`treeLayer 객체에 설정할 JSON 객체가 적합하지 않음`)
+        } else {
+            console.error(`treeLayer 객체에 설정할 JSON 객체가 적합하지 않음`);
+            throw new Error(
+                `treeLayer 객체에 설정할 JSON 객체가 적합하지 않음`
+            );
         }
     }
     /**
      * 실질 TREE 객체 생성과정
-     * 
+     *
      * @memberof LayerTree
      */
-    #activate(){
-        if(!(this.layerCodeArr?.length > 0)){
-            try{
+    #activate() {
+        if (!(this.layerCodeArr?.length > 0)) {
+            try {
                 this.#setLayerCodeArr(this.#INSTANCE_MOGISMAP.layerCodeObject);
-            }catch(e){
-                console.log(`layerCodeArr (JSON) 이 등록되어야 함`)
+            } catch (e) {
+                console.log(`layerCodeArr (JSON) 이 등록되어야 함`);
                 console.error(e);
             }
         }
@@ -153,29 +174,36 @@ export class LayerTree extends MOPublisher {
         //1. map div 에 tree용 영역 생성
         this.#createTreeDiv();
 
-        //2. tree 구조체 내에 
+        //2. tree 구조체 내에
         let wrap = this.#createWrap(treeList);
         $(`#${this.#TREE_DIV_ID}`).html(wrap);
         // $(".map_info a").trigger("click");
         $(`#${this.#TREE_DIV_ID}`).jstree({
             core: {
-				themes:	{
-					icons: false,
-					dots: false //계층을 점선으로 연결한 요소
-					},
-				},
-		    "plugins" : [ "checkbox" , "wholerow"],
+                themes: {
+                    icons: false,
+                    dots: false, //계층을 점선으로 연결한 요소
+                },
+            },
+            plugins: ["checkbox", "wholerow"],
         });
 
         this.#INSTANCE_JS_TREE = $(`#${this.#TREE_DIV_ID}`).jstree(true);
     }
 
-    #createTreeDiv(){
+    #createTreeDiv() {
         let treeDiv = document.querySelector(`#${this.#TREE_DIV_ID}`);
-        if(treeDiv instanceof HTMLDivElement){
-            treeDiv.insertAdjacentHTML(`beforeend`,this.#TREE_ELEMENT.getHTML());
-        }else{
-            throw new Error(`layerTree 객체위한 DIV가 생성되지 않음: div id=${this.#TREE_DIV_ID}`);
+        if (treeDiv instanceof HTMLDivElement) {
+            treeDiv.insertAdjacentHTML(
+                `beforeend`,
+                this.#TREE_ELEMENT.getHTML()
+            );
+        } else {
+            throw new Error(
+                `layerTree 객체위한 DIV가 생성되지 않음: div id=${
+                    this.#TREE_DIV_ID
+                }`
+            );
         }
     }
 
@@ -185,25 +213,24 @@ export class LayerTree extends MOPublisher {
     #createWrap(array, level) {
         let html = ``;
         level = level || 1;
-        array.forEach(layer => {
-            const id = layer[KEY.LAYER_ID];
-            const name = layer[KEY.LAYER_NAME];
-            const type = layer[KEY.LAYER_GEOMETRY_TYPE];
-            const isGroup = layer[KEY.BOOL_IS_GROUP] || "N";
+        array.forEach((layerCode) => {
+            const id = layerCode[KEY.LAYER_ID];
+            const name = layerCode[KEY.LAYER_NAME];
+            const type = layerCode[KEY.LAYER_GEOMETRY_TYPE];
+            const isGroup = layerCode[KEY.BOOL_IS_GROUP] || "N";
             let hasChild = false;
 
-            if (layer[KEY.CHILD_MARK]?.length > 0) hasChild = true;
+            if (layerCode[KEY.CHILD_MARK]?.length > 0) hasChild = true;
             if (level == 1) html += `<ul>`;
-            if(isGroup == "Y") {
+            if (isGroup == "Y") {
                 html += `<li id="${id}">${name}<ul>`;
-            }
-            else {
-                let src = this.#makeLegendSrc(layer);
+            } else {
+                let src = this.#makeLegendSrc(layerCode);
                 html += `<li id="layerid_${id}" data-layerid="${id}" data-type="${type}" class="${type} ${id}"><img src="${src}" style="width:16px;"/>&nbsp;&nbsp;${name}</li>`;
-            } 
+            }
             if (hasChild) {
                 level++;
-                html += this.#createWrap(layer[KEY.CHILD_MARK], level);
+                html += this.#createWrap(layerCode[KEY.CHILD_MARK], level);
                 html += `</ul></li>`;
                 level--;
             }
@@ -218,18 +245,22 @@ export class LayerTree extends MOPublisher {
      * 초기 선택 노드 셋팅
      */
     #showInitialLayers(structuredLayerCode) {
-        if(structuredLayerCode instanceof Array){
-
-            for(let layerCode of structuredLayerCode){
+        if (structuredLayerCode instanceof Array) {
+            for (let layerCode of structuredLayerCode) {
                 let id = layerCode[KEY.LAYER_ID];
                 let visible = layerCode[KEY.BOOL_SHOW_INITIAL] || "N";
-    
-                if (layerCode[KEY.CHILD_MARK] && layerCode[KEY.CHILD_MARK].length > 0) {
+
+                if (
+                    layerCode[KEY.CHILD_MARK] &&
+                    layerCode[KEY.CHILD_MARK].length > 0
+                ) {
                     this.#showInitialLayers(layerCode[KEY.CHILD_MARK]);
                 }
-    
+
                 if (visible === "Y") {
-                    let tnode = this.#INSTANCE_JS_TREE.get_node("layerid_" + id);
+                    let tnode = this.#INSTANCE_JS_TREE.get_node(
+                        "layerid_" + id
+                    );
                     if (!tnode) continue;
                     if (tnode.state.selected == false) {
                         this.#INSTANCE_JS_TREE.check_node(tnode);
@@ -247,7 +278,7 @@ export class LayerTree extends MOPublisher {
         let nodeId;
         $(`#${this.#TREE_DIV_ID}`).bind("changed.jstree", function (e, data) {
             if (data.action === "ready") return;
-            
+
             let visible = false;
             if (data.action === "select_node") visible = true;
 
@@ -262,18 +293,31 @@ export class LayerTree extends MOPublisher {
                 pushLayerList(nodeId, layerCode_id_arr);
             }
             if (layerCode_id_arr.length > 0) {
-                // layerCode_id_arr.forEach((layer_id) => {
-                //     me.#INSTANCE_MOGISMAP.ctrlLayer(layer_id,visible,me.layerObjCategoryKey);
-                // });
-                me.#ctrlLayerDataArr = layerCode_id_arr
-                                    .map(id=>({layerID:id, visible:visible, categoryKEY:me.layerObjCategoryKey}));
-
-                //                    
+                //MOSubscriber (Legend 객체와 MOGISMap 객체)에 전달할 내용 구성
+                me.#ctrlLayerDataArr=[];
+                let tempArr = layerCode_id_arr.map((id) => {
+                    let htmlStr = `<span>${makeHtmlStr(id)}</span>`;
+                    return {
+                        id : id,
+                        boolVisible : visible,
+                        layerPurposeCategory : me.layerObjCategoryKey,
+                        legendHtmlString : htmlStr,
+                        ordr : getLayerCode(id)[KEY.LAYER_ORDER],
+                    };
+                });
+                me.#ctrlLayerDataArr = tempArr;
+                //
                 me.notify();
             }
-            
         });
-
+        function makeHtmlStr(layer_id){
+            let layerCode = getLayerCode(layer_id);
+            let imgSrc = me.#makeLegendSrc(layerCode);
+            return `<img src="${imgSrc}" style="width:16px;"/>&nbsp;&nbsp;${layerCode[KEY.LAYER_NAME]}`
+        }
+        function getLayerCode(layer_id){
+            return me.layerCodeArr.find(el=>el[KEY.LAYER_ID]==layer_id);
+        }
         function pushLayerList(nodeId, layerList) {
             let node = me.#INSTANCE_JS_TREE.get_node(nodeId);
             let layerid;
@@ -284,13 +328,25 @@ export class LayerTree extends MOPublisher {
         }
     }
 
-    #ctrlLayerDataArr=[
-        {layerID:undefined, visible:true, categoryKEY:this.layerObjCategoryKey},
-    ]
-    /** MOSubscriber 들이 찾게되는  */
-    getPublisherData(){
+    //🟨🟨🟨MOPublisher 함수등록🟨🟨🟨🟨🟨🟨🟨🟨🟨
+    #ctrlLayerDataArr = [
+        {
+            id: undefined,
+            boolVisible: true,
+            layerPurposeCategory: this.layerObjCategoryKey,
+            legendHtmlString:'',
+            ordr:0,
+        },
+    ];
+
+    /** MOSubscriber 들이 가져가는 데이터 
+     * @type {JSON} */
+    get PublisherData() {
         return this.#ctrlLayerDataArr;
     }
+
+    //🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨
+
     /**
      * 이미지 정보
      */
@@ -323,7 +379,9 @@ export class LayerTree extends MOPublisher {
             ctx.lineTo(15, 15);
             ctx.lineTo(1, 15);
             ctx.lineTo(1, 1);
-        } else if (layerinfo[KEY.LAYER_GEOMETRY_TYPE] == KEY.OL_FEATURE_TYPE_LINE) {
+        } else if (
+            layerinfo[KEY.LAYER_GEOMETRY_TYPE] == KEY.OL_FEATURE_TYPE_LINE
+        ) {
             ctx.moveTo(1, 15);
             ctx.lineTo(5, 1);
             ctx.lineTo(9, 15);
@@ -377,8 +435,17 @@ export class LayerTree extends MOPublisher {
         }
     }
     #getTreeIdArr(typeName, ftrIdn = "") {
-        let codeObjArr = structuredClone(this.layerCodeArr.filter(layCD => layCD[KEY.TYPE_NAME] == typeName && layCD[KEY.BOOL_IS_GROUP] !== "Y"))
-        if (codeObjArr?.length > 0) return codeObjArr.map(codeObj => "layerid_" + codeObj[KEY.LAYER_ID]);
+        let codeObjArr = structuredClone(
+            this.layerCodeArr.filter(
+                (layCD) =>
+                    layCD[KEY.TYPE_NAME] == typeName &&
+                    layCD[KEY.BOOL_IS_GROUP] !== "Y"
+            )
+        );
+        if (codeObjArr?.length > 0)
+            return codeObjArr.map(
+                (codeObj) => "layerid_" + codeObj[KEY.LAYER_ID]
+            );
         else return [];
     }
 
@@ -388,12 +455,24 @@ export class LayerTree extends MOPublisher {
     showLayerWithTypeName(typeName) {
         let me = this;
         let minZoom = 16;
-        const default_spinner = {lines: 15, length: 38, width: 12, radius: 38, scale: 1, corners: 1,
-            speed: 1, animation: "spinner-line-fade-more", color: "#ffffff", 
-            fadeColor: "transparent", shadow: "grey 3px 4px 8px 1px"};
-        
+        const default_spinner = {
+            lines: 15,
+            length: 38,
+            width: 12,
+            radius: 38,
+            scale: 1,
+            corners: 1,
+            speed: 1,
+            animation: "spinner-line-fade-more",
+            color: "#ffffff",
+            fadeColor: "transparent",
+            shadow: "grey 3px 4px 8px 1px",
+        };
+
         const spin = new Spinner(default_spinner);
-        const target_spin = document.querySelector(`#${this.#INSTANCE_MOGISMAP.default_mapSpec.target}`);
+        const target_spin = document.querySelector(
+            `#${this.#INSTANCE_MOGISMAP.default_mapSpec.target}`
+        );
         /**
          * 테이블이름과 관련된 레이어들 코드정보 객체 찾아 내부 변수로 등록. 찾으면 true
          */
@@ -401,7 +480,8 @@ export class LayerTree extends MOPublisher {
             let codeObjArr = getCodeObjArrFromTypeName(typeName);
             if (codeObjArr.length > 0) {
                 return (tempTreeIdArr = codeObjArr.reduce(
-                    (pre, cur) => (pre.push("layerid_" + cur.id), pre),[]
+                    (pre, cur) => (pre.push("layerid_" + cur.id), pre),
+                    []
                 ));
             } else {
                 console.error(`codeObj 찾을 수 없음 ${typeName}`);
@@ -412,28 +492,39 @@ export class LayerTree extends MOPublisher {
         /**입력된 typeName 을 속성으로 하는 GisApp.LayerCode 의 요소들을 추출
          */
         function getCodeObjArrFromTypeName(typeName) {
-            let codeObjArr = structuredClone(me.layerCodeArr.filter(
-                (layCD) => layCD[KEY.TYPE_NAME]=== typeName && layCD[KEY.BOOL_IS_GROUP] !== "Y"
-            ));
+            let codeObjArr = structuredClone(
+                me.layerCodeArr.filter(
+                    (layCD) =>
+                        layCD[KEY.TYPE_NAME] === typeName &&
+                        layCD[KEY.BOOL_IS_GROUP] !== "Y"
+                )
+            );
 
             //layerCode 상 같은 typeName 사용하는 레이어의 줌 레벨 선택
             minZoom = codeObjArr.reduce(
-                (pre, cur) => (cur[KEY.MIN_ZOOM] > pre ? Number(cur[KEY.MIN_ZOOM]) : pre),10
+                (pre, cur) =>
+                    cur[KEY.MIN_ZOOM] > pre ? Number(cur[KEY.MIN_ZOOM]) : pre,
+                10
             );
             return codeObjArr;
         }
 
         /**treeID 배열의 모든 요소가 선택된 상태인지 확인. instance는 jstree임 객체
          */
-        const isEveryNodeSelected=(treeIdArr)=> {
-            return treeIdArr.every((nodeId) =>this.#INSTANCE_JS_TREE.is_selected(nodeId));
-        }
+        const isEveryNodeSelected = (treeIdArr) => {
+            return treeIdArr.every((nodeId) =>
+                this.#INSTANCE_JS_TREE.is_selected(nodeId)
+            );
+        };
 
         // 입력된 typeName 을 속성으로 하는 GisApp.LayerCode 의 요소들의 id 를 추출
         let tempTreeIdArr = findAndSetLayerCodeObjWithTypename(typeName);
         if (tempTreeIdArr.length === 0) {
             return new Promise((_res, rej) => {
-                rej("시설물 화면에 맞는 레이어 없음. 시설물 테이블명 : " +typeName);
+                rej(
+                    "시설물 화면에 맞는 레이어 없음. 시설물 테이블명 : " +
+                        typeName
+                );
             });
         }
         return new Promise((reso, _reje) => {
@@ -442,7 +533,7 @@ export class LayerTree extends MOPublisher {
                 reso();
             } else {
                 this.#INSTANCE_MOGISMAP.view.setZoom(minZoom + 0.2);
-                this.#INSTANCE_MOGISMAP.map.once("rendercomplete",  (e)=> {
+                this.#INSTANCE_MOGISMAP.map.once("rendercomplete", (e) => {
                     //Spinner 정지
                     spin.stop();
                     reso();

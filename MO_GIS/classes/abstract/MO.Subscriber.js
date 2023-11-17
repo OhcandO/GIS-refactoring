@@ -71,11 +71,16 @@ export class MOSubscriber {
      * 이 Observer 객체가 등록된 Subject 리스트 출력
      */
     showSubjectList() {
-        console.group(`${this.observerName} 이 등록된 Subject 리스트`);
+        console.group(`${this.NAME} 이 등록된 Publisher 리스트`);
         console.table(this.#PUBLISHER_Obj);
         console.groupEnd();
     }
 
+    /**
+     * 심볼 식별자로 기 등록된 MOPublisher 반환
+     * @param {Symbol} publisherID MOPublisher 객체를 찾기위한 식별자
+     * @returns {MOPublisher}
+     */
     getPublisher(publisherID){
         return Object.values(this.#PUBLISHER_Obj).find(subs=>subs.id===publisherID);
     }

@@ -183,7 +183,7 @@ export class MOGISMap extends MOSubscriber{
                 if(this.#isValid_layerPurposeCategoryKey(categoryKey)){
                     
                     //카테고리 키도 입력
-                    layerCDArr.forEach(layerCode=>layerCode['LAYER_PURPOSE_CATEGORY'] = categoryKey);
+                    layerCDArr.forEach(layerCode=>layerCode[KEY.LAYER_PURPOSE_CATEGORY_KEY] = categoryKey);
                     
                     this.layerCodeObject[categoryKey] = layerCDArr;
                     
@@ -324,19 +324,26 @@ export class MOGISMap extends MOSubscriber{
     }
     
 
-    //🟨🟩🟦 MOSubscriber 함수 등록
+    //🟨🟨🟨MOSubscriber 함수등록🟨🟨🟨🟨🟨🟨🟨🟨🟨
+    /**
+     * 
+     * @param {Symbol} publisherID 
+     */
     update(publisherID){
-        let publisher = this.getPublisher(publisherID);
-
+        let publisher = super.getPublisher(publisherID);
+        if(!publisher) throw new Error(`등록되지 않은 Publisher 호출`);
         if(publisher instanceof LayerTree){
-            let dataArr = publisher.getPublisherData();
+            let dataArr = publisher.PublisherData;
             if(dataArr?.length>0){
                 dataArr.forEach(ctrlObj=>{
-                    this.ctrlLayer(ctrlObj.layerID, ctrlObj.visible, ctrlObj.categoryKEY)
+                    this.ctrlLayer(ctrlObj[KEY.LAYER_ID], ctrlObj[KEY.BOOL_VISIBLE], ctrlObj[KEY.LAYER_PURPOSE_CATEGORY_KEY])
                 })
             }
         }
     }
+
+    //🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨
+
 
     /**
      * MOGISMap 이 레이어 코드 아이디로 레이어 켜지고 꺼짐을 관리 (layerTree 에서)
@@ -428,7 +435,7 @@ export class MOGISMap extends MOSubscriber{
     #isValid_layerPurposeCategoryKey(key){
         let bool = false;
         if(key){
-            bool = Object.values(KEY.LAYER_PURPOSE_CATEGORY).includes(key);
+            bool = Object.values(KEY.LAYER_PURPOSE_CATEGORY).map(e=>e[0]).includes(key);
         }
         return bool;
     }

@@ -1,10 +1,11 @@
 import { MOSubscriber } from "./MO.Subscriber.js";
 
-// Subject, Observer 의 클래스들을 정의
+// ObserverPattern 의 클래스들을 정의
 
 /**
- * MOSubject 는 내부 등록된 MObject들을 등록하고,
- * 새로운 정보가 갱신되면, 등록된 구독자에게 알림을 보냄 (notify)
+ * MOPublisher 는 MOSubscriber 들을 등록하고
+ * 등록된 구독자에게 알림을 보냄 (notify)
+ * 
  * @author jhoh
  */
 export class MOPublisher {
@@ -49,9 +50,7 @@ export class MOPublisher {
         if (!this.#isObserverHere(subscriber)) {
             this.#push2ObsList(subscriber, groupName);
             subscriber.regist(this);
-            console.log(
-                `🟠신규 옵저버 구독시작✅ : ${subscriber.NAME}`
-            );
+            console.log(`🟠신규 옵저버 구독시작✅ : ${subscriber.NAME}`);
         } else {
             // console.log(`옵저버 이미 등록됨`);
         }
@@ -75,8 +74,8 @@ export class MOPublisher {
     /**
      * 이 Observer 객체가 등록된 Subject 리스트 출력
      */
-    showObserverList() {
-        console.group(`${this.subjectName} 의 Observer 리스트`);
+    showSubscribersList() {
+        console.group(`${this.NAME} 의 Subscriber 리스트`);
         console.table(this.#observerListObj);
         console.groupEnd();
         //return this.#observerObj;
@@ -102,9 +101,10 @@ export class MOPublisher {
     /**
      * (추상 GET 메서드)
      * @abstract
+     * @type {Array}
      * @memberof MOSubject
      */
-    getPublisherData() {
+    get PublisherData() {
         throw new Error(`implement required`);
     }
 
