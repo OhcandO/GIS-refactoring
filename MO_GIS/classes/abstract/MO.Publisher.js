@@ -47,7 +47,7 @@ export class MOPublisher {
      * @param {string} [groupName] - 그룹이름
      */
     regist(subscriber, groupName = "DEFAULT") {
-        if (!this.#isObserverHere(subscriber)) {
+        if (!this.#isSubscriberHere(subscriber)) {
             this.#push2ObsList(subscriber, groupName);
             subscriber.regist(this);
             console.log(`🟠신규 옵저버 구독시작✅ : ${subscriber.NAME}`);
@@ -61,7 +61,7 @@ export class MOPublisher {
      */
     unregist(subscriber) {
         if (subscriber instanceof MOSubscriber) {
-            if (this.#isObserverHere(subscriber)) {
+            if (this.#isSubscriberHere(subscriber)) {
                 subscriber.unregist(this);
                 this.#filterExceptThis(subscriber);
                 console.log(`🟠 옵저버 구독해제⛔`);
@@ -88,7 +88,7 @@ export class MOPublisher {
      notify(groupName = "DEFAULT") {
         let tempObsArr;
         try {
-            tempObsArr = this.#getObserverList(groupName);
+            tempObsArr = this.#getSubscriberList(groupName);
             tempObsArr.forEach((obsrv) => obsrv.update(this.id));
             return Promise.resolve(`알람수행`);
         } catch (noObsError) {
@@ -117,7 +117,7 @@ export class MOPublisher {
         if (groupName) {
             if (!this.#observerListObj[groupName] instanceof Array)
                 this.#observerListObj[groupName] = [];
-            if (!this.#isObserverHere(subscriber))
+            if (!this.#isSubscriberHere(subscriber))
                 this.#observerListObj[groupName].push(subscriber);
         } else {
             this.#observerListObj["DEFAULT"].push(subscriber);
@@ -125,7 +125,7 @@ export class MOPublisher {
     }
 
     #filterExceptThis(observer) {
-        if (this.#isObserverHere(observer)) {
+        if (this.#isSubscriberHere(observer)) {
             this.#observerListObj = Object.fromEntries(
                 Object.entries(this.#observerListObj).map(([k, v]) => [
                     k,
@@ -137,13 +137,13 @@ export class MOPublisher {
 
     /**
      * Observer 객체 여기 있나요?
-     * @param {MOSubscriber} observer 존재여부 판단할 Observer 객체
+     * @param {MOSubscriber} subscriber 존재여부 판단할 Observer 객체
      * @returns {boolean} Subject 객체에 해당 Observer 가 등록되어 있는지 여부
      */
-    #isObserverHere(observer) {
+    #isSubscriberHere(subscriber) {
         let bool = false;
-        if (observer instanceof MOSubscriber) {
-            bool = this.#getObserverList().some((el) => el.id === observer.id);
+        if (subscriber instanceof MOSubscriber) {
+            bool = this.#getSubscriberList().some((el) => el.id === subscriber.id);
         }
         return bool;
     }
@@ -152,7 +152,7 @@ export class MOPublisher {
      * 이 Subject에 등록된 모든 MObserver 배열 반환
      * @returns {[MOSubscriber]} MObserver 배열
      */
-    #getObserverList(groupName) {
+    #getSubscriberList(groupName) {
         const tempArr = groupName
             ? this.#observerListObj[groupName]
             : Object.values(this.#observerListObj["DEFAULT"]);

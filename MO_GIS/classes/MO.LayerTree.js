@@ -4,6 +4,7 @@ import {Spinner} from '../../lib/spin.js/spin.js';
 import $ from '../../lib/jquery-3.7.1/jquery-3.7.1_esm.js';
 import jstree from '../../lib/jstree-3.3.16/jstree-3.3.16_esm.js';
 import { MOPublisher } from './abstract/MO.Publisher.js';
+import { MOLegend } from './addon/MO.Legend.js';
 
 /**
  * MOGISMap 을 인자로 받아, 해당 Map 객체의 레이어를 관장하는 
@@ -76,11 +77,11 @@ export class LayerTree extends MOPublisher {
             throw new Error(`layerTree 객체 생성될 DIV 아이디 입력되어야 함`);
         }
     }
-
+ //🟨🟨🟨MOPublisher 함수등록🟨🟨🟨🟨🟨🟨🟨🟨🟨
     /**
      * Openlayers 레이어 관장 Tree 생성을 위한 기초정보 등록
      * @param {MOGISMap} mo_gis_map 오픈레이어스 맵 객체
-     * @param {string} layerObjCategoryKey
+     * @param {string} layerObjCategoryKey MOGISMap 에 이미 등록된 목적별 레이어 코드 그룹 식별자
      * @param {string} [most_upper_id] 레이어코드 상 최상위 코드
      */
     setMapAndLayer(mo_gis_map, layerObjCategoryKey, most_upper_id) {
@@ -88,7 +89,7 @@ export class LayerTree extends MOPublisher {
             //MOGISMap 객체 저장
             this.#INSTANCE_MOGISMAP = mo_gis_map;
             //subscriber 등록
-            this.regist(mo_gis_map);
+            super.regist(mo_gis_map);
 
             if (most_upper_id) this.#most_upper_id = most_upper_id;
 
@@ -108,13 +109,14 @@ export class LayerTree extends MOPublisher {
             //layerTree 화면에 표현
             this.#activate();
         } else {
-            throw new Error(`MOGISMap 객체가 아님`);
+            throw new Error(`LayerTree에 등록할 적합한 객체가 아님`);
         }
     }
 
+ //🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨
+
     /**
      * 정렬된 레이어 코드 JSON 을 LayerTree 객체에 등록함
-     * 객체 생성 후 가장 먼저 해야할 것
      * @param {Array} layerCodeArr
      * @param {String} target_id 개별 JSON 요소들의 PK 키 명칭 (id)
      * @param {String} parent_id 개별 JSON 요소들의 상위 ID 를 참조할 키 명칭 (pid)
@@ -130,7 +132,7 @@ export class LayerTree extends MOPublisher {
         if (layerCodeArr instanceof Array) {
             this.layerCodeArr = layerCodeArr;
             try {
-                this.#layerStructure = jsonNestor(
+                this.#layerStructure = KEY.jsonNestor(
                     this.layerCodeArr,
                     target_id,
                     parent_id,
@@ -294,7 +296,7 @@ export class LayerTree extends MOPublisher {
             }
             if (layerCode_id_arr.length > 0) {
                 //MOSubscriber (Legend 객체와 MOGISMap 객체)에 전달할 내용 구성
-                me.#ctrlLayerDataArr=[];
+                me.ctrlLayerDataArr=[];
                 let tempArr = layerCode_id_arr.map((id) => {
                     let htmlStr = `<span>${makeHtmlStr(id)}</span>`;
                     return {
@@ -302,11 +304,10 @@ export class LayerTree extends MOPublisher {
                         boolVisible : visible,
                         layerPurposeCategory : me.layerObjCategoryKey,
                         legendHtmlString : htmlStr,
-                        ordr : getLayerCode(id)[KEY.LAYER_ORDER],
+                        layerCode : getLayerCode(id),
                     };
                 });
-                me.#ctrlLayerDataArr = tempArr;
-                //
+                me.ctrlLayerDataArr = tempArr;
                 me.notify();
             }
         });
@@ -329,20 +330,22 @@ export class LayerTree extends MOPublisher {
     }
 
     //🟨🟨🟨MOPublisher 함수등록🟨🟨🟨🟨🟨🟨🟨🟨🟨
-    #ctrlLayerDataArr = [
+   
+   /** publisherData로서 MOSubscriber 에게 전달할 정보 객체 
+    * @type {Array<KEY.LegendCodeObj>} */
+    ctrlLayerDataArr = [
         {
             id: undefined,
             boolVisible: true,
             layerPurposeCategory: this.layerObjCategoryKey,
             legendHtmlString:'',
-            ordr:0,
+            layerCode:[],
         },
     ];
 
-    /** MOSubscriber 들이 가져가는 데이터 
-     * @type {JSON} */
+    /** MOSubscriber 들이 가져가는 데이터 */
     get PublisherData() {
-        return this.#ctrlLayerDataArr;
+        return this.ctrlLayerDataArr;
     }
 
     //🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨
@@ -409,6 +412,8 @@ export class LayerTree extends MOPublisher {
         return image;
     }
 
+
+//-----------외부용 인터페이스----------------    
     /**
      * 레이어 구분자로 연관 레이어들 숨기기
      * @param {String} typeName 레이어 구분자 (geoserver ST.) e.g. waternet:WTL_BLSM_AS
@@ -548,47 +553,3 @@ export class LayerTree extends MOPublisher {
         });
     }
 }
-
-
-/**
- * 1차원으로 구성된 json 자료구조를 계층형 
- * @param {Array} array javascript Array 객체. JSON 형식이어야 하고, 최상위->중위->하위 순으로 정렬되어 있어야 함
- * @param {String} [target_id_key] 개별 JSON 요소들의 PK 키 명칭
- * @param {String} [parent_id_key] 개별 JSON 요소들의 상위 ID 를 참조할 키 명칭
- * @param {String} [child_mark] NESTED 구조체 만들기 위한 
- * @param {String} [most_upper_id] 최상위 아이디
- * @returns 
- */
-function jsonNestor (array, target_id_key =`${KEY.LAYER_ID}`, parent_id_key =`${KEY.PARENT_ID}`, child_mark=`${KEY.CHILD_MARK}`,most_upper_id){
-    if(array?.length>0){
-        function FINDER (srcArr, targetElem){    
-            let rere
-            for(let el of srcArr){
-                if(el[target_id_key] == targetElem[parent_id_key]) {rere = el;}
-                else if (el[child_mark]) rere = FINDER(el[child_mark],targetElem);
-                if (rere) break;
-            }
-            return rere;
-        }
-        return array.reduce((pre,cur)=>{
-            let targ = cur[parent_id_key] ? FINDER(pre,cur) : undefined;
-            if(targ) targ[child_mark] ? targ[child_mark].push(cur) : targ[child_mark] = [cur];
-            return pre;
-        },structuredClone(array.filter(el=>{
-            if(most_upper_id){
-                return el[parent_id_key] == most_upper_id;
-            }else{
-                return !el[parent_id_key];
-            }
-        })))
-    }else{
-        throw new Error (`jsonNestor 에 입력된 배열이 적합하지 않음`)
-    }
-}
-/*
-//usage
-console.time('aa')
-let returns = jsonNestor(arr,'id','pid','childList')
-console.log(returns);
-console.timeEnd('aa')
-*/
