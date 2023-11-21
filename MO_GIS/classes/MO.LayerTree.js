@@ -5,6 +5,7 @@ import $ from '../../lib/jquery-3.7.1/jquery-3.7.1_esm.js';
 import jstree from '../../lib/jstree-3.3.16/jstree-3.3.16_esm.js';
 import { MOPublisher } from './abstract/MO.Publisher.js';
 import { MOLegend } from './addon/MO.Legend.js';
+import { MOSubscriber } from './abstract/MO.Subscriber.js';
 
 /**
  * MOGISMap 을 인자로 받아, 해당 Map 객체의 레이어를 관장하는 
@@ -77,40 +78,42 @@ export class LayerTree extends MOPublisher {
             throw new Error(`layerTree 객체 생성될 DIV 아이디 입력되어야 함`);
         }
     }
- //🟨🟨🟨MOPublisher 함수등록🟨🟨🟨🟨🟨🟨🟨🟨🟨
+ //🟨🟨🟨MOPublisher 함수 Overriding 🟨🟨🟨🟨🟨🟨🟨🟨🟨
+    /**
+     * @param {MOSubscriber} 구독자 역할 객체 (MOGISMap , 범례)
+     * @param {string} [layerObjCategoryKey] MOGISMap 에 이미 등록된 목적별 레이어 코드 그룹 식별자
+     * @param {string} [most_upper_id] 레이어코드 상 최상위 코드
+     */
+    regist(moSubscriber,layerObjCategoryKey, most_upper_id) {
+        if (moSubscriber instanceof MOGISMap) {
+            //MOGISMap 객체 저장
+            this.#INSTANCE_MOGISMAP = moSubscriber;
+            //subscriber 등록
+            super.regist(moSubscriber);
+            this.assignMapAndLayer(layerObjCategoryKey, most_upper_id)
+        } else if (moSubscriber instanceof MOLegend){
+            super.regist(moSubscriber);
+        }
+    }
     /**
      * Openlayers 레이어 관장 Tree 생성을 위한 기초정보 등록
-     * @param {MOGISMap} mo_gis_map 오픈레이어스 맵 객체
      * @param {string} layerObjCategoryKey MOGISMap 에 이미 등록된 목적별 레이어 코드 그룹 식별자
      * @param {string} [most_upper_id] 레이어코드 상 최상위 코드
      */
-    setMapAndLayer(mo_gis_map, layerObjCategoryKey, most_upper_id) {
-        if (mo_gis_map instanceof MOGISMap) {
-            //MOGISMap 객체 저장
-            this.#INSTANCE_MOGISMAP = mo_gis_map;
-            //subscriber 등록
-            super.regist(mo_gis_map);
+    assignMapAndLayer(layerObjCategoryKey, most_upper_id) {
+        if (most_upper_id) this.#most_upper_id = most_upper_id;
 
-            if (most_upper_id) this.#most_upper_id = most_upper_id;
-
-            //레이어 코드 카테고리 중 하나만 이 layerTree 객체에서 관장함
-            if (
-                Object.values(KEY.LAYER_PURPOSE_CATEGORY).map(e=>e[0]).includes(
-                    layerObjCategoryKey
-                ) &&
-                mo_gis_map.layerCodeObject[layerObjCategoryKey]
-            ) {
-                this.layerObjCategoryKey = layerObjCategoryKey;
-                this.#setLayerCodeArr(
-                    mo_gis_map.layerCodeObject[layerObjCategoryKey]
-                );
-            }
-
-            //layerTree 화면에 표현
-            this.#activate();
-        } else {
-            throw new Error(`LayerTree에 등록할 적합한 객체가 아님`);
+        //레이어 코드 카테고리 중 하나만 이 layerTree 객체에서 관장함
+        if (Object.values(KEY.LAYER_PURPOSE_CATEGORY).map(e=>e[0]).includes(layerObjCategoryKey) &&
+            this.#INSTANCE_MOGISMAP.layerCodeObject[layerObjCategoryKey]) {
+            this.layerObjCategoryKey = layerObjCategoryKey;
+            this.#setLayerCodeArr(
+                this.#INSTANCE_MOGISMAP.layerCodeObject[layerObjCategoryKey]
+            );
         }
+
+        //layerTree 화면에 표현
+        this.#activate();
     }
 
  //🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨
@@ -156,8 +159,9 @@ export class LayerTree extends MOPublisher {
      */
     #activate() {
         if (!(this.layerCodeArr?.length > 0)) {
+            console.log(this.#INSTANCE_MOGISMAP.layerCodeObject)
             try {
-                this.#setLayerCodeArr(this.#INSTANCE_MOGISMAP.layerCodeObject);
+                this.#setLayerCodeArr(this.#INSTANCE_MOGISMAP.layerCodeObject[this.layerObjCategoryKey]);
             } catch (e) {
                 console.log(`layerCodeArr (JSON) 이 등록되어야 함`);
                 console.error(e);

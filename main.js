@@ -67,12 +67,10 @@ const coreLayerCode = [{"names":"YC 전체","ordr":1,"sourceType":"vector","cate
     
 mainMap.setLayerCode(coreLayerCode,KEY.LAYER_PURPOSE_CATEGORY.BASE[0]);
 
-let baseLayerTree = new LayerTree('core-LayerTree');
-
 let molegend = new MOLegend(`pop_legend`);
+let baseLayerTree = new LayerTree('core-LayerTree');
 baseLayerTree.regist(molegend);
-baseLayerTree.setMapAndLayer(mainMap,KEY.LAYER_PURPOSE_CATEGORY.BASE[0],8);
-
+baseLayerTree.regist(mainMap,KEY.LAYER_PURPOSE_CATEGORY.BASE[0],8);
 
 mainMap.enableSelect(true);
 mainMap.setSelectCallback((feature,layer)=>{

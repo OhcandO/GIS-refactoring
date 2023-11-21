@@ -330,7 +330,7 @@ export class MOGISMap extends MOSubscriber{
      * @param {Symbol} publisherID 
      */
     update(publisherID){
-        let publisher = super.getPublisher(publisherID);
+        let publisher = this.getPublisher(publisherID);
         if(!publisher) throw new Error(`등록되지 않은 Publisher 호출`);
         if(publisher instanceof LayerTree){
             let dataArr = publisher.PublisherData;

@@ -47,9 +47,9 @@ export class MOPublisher {
      * @param {string} [groupName] - 그룹이름
      */
     regist(subscriber, groupName = "DEFAULT") {
-        if (!this.#isSubscriberHere(subscriber)) {
+        if (!this.isSubscriberHere(subscriber)) {
             this.#push2ObsList(subscriber, groupName);
-            subscriber.regist(this);
+            if(!subscriber.isPublisherHere(this)) subscriber.regist(this);
             console.log(`🟠신규 옵저버 구독시작✅ : ${subscriber.NAME}`);
         } else {
             // console.log(`옵저버 이미 등록됨`);
@@ -61,7 +61,7 @@ export class MOPublisher {
      */
     unregist(subscriber) {
         if (subscriber instanceof MOSubscriber) {
-            if (this.#isSubscriberHere(subscriber)) {
+            if (this.isSubscriberHere(subscriber)) {
                 subscriber.unregist(this);
                 this.#filterExceptThis(subscriber);
                 console.log(`🟠 옵저버 구독해제⛔`);
@@ -117,7 +117,7 @@ export class MOPublisher {
         if (groupName) {
             if (!this.#observerListObj[groupName] instanceof Array)
                 this.#observerListObj[groupName] = [];
-            if (!this.#isSubscriberHere(subscriber))
+            if (!this.isSubscriberHere(subscriber))
                 this.#observerListObj[groupName].push(subscriber);
         } else {
             this.#observerListObj["DEFAULT"].push(subscriber);
@@ -125,7 +125,7 @@ export class MOPublisher {
     }
 
     #filterExceptThis(observer) {
-        if (this.#isSubscriberHere(observer)) {
+        if (this.isSubscriberHere(observer)) {
             this.#observerListObj = Object.fromEntries(
                 Object.entries(this.#observerListObj).map(([k, v]) => [
                     k,
@@ -140,7 +140,7 @@ export class MOPublisher {
      * @param {MOSubscriber} subscriber 존재여부 판단할 Observer 객체
      * @returns {boolean} Subject 객체에 해당 Observer 가 등록되어 있는지 여부
      */
-    #isSubscriberHere(subscriber) {
+    isSubscriberHere(subscriber) {
         let bool = false;
         if (subscriber instanceof MOSubscriber) {
             bool = this.#getSubscriberList().some((el) => el.id === subscriber.id);

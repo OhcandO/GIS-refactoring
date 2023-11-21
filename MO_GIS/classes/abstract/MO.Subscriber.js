@@ -41,9 +41,9 @@ export class MOSubscriber {
      * @param {MOPublisher} moPublisher 옵저버패턴의 Subject 역할하는 애
      */
     regist(moPublisher) {
-        if (!this.#isPublisherHere(moPublisher)){
+        if (!this.isPublisherHere(moPublisher)){
             this.#addPublisher(moPublisher);
-            moPublisher.regist(this);
+            if(!moPublisher.isSubscriberHere(this)) moPublisher.regist(this);
         } else{
             // console.log(`퍼블리셔 이미 등록됨`);
         }
@@ -54,7 +54,7 @@ export class MOSubscriber {
      * @param {String|MOPublisher} moPublisher Subject 객체 또는 이름
      */
      unregist(moPublisher) {
-        if (this.#isPublisherHere(moPublisher)) {
+        if (this.isPublisherHere(moPublisher)) {
             if (moPublisher instanceof MOPublisher) {
                 delete this.#PUBLISHER_Obj[moPublisher.NAME];
                 moPublisher.unregist(this);
@@ -112,7 +112,7 @@ export class MOSubscriber {
      * 입력된 퍼블리셔가 구독자 내부에 저장되어 있는지
      * @param {MOPublisher | String} moPublisher
      */
-    #isPublisherHere(moPublisher) {
+    isPublisherHere(moPublisher) {
         let bool = false;
         if (moPublisher instanceof MOPublisher) {
             //1. moPublisher 가 MOSujbect 객체일 경우, 존재 체크
@@ -120,7 +120,7 @@ export class MOSubscriber {
             // console.log('moPublisher 가 적합');
         } else if (typeof moPublisher == "string") {
             //2. moPublisher 가 문자열일 경우, moPublisher 객체 NAME 필드로 체크
-            bool = this.#isPublisherHere(this.#PUBLISHER_Obj[moPublisher]);
+            bool = this.isPublisherHere(this.#PUBLISHER_Obj[moPublisher]);
         }
         return bool;
     }
