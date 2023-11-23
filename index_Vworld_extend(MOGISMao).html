@@ -87,6 +87,7 @@
     import {TileLoadProgress} from './MO_GIS/classes/addon/TileLoadProgress.js';
     import {Measure} from './MO_GIS/classes/addon/measure.js';
     import mainMap from './main.js'
+    import ZoomSlider from './lib/openlayers_v7.5.1/control/ZoomSlider.js';
 
     const default_spinner = {
         lines: 15, length: 38, width: 12, radius: 38, scale: 1, corners: 1, speed: 1, rotate: 0,
@@ -147,6 +148,10 @@
 
     //측정도구
     let measure = new Measure(mainMap.map, false);
+    let zoomy = document.getElementById('zoomy');
+    console.log(zoomy);
+    mainMap.map.addControl(new ZoomSlider({target:zoomy}))
+
 
     document.querySelectorAll(`input[name="control_measure"]`).forEach(node=>{
         node.addEventListener('change',function(e){
@@ -244,6 +249,8 @@
                 </label>
             </div>
         </div>
+
+        <div id="zoomy" style="border: 1px solid red; width: 40px; height: 130px;"></div>
     </div>
 </body>
 

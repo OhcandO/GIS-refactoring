@@ -80,6 +80,11 @@ export class LayerFactory extends MOFactory{
             throw new Error(`해당 layer 객체는 openlayers Layer 인스턴스 아님`);
         }
     }
+    /**
+     * 레이어 중 zIndex가 가장 높은 벡터레이어 생성 (주소검색용)
+     * @returns {VectorImageLayer}
+     */
+    getSimpleVectorLayer=() =>new VectorImageLayer({zIndex:Infinity});
 
     #isValid_ol_Source(sourceInstance){
         let bool = false;

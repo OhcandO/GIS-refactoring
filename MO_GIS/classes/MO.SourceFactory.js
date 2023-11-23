@@ -63,6 +63,13 @@ export class SourceFactory extends MOFactory{
     }
 
     /**
+     * 동적으로 feature 를 추가하기위해 vector Source 를 발행함 (주소검색용)
+     * @returns {VectorSource}
+     */
+    getSimpleVectorSource(){
+        return VectorSource();
+    }
+    /**
      * 초기화
      */
     resetFactory(){
@@ -81,7 +88,7 @@ export class SourceFactory extends MOFactory{
         if (this.#isValid_category_source()) {
             try {
                 return this.#srcBuilder(
-                    this.getSpec()[KEY.CATEGORY],
+                    this.getSpec()[KEY.SOURCE_CATEGORY],
                     this.getSpec()[KEY.SOURCE_TYPE]
                 );
             } catch (e) {
@@ -103,7 +110,7 @@ export class SourceFactory extends MOFactory{
      */
     #isValid_category_source() {
         let bool = false;
-        let category = this.getSpec()[KEY.CATEGORY]; //vworld, geoserver, emap etc.
+        let category = this.getSpec()[KEY.SOURCE_CATEGORY]; //vworld, geoserver, emap etc.
         let sourceType = this.getSpec()[KEY.SOURCE_TYPE]; //vector, xyz, wmts etc.
 
         if(!(category && sourceType)){

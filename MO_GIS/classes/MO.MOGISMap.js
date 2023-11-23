@@ -12,6 +12,11 @@ import Feature from '../../lib/openlayers_v7.5.1/Feature.js';
 import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
 import { MOSubscriber } from './abstract/MO.Subscriber.js';
 import { LayerTree } from './MO.LayerTree.js';
+import { Point } from '../../lib/openlayers_v7.5.1/geom.js';
+import { transform } from '../../lib/openlayers_v7.5.1/proj.js';
+import { Style, Text } from '../../lib/openlayers_v7.5.1/style.js';
+import Source from '../../lib/openlayers_v7.5.1/source/Source.js';
+import VectorSource from '../../lib/openlayers_v7.5.1/source/Vector.js';
 
 /**
  * MOGISMap 객체를 생성하기 위한 파라미터 정의
@@ -82,35 +87,77 @@ export class MOGISMap extends MOSubscriber{
 
     /**목적 별
      * 소스+레이어 정보 코드 리스트
-     * @type {KEY.LAYER_PURPOSE_CATEGORY}
+     * @type {object}
      */
     layerCodeObject = {
+        /** @type {Array<KEY.layerCodeObj>} */
         default:[],
-        risk:[], // (지능수도플) 리스크맵
-        leak:[], // (지능수도플) 누수예상지점
-        public:[], // (지능수도플) 공공서비스
-        pipnet:[], // (지능수도플) 관망해석결과
-        base:[], //기본 GIS 시설물 e.g. 관로, 계측기, 블록 등
-        manage:[], //중점 관리지역
-        comp:[], // (지능수도플) 상습민원지역
-        realtime:[], // (지능수도플) 실시간 상황감지
-        portable:[], // (지능수도플) 이동형 누수센서
+        /** (지능수도플) 리스크맵 
+         * @type {Array<KEY.layerCodeObj>} */
+        risk:[], 
+        /** (지능수도플) 누수예상지점 
+         * @type {Array<KEY.layerCodeObj>} */
+        leak:[], 
+        /** (지능수도플) 공공서비스 
+         * @type {Array<KEY.layerCodeObj>} */
+        public:[], 
+        /** (지능수도플) 관망해석결과 
+         * @type {Array<KEY.layerCodeObj>} */
+        pipnet:[], 
+        /** 본 GIS 시설물 e.g. 관로, 계측기, 블록 등 
+         * @type {Array<KEY.layerCodeObj>} */
+        base:[], //
+        /** 중점 관리지역 
+         * @type {Array<KEY.layerCodeObj>} */
+        manage:[], //
+        /** (지능수도플) 상습민원지역 
+         * @type {Array<KEY.layerCodeObj>} */
+        comp:[], 
+        /** (지능수도플) 실시간 상황감지 
+         * @type {Array<KEY.layerCodeObj>} */
+        realtime:[], 
+        /** (지능수도플) 이동형 누수센서 
+         * @type {Array<KEY.layerCodeObj>} */
+        portable:[], 
     };
     /**목적 별 
      * ol.layer 들의 리스트
      *  layerCodeObject 상 KEY.LAYER_ID 를 key로, 레이어객체를 value 로 함
      */
     layers={
+        /** 목적설정 안된 레이어들
+         * @type {Map<string,Layer>}*/
         default: new Map(),
-        risk: new Map(), // (지능수도플) 리스크맵
-        leak: new Map(), // (지능수도플) 누수예상지점
-        public: new Map(), // (지능수도플) 공공서비스
-        pipnet: new Map(), // (지능수도플) 관망해석결과
-        base: new Map(), //기본 GIS 시설물 e.g. 관로, 계측기, 블록 등
-        manage: new Map(), //중점 관리지역
-        comp: new Map(), // (지능수도플) 상습민원지역
-        realtime: new Map(), // (지능수도플) 실시간 상황감지
-        portable: new Map(), // (지능수도플) 이동형 누수센서
+        /** 주소검색한 곳들을 feature로 하는 레이어
+         * @type {Layer|undefined}*/
+        address:undefined,
+        /** (지능수도플) 리스크맵
+         * @type {Map<string,Layer>}*/
+        risk: new Map(),
+        /** (지능수도플) 누수예상지점
+         * @type {Map<string,Layer>}*/
+        leak: new Map(), 
+        /** (지능수도플) 공공서비스
+         * @type {Map<string,Layer>}*/
+        public: new Map(), 
+        /** (지능수도플) 관망해석결과
+         * @type {Map<string,Layer>}*/
+        pipnet: new Map(), 
+        /** 기본 GIS 시설물 e.g. 관로, 계측기, 블록 등
+         * @type {Map<string,Layer>}*/
+        base: new Map(), 
+        /** 중점 관리지역
+         * @type {Map<string,Layer>}*/
+        manage: new Map(), 
+        /** (지능수도플) 상습민원지역
+         * @type {Map<string,Layer>}*/
+        comp: new Map(), 
+        /** (지능수도플) 실시간 상황감지
+         * @type {Map<string,Layer>}*/
+        realtime: new Map(), 
+        /** (지능수도플) 이동형 누수센서
+         * @type {Map<string,Layer>}*/
+        portable: new Map(), 
     }
 
     /**
@@ -346,7 +393,7 @@ export class MOGISMap extends MOSubscriber{
 
 
     /**
-     * MOGISMap 이 레이어 코드 아이디로 레이어 켜지고 꺼짐을 관리 (layerTree 에서)
+     * 레이어 코드 아이디로 레이어 관리 (주로 LayerTree 에서)
      * @param {number} layer_id 
      * @param {boolean} [visible] 레이어객체 setVisible 값
      * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key] 레이어 목적구분
@@ -365,6 +412,7 @@ export class MOGISMap extends MOSubscriber{
             this.#addLayerToMap(layer_id,la_pu_cate_key);
         }else{
             // 기 발행되지도 않았고, setVisible(false)인 상황
+            throw new Error(`레이어 발행 불가`)
         }
     }
 
@@ -525,5 +573,93 @@ export class MOGISMap extends MOSubscriber{
                 }
             });
         }
+    }
+
+
+    /* 🌐🌐주소검색 관련.. 🌐🌐*/
+
+    /**
+     * 발행되었던 레이어 그룹을 초기화 함
+     * @param {KEY.LAYER_PURPOSE_CATEGORY} la_pu_cate_key 
+     */
+    removeLayerGroup(la_pu_cate_key){
+        if(la_pu_cate_key === KEY.ADDRESS_SOURCE_LAYER_KEY){
+
+            if(this.layers[KEY.ADDRESS_SOURCE_LAYER_KEY]){
+                this.map.removeLayer(this.layers[KEY.ADDRESS_SOURCE_LAYER_KEY]);
+                this.layers[KEY.ADDRESS_SOURCE_LAYER_KEY] = undefined;
+            }
+        }else if(this.#isValid_layerPurposeCategoryKey(la_pu_cate_key)){
+            let layerMap = this.layers[la_pu_cate_key];
+            if(layerMap instanceof Map){
+                [...layerMap.values()].forEach(layer=>this.map.removeLayer(layer));
+                layerMap.clear();
+                console.log(`${la_pu_cate_key} 레이어 그룹을 초기화 했습니다`);
+            }
+        }
+    }
+
+    /**
+     * 주어진 x,y 좌표를 주소검색용 레이어에 발행하는 함수
+     * @param {number} point_x - x 좌표 숫자 int or float
+     * @param {number} point_y - y 좌표 숫자 int or float
+     * @param {string} label - 주소에 표현할 라벨
+     * @param {string} crs - 좌표계 e.g. "EPSG:5186"
+     */
+    addAddressLayer(point_x,point_y,label,crs){
+        let digit_x = Number(point_x);
+        let digit_y = Number(point_y);
+        let bool_isLayerOnMap = false;
+        if(isNumber(digit_x) && isNumber(digit_y)){
+            
+            let coord = [digit_x, digit_y];
+            if(crs){
+                coord = transform(coord,crs,this.default_viewSpec.projection);
+            }
+
+        //1. 기 발행 주소 레이어 있는지 체크
+            let addressLayer = this.layers[KEY.ADDRESS_SOURCE_LAYER_KEY];
+        //1-1. 없으면 소스, 레이어 생성 | 있으면 레이어와 소스 접근자 생성
+            if(!(addressLayer instanceof Layer)){
+                addressLayer = this.#Factory.layer.getSimpleVectorLayer();
+                addressLayer.setSource(this.#Factory.source.getSimpleVectorSource());
+            }else{
+                bool_isLayerOnMap = true;
+            }
+            let addressSource = addressLayer.getSource();
+        //2. 주어진 좌표로 Feature 객체 생성
+            let addressFeature;
+            try{
+                addressFeature= new Feature({geometry: new Point(coord)});
+            }catch(e){
+                console.log(`feature 생성오류 : ${coord}`);
+                console.error(e)
+            }
+        //3. Feature 객체에 스타일 입히기
+            let tempStyle = createStyleFunction('address');
+            if(tempStyle instanceof Style){
+                if(label) tempStyle.getText().setText(label);
+            }else{
+                throw new Error(`스타일 생성 에러`);
+            }
+            addressFeature.setStyle(tempStyle);
+        //4. 소스에 추가
+            if(addressSource instanceof VectorSource) {
+                addressSource.addFeature(addressFeature);
+            }else{
+                throw new Error (`소스 구성 안됨`);
+            }
+
+        //4-1. 레이어 없는 상태였다면 ol.Map 에 추가
+            if(!bool_isLayerOnMap){
+                this.map.addLayer(addressLayer);
+            }
+
+        }else{
+            console.log(`입력좌표 : ${point_x}, ${point_y}`)
+            throw new Error(`주어진 좌표가 적합한 숫자 (또는 문자) 가 아님`)
+        }
+        
+        function isNumber(n) { return !isNaN(parseFloat(n)) && !isNaN(n - 0) }
     }
 }

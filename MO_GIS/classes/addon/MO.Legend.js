@@ -88,6 +88,8 @@ export class MOLegend extends MOSubscriber {
             //5. LegendObj 들을 targetElement 에 발행
             let htmlStra = this.getLegendHtmlString();
             let element = document.getElementById(this.#target_id);
+            // let tempNode = document.createRange().createContextualFragment(htmlStra);
+            // element.replaceChildren(tempNode);
             element.replaceChildren();
             element.insertAdjacentHTML('afterbegin',htmlStra);
 

@@ -115,9 +115,16 @@ export const PARENT_ID = `pid`;
 export const CHILD_MARK = `childList`;
 export const LAYER_ORDER = 'ordr'; //레이어 표출 순서
 export const BOOL_IS_GROUP = `boolIsgroup` // 해당 레이어가 '형식상' 레이어이며 그룹핑 용도로만 사용되는지 여부
+/*
+ * 레이어들의 목적으로 다르게 운용하기위해 구분
+ * @enum { {BASE:['base',5], RISKMAP:['risk',1], LEAK:['leak',2], PUBLIC:['public',3], PIPENET:['pipnet',4], MANAGE:['manage',6], COMPLAINT:['comp',7], REALTIME:['realtime',8], PORTABLE:['portable',9] }} LAYER_PURPOSE_CATEGORY
+ */
+/**
+ * @typedef {Array<string|number>} LayerPurposeAndOrder
+ */
 /**
  * 레이어들의 목적으로 다르게 운용하기위해 구분
- * @typedef {object} LAYER_PURPOSE_CATEGORY
+ * @enum {LayerPurposeAndOrder}
  */
 export const LAYER_PURPOSE_CATEGORY= {
         /**기본 GIS 관망도 e.g. 관로, 계측기, 블록 등*/
@@ -166,12 +173,13 @@ export const SRID = `srid`;
 /**
  * 소스의 출처 대분류 구분하기 위함. e.g. geoserver, vworld
  */
-export const CATEGORY = `category`;
-
+export const SOURCE_CATEGORY = `category`;
+/** 주소검색 결과를 표현하기 위한 임시 소스와 레이어 */
+export const ADDRESS_SOURCE_LAYER_KEY = 'address';
 /* Openlayers Feature들의 타입 구분 */
-export const OL_FEATURE_TYPE_POINT = 'POINT';
-export const OL_FEATURE_TYPE_LINE = 'LINE';
-export const OL_FEATURE_TYPE_POLYGON = 'POLYGON';
+export const OL_GEOMETRY_TYPE_POINT = 'POINT';
+export const OL_GEOMETRY_TYPE_LINE = 'LINE';
+export const OL_GEOMETRY_TYPE_POLYGON = 'POLYGON';
 
 
 export const CONSOLE_DECO={

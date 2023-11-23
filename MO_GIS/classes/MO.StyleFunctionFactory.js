@@ -48,18 +48,29 @@ const default_style={
     },
 }
 
+const specialLayerCode={
+    hightlight:'HIGHLIGHT',
+    address:'ADDRESS'
+}
+
 /**
  * 레이어 코드로 부터, 벡터 레이어의 표현 방식을 설정하기 위한 ol.style 객체 생성기
  *
+ * @param {KEY.layerCodeObj|keyof specialLayerCode} layerCode 
  * @export
+ * @returns {Function | Style}
  * @author jhoh
  */
 export function createStyleFunction (layerCode) {
 
-    if(layerCode =='HIGHLIGHT'){
-        return getStyleFunc_HIGHTLIGHT();
-    }
+        if(layerCode =='HIGHLIGHT'){
+            return getStyleFunc_HIGHTLIGHT();
+        }else if(layerCode =='ADDRESS'){
+            return getStyleFunc_ADDRESS();
+        }
 
+    
+    
     let tempStyleOption;
 
     tempStyleOption = getUpdatedLayerCode(layerCode);
@@ -71,11 +82,11 @@ export function createStyleFunction (layerCode) {
     }
 
     let styleFunc;
-    if(layerType ==KEY.OL_FEATURE_TYPE_POINT){
+    if(layerType ==KEY.OL_GEOMETRY_TYPE_POINT){
         styleFunc= getStyleFunc_POINT(layerCode,tempStyleOption);
-    }else if (layerType == KEY.OL_FEATURE_TYPE_LINE){
+    }else if (layerType == KEY.OL_GEOMETRY_TYPE_LINE){
         styleFunc= getStyleFunc_LINE(layerCode, tempStyleOption);
-    }else if (layerType == KEY.OL_FEATURE_TYPE_POLYGON){
+    }else if (layerType == KEY.OL_GEOMETRY_TYPE_POLYGON){
         styleFunc= getStyleFunc_POLYGON(layerCode, tempStyleOption);
     }
 
@@ -135,9 +146,9 @@ function getUpdatedLayerCode(layerCode) {
         console.error(e);
     }
 
-    if (layerType == KEY.OL_FEATURE_TYPE_LINE) {
+    if (layerType == KEY.OL_GEOMETRY_TYPE_LINE) {
         returnLayerCode.text.placement = "line";
-    } else if (layerType == KEY.OL_FEATURE_TYPE_POLYGON) {
+    } else if (layerType == KEY.OL_GEOMETRY_TYPE_POLYGON) {
         returnLayerCode.icon.scale = 1.5;
     }
 
@@ -163,7 +174,7 @@ function getTextStyle(feature, layerCode, tempStyleOption) {
 function getStyleFunc_POINT(layerCode, tempStyleOption) {
     return function (feature, resolution) {
         let style = new Style();
-        //1. 포인트 객체에 아이콘 이름 할당되엇으
+        //1. 포인트 객체에 아이콘 이름 할당되엇으면
         let icon;
         if (layerCode[KEY.ICON_NAME]) {
             icon = new Icon(tempStyleOption.icon);
@@ -267,5 +278,26 @@ function getStyleFunc_HIGHTLIGHT(){
     ];
     return style;
     // }
+}
+
+
+function getStyleFunc_ADDRESS(){
+
+    const stroke = {
+        color: "rgba(249,248,209,0.95)", //
+        // lineDash: [6,6],
+        width: 1,
+    };
+    const fill = {
+        color: "rgba(31, 238, 115, 1)", //옅은 연두색
+    };
+
+    return new Style({
+            image: new CircleStyle({
+                fill: new Fill({color:fill.color}),
+                stroke: new Stroke(stroke),
+                radius: 5,
+            }),            
+        });
 }
 
