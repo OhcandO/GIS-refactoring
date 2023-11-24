@@ -48,15 +48,10 @@ const default_style={
     },
 }
 
-const specialLayerCode={
-    hightlight:'HIGHLIGHT',
-    address:'ADDRESS'
-}
-
 /**
  * 레이어 코드로 부터, 벡터 레이어의 표현 방식을 설정하기 위한 ol.style 객체 생성기
  *
- * @param {KEY.layerCodeObj|keyof specialLayerCode} layerCode 
+ * @param {KEY.layerCodeObj|string} layerCode 
  * @export
  * @returns {Function | Style}
  * @author jhoh
@@ -292,12 +287,16 @@ function getStyleFunc_ADDRESS(){
         color: "rgba(31, 238, 115, 1)", //옅은 연두색
     };
 
+    let textOption = default_style.text;
+    textOption["stroke"] = new Stroke(default_style.text_stroke);
+    textOption["fill"] = new Fill(default_style.text_fill);
     return new Style({
             image: new CircleStyle({
                 fill: new Fill({color:fill.color}),
                 stroke: new Stroke(stroke),
                 radius: 5,
-            }),            
+            }), 
+            text:new Text(textOption)           
         });
 }
 

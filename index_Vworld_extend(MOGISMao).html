@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="./lib/openlayers_v7.5.1/ol.css">
     <link rel="stylesheet" href="./lib/spin.js/spin.css">
     <link rel="stylesheet" href="./lib/jstree-3.3.16/style.min.css">
+    <link rel="stylesheet" href="./lib/pickr-1.9.0/dist/themes/classic.min.css">
     <style>
         .wrapper{position: relative;}
         #map {position: relative;height: 600px;border: 1px solid brown;}
@@ -45,39 +46,28 @@
         .btn_legend:focus {color:var(--secondary-color);}
 
         /* legend layer popup */
-    .pop_legend_wrap {display:none;position:absolute;top:10px;right:72px;width:222px;max-height:420px;z-index:3;background:#fff;border-radius:8px;border:2px solid black;box-sizing:border-box;overflow-y:auto;padding:14px;box-shadow:0px 0px 16px rgba(0, 0, 0, 0.2);}
-    .pop_leg_close {display:block;position:absolute;top:19px;right:16px;width:20px;height:20px;border:0;outline:0;z-index:4;}
-    .pop_leg_close > img {width:20px;height:20px;position:relative;top:0;right:0;} 
+        .pop_legend_wrap {display:none;position:absolute;top:10px;right:72px;width:222px;max-height:420px;z-index:3;background:#fff;border-radius:8px;border:2px solid black;box-sizing:border-box;overflow-y:auto;padding:14px;box-shadow:0px 0px 16px rgba(0, 0, 0, 0.2);}
+        .pop_leg_close {display:block;position:absolute;top:19px;right:16px;width:20px;height:20px;border:0;outline:0;z-index:4;}
+        .pop_leg_close > img {width:20px;height:20px;position:relative;top:0;right:0;} 
 
-    .pop_title {color:var(--black-color);font-size:16px;font-weight:500;text-align:left;line-height:25px;margin-bottom:16px;}
-    .pop_title.num {color:var(--black-color);font-size:13px;font-weight:700;text-align:left;line-height:25px;margin-bottom:16px;}
-    .pop_stitle {width:100%;height:30px;line-height:28px;border:1px solid burlywood;border-radius:8px;background:#f8f8f8;margin-bottom:12px;color:#000;font-size:14px;font-weight:500;text-align:center;}
+        .pop_title {color:var(--black-color);font-size:16px;font-weight:500;text-align:left;line-height:25px;margin-bottom:16px;}
+        .pop_title.num {color:var(--black-color);font-size:13px;font-weight:700;text-align:left;line-height:25px;margin-bottom:16px;}
+        .pop_stitle {width:100%;height:30px;line-height:28px;border:1px solid burlywood;border-radius:8px;background:#f8f8f8;margin-bottom:12px;color:#000;font-size:14px;font-weight:500;text-align:center;}
 
-    .pop_legend_cont {width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-    .pop_legend_cont > .water_leak {width:166px;}
-    .pop_legend_cont > .water_leak > li {display:inline-block;height:20px;line-height:20px;color:var(--black-sub);font-size:14px;font-weight:500;margin-bottom:8px;}
-    .pop_legend_cont > .water_leak > li > img {position:relative;top:2px;width:18px;height:18px;margin-right:4px;}
-    .pop_legend_cont > .water_leak > li:nth-child(even) {padding-left:16px;}
+        .pop_legend_cont {width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+        .pop_legend_cont > .water_leak {width:166px;}
+        .pop_legend_cont > .water_leak > li {display:inline-block;height:20px;line-height:20px;color:var(--black-sub);font-size:14px;font-weight:500;margin-bottom:8px;}
+        .pop_legend_cont > .water_leak > li > img {position:relative;top:2px;width:18px;height:18px;margin-right:4px;}
+        .pop_legend_cont > .water_leak > li:nth-child(even) {padding-left:16px;}
 
-    .pop_legend_cont > .water_leak.n3 > li:nth-child(1) {display:block;width:166px;}
-    .pop_legend_cont > .water_leak.n3 > li:nth-last-child(1) {padding-left:30px;}
-    .pop_legend_cont > .water_leak.n3 > li:nth-child(even) {padding-left:0;}
+        .pop_legend_cont > .water_leak.n3 > li:nth-child(1) {display:block;width:166px;}
+        .pop_legend_cont > .water_leak.n3 > li:nth-last-child(1) {padding-left:30px;}
+        .pop_legend_cont > .water_leak.n3 > li:nth-child(even) {padding-left:0;}
 
-    .pop_legend_cont > .risk_map {width:106px;}
-    .pop_legend_cont > .risk_map > li {display:inline-block;height:20px;line-height:20px;color:var(--black-sub);font-size:14px;font-weight:500;margin-bottom:8px;}
-    .pop_legend_cont > .risk_map > li > img {position:relative;top:2px;width:18px;height:18px;margin-right:4px;}
-    .pop_legend_cont > .risk_map > li:nth-child(even) {padding-left:30px;}
-
-    /* .pop_legend_cont > .inspection {width:166px;}
-    .pop_legend_cont > .inspection > li {line-height:20px;color:var(--black-sub);font-size:14px;font-weight:500;margin-bottom:8px;vertical-align:middle;margin-top:-5px;}
-
-    .pop_legend_cont > a.link_icon {display:block;margin-bottom:8px;line-height:20px;text-align:center;}
-    .pop_legend_cont > a.link_icon > img {width:16px;height:16px;margin-right:4px;}
-    .pop_legend_cont > a.link_icon.mb0 {margin-bottom:0;}
-
-    .pop_legend_cont > .state {width:100%;}
-    .pop_legend_cont > .state > li {line-height:20px;color:var(--black-sub);font-size:14px;font-weight:500;margin-bottom:8px;vertical-align:middle;padding-left:12px;}
-    .pop_legend_cont > .state > li > img {width:16px;height:16px;margin-right:4px;} */
+        .pop_legend_cont > .risk_map {width:106px;}
+        .pop_legend_cont > .risk_map > li {display:inline-block;height:20px;line-height:20px;color:var(--black-sub);font-size:14px;font-weight:500;margin-bottom:8px;}
+        .pop_legend_cont > .risk_map > li > img {position:relative;top:2px;width:18px;height:18px;margin-right:4px;}
+        .pop_legend_cont > .risk_map > li:nth-child(even) {padding-left:30px;}
 
     </style>
 
@@ -148,9 +138,9 @@
 
     //측정도구
     let measure = new Measure(mainMap.map, false);
-    let zoomy = document.getElementById('zoomy');
-    console.log(zoomy);
-    mainMap.map.addControl(new ZoomSlider({target:zoomy}))
+    // let zoomy = document.getElementById('zoomy');
+    // console.log(zoomy);
+    // mainMap.map.addControl(new ZoomSlider({target:zoomy}))
 
 
     document.querySelectorAll(`input[name="control_measure"]`).forEach(node=>{
@@ -250,7 +240,8 @@
             </div>
         </div>
 
-        <div id="zoomy" style="border: 1px solid red; width: 40px; height: 130px;"></div>
+        <!-- <div id="zoomy" style="border: 1px solid red; width: 40px; height: 130px;"></div> -->
+        <div class="color-picker"></div>
     </div>
 </body>
 

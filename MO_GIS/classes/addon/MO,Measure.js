@@ -15,7 +15,7 @@ import Map from "../../../lib/openlayers_v7.5.1/Map.js";
  * @class Measure
  * 출처 : https://openlayers.org/en/v7.5.2/examples/measure-style.html
  */
-export class Measure {
+export class MOMeasure {
     style;
     labelStyle;
     tipStyle;

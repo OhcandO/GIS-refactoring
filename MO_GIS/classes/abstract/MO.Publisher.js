@@ -1,7 +1,5 @@
 import { MOSubscriber } from "./MO.Subscriber.js";
 
-// ObserverPattern 의 클래스들을 정의
-
 /**
  * MOPublisher 는 MOSubscriber 들을 등록하고
  * 등록된 구독자에게 알림을 보냄 (notify)
