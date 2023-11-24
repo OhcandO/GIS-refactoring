@@ -14,8 +14,7 @@ import { MOSubscriber } from './abstract/MO.Subscriber.js';
 import { LayerTree } from './MO.LayerTree.js';
 import { Point } from '../../lib/openlayers_v7.5.1/geom.js';
 import { transform } from '../../lib/openlayers_v7.5.1/proj.js';
-import { Style, Text } from '../../lib/openlayers_v7.5.1/style.js';
-import Source from '../../lib/openlayers_v7.5.1/source/Source.js';
+import { Style } from '../../lib/openlayers_v7.5.1/style.js';
 import VectorSource from '../../lib/openlayers_v7.5.1/source/Vector.js';
 
 /**
@@ -61,10 +60,6 @@ export class MOGISMap extends MOSubscriber{
         multi: false,
     }
 
-    default_toolbar = {
-
-    }
-
     #Factory = {
         /**@type {SourceFactory} */
         source: undefined,
@@ -73,14 +68,19 @@ export class MOGISMap extends MOSubscriber{
     };
 
     #INSTANCE={
-        /** @type {olMap} */
+        /** @type {olMap|undefined} */
         MAP:undefined,
-        /**@type {View} */
+        /**@type {View|undefined} */
         VIEW:undefined,
         INTERACTION:{
-            /** @type {Select} */
+            /** @type {Select|undefined} */
             SELECT:undefined,
-            
+            /** @type {featureCallback|undefined} */
+            SELECT_CALLBACK:(feature,layer)=>{
+                if(feature){console.log(feature.getProperties())}
+                if(layer){console.log(layer.getProperties());}
+            }
+            /** @type {Function|undefined} */
             POINTER:undefined,
         }
     }
@@ -505,17 +505,31 @@ export class MOGISMap extends MOSubscriber{
     /**
      * MOGISMap 객체의 Vector Source Layer 에 대해, Layer 가 선택 가능한 상태라면,
      * 레이어를 구성하는 feature 들과 상호작용할 수 있도록 켜거나 끔
+     * @param {boolean} [bool=true] 
      */
     enableSelect(bool=true){
         if(bool){
-            this.#createSelectInteraction();
+            //이미 interaction 생성되어 있다면 재기용
+            if(this.#INSTANCE.INTERACTION.SELECT instanceof Select){
+                this.#INSTANCE.MAP.addInteraction(this.#INSTANCE.INTERACTION.SELECT);
+                this.#INSTANCE.MAP.on('pointermove',this.#INSTANCE.INTERACTION.POINTER);
+            }else{
+            //아니면 생성
+                this.#createSelectInteraction();
+            }
         }else{
             this.#INSTANCE.MAP.removeInteraction(this.#INSTANCE.INTERACTION.SELECT);
-            this.#INSTANCE.INTERACTION.SELECT = undefined;
             this.#INSTANCE.MAP.un('pointermove',this.#INSTANCE.INTERACTION.POINTER);
         }
     }
 
+    /** interaction.select 관련 동작을 완전 제거 */
+    #destoryEntireSelectInteraction(){
+        this.#INSTANCE.MAP.removeInteraction(this.#INSTANCE.INTERACTION.SELECT);
+        this.#INSTANCE.INTERACTION.SELECT = undefined;
+        this.#INSTANCE.MAP.un('pointermove',this.#INSTANCE.INTERACTION.POINTER);
+        this.#INSTANCE.INTERACTION.POINTER = undefined;
+    }
     #createSelectInteraction(){
         let selectInteraction;
         try{
@@ -563,13 +577,37 @@ export class MOGISMap extends MOSubscriber{
      * @param {featureCallback} callback 피쳐, 레이어를 인자로 하는 콜백
      */
     setSelectCallback(callback){
+        //선택될 때 동작(selectCallback)을 객체에 등록
+        if(callback instanceof Function){
+            //기존 interaction.select 를 아예 지움
+            this.#destoryEntireSelectInteraction();
+            //새로운 callbakc 을 내부에 저장
+            this.#INSTANCE.INTERACTION.SELECT_CALLBACK = callback;
+
+            this.enableSelect(true);
+        }else{
+            throw new Error (`selectCallback 은 함수형태로 등록되어야 함`)
+        }
+
+        this.#attatchSelectCallbackToSelectInteraction();
+    }
+
+    /**
+     * 기 등록된 selectCallback 을 ol.interaction.select 에 붙임
+     */
+    #attatchSelectCallbackToSelectInteraction(){
+        if(!(this.#INSTANCE.INTERACTION.SELECT_CALLBACK instanceof Function)) {
+            throw new Error (`selectCallback 등록되지 않음. MOGISMap::setSelectCallback (callback) 등록 필요`);
+        }
+
+        //선택가능한 feature 선택때 selectCallback 을 호출하도록 등록
         if(this.#INSTANCE.INTERACTION.SELECT instanceof Select){
             let me = this;
             this.#INSTANCE.INTERACTION.SELECT.on('select',function(e){
                 if(!e.auto){
                     let feature = me.#INSTANCE.INTERACTION.SELECT.getFeatures()?.getArray()[0];
                     let layer = feature? me.#INSTANCE.INTERACTION.SELECT.getLayer(feature): undefined;
-                    callback(feature,layer);
+                    me.#INSTANCE.INTERACTION.SELECT_CALLBACK(feature,layer);
                 }
             });
         }
@@ -654,6 +692,8 @@ export class MOGISMap extends MOSubscriber{
             if(!bool_isLayerOnMap){
                 this.map.addLayer(addressLayer);
             }
+        //5. 방금 추가한 feature 로 이동
+            this.view.fit(addressFeature.getGeometry(),{duration:300, maxZoom:15});
 
         }else{
             console.log(`입력좌표 : ${point_x}, ${point_y}`)
