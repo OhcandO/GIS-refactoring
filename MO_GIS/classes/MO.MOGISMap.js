@@ -79,7 +79,7 @@ export class MOGISMap extends MOSubscriber{
             SELECT_CALLBACK:(feature,layer)=>{
                 if(feature){console.log(feature.getProperties())}
                 if(layer){console.log(layer.getProperties());}
-            }
+            },
             /** @type {Function|undefined} */
             POINTER:undefined,
         }

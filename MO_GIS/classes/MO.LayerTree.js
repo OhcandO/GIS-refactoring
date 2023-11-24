@@ -23,11 +23,11 @@ export class LayerTree extends MOPublisher {
 
     /**트리 객체가 생성될 곳의 DIV id
      * @type {string} */
-    #TREE_DIV_ID;
+    TREE_DIV_ID;
 
     /**트리 객체 자체의 ID
      */
-    #TREE_ELEMENT = {
+    TREE_ELEMENT = {
         /**@type {string} */
         id: undefined,
         style: `position: absolute;
@@ -40,16 +40,16 @@ export class LayerTree extends MOPublisher {
 
     /** JSTree 객체
      * */
-    #INSTANCE_JS_TREE;
+    INSTANCE_JS_TREE;
 
     /** MOGISMap 객체
      * @type {MOGISMap}*/
-    #INSTANCE_MOGISMAP;
+    INSTANCE_MOGISMAP;
 
     /** 레이어코드의 목적을 나타내는 코드
      * @type {KEY.LAYER_PURPOSE_CATEGORY}
      */
-    layerObjCategoryKey;
+    layerPurposeCategoryKey;
 
     /**본 레이어트리에서 관리하는
      * 소스+레이어 정보 레이어 코드 리스트
@@ -58,11 +58,11 @@ export class LayerTree extends MOPublisher {
 
     /** 레이어코드 상 최상위 부모의 코드(layerStructure 구성시 사용)
      */
-    #most_upper_id;
+    most_upper_id;
 
     /** 레이어 코드 리스트를 계층구조로 만든 것
      * @type {JSON} */
-    #layerStructure;
+    layerStructure;
 
     /**
      * MOGISMap 의 레이어 관장하는 Tree 생성
@@ -72,8 +72,8 @@ export class LayerTree extends MOPublisher {
     constructor(tree_div_id) {
         super(tree_div_id);
         if (tree_div_id) {
-            this.#TREE_DIV_ID = tree_div_id;
-            this.#TREE_ELEMENT.id = `${this.#TREE_DIV_ID}-layerTree`;
+            this.TREE_DIV_ID = tree_div_id;
+            this.TREE_ELEMENT.id = `${this.TREE_DIV_ID}-layerTree`;
         } else {
             throw new Error(`layerTree 객체 생성될 DIV 아이디 입력되어야 함`);
         }
@@ -87,7 +87,7 @@ export class LayerTree extends MOPublisher {
     regist(moSubscriber,layerObjCategoryKey, most_upper_id) {
         if (moSubscriber instanceof MOGISMap) {
             //MOGISMap 객체 저장
-            this.#INSTANCE_MOGISMAP = moSubscriber;
+            this.INSTANCE_MOGISMAP = moSubscriber;
             //subscriber 등록
             super.regist(moSubscriber);
             this.assignMapAndLayer(layerObjCategoryKey, most_upper_id)
@@ -101,14 +101,14 @@ export class LayerTree extends MOPublisher {
      * @param {string} [most_upper_id] 레이어코드 상 최상위 코드
      */
     assignMapAndLayer(layerObjCategoryKey, most_upper_id) {
-        if (most_upper_id) this.#most_upper_id = most_upper_id;
+        if (most_upper_id) this.most_upper_id = most_upper_id;
 
         //레이어 코드 카테고리 중 하나만 이 layerTree 객체에서 관장함
         if (Object.values(KEY.LAYER_PURPOSE_CATEGORY).map(e=>e[0]).includes(layerObjCategoryKey) &&
-            this.#INSTANCE_MOGISMAP.layerCodeObject[layerObjCategoryKey]) {
-            this.layerObjCategoryKey = layerObjCategoryKey;
+            this.INSTANCE_MOGISMAP.layerCodeObject[layerObjCategoryKey]) {
+            this.layerPurposeCategoryKey = layerObjCategoryKey;
             this.#setLayerCodeArr(
-                this.#INSTANCE_MOGISMAP.layerCodeObject[layerObjCategoryKey]
+                this.INSTANCE_MOGISMAP.layerCodeObject[layerObjCategoryKey]
             );
         }
 
@@ -135,12 +135,12 @@ export class LayerTree extends MOPublisher {
         if (layerCodeArr instanceof Array) {
             this.layerCodeArr = layerCodeArr;
             try {
-                this.#layerStructure = KEY.jsonNestor(
+                this.layerStructure = KEY.jsonNestor(
                     this.layerCodeArr,
                     target_id,
                     parent_id,
                     child_mark,
-                    this.#most_upper_id
+                    this.most_upper_id
                 );
             } catch (e) {
                 console.error(e);
@@ -159,32 +159,33 @@ export class LayerTree extends MOPublisher {
      */
     #activate() {
         if (!(this.layerCodeArr?.length > 0)) {
-            console.log(this.#INSTANCE_MOGISMAP.layerCodeObject)
+            console.log(this.INSTANCE_MOGISMAP.layerCodeObject)
             try {
-                this.#setLayerCodeArr(this.#INSTANCE_MOGISMAP.layerCodeObject[this.layerObjCategoryKey]);
+                this.#setLayerCodeArr(this.INSTANCE_MOGISMAP.layerCodeObject[this.layerPurposeCategoryKey]);
             } catch (e) {
                 console.log(`layerCodeArr (JSON) 이 등록되어야 함`);
                 console.error(e);
             }
         }
-        this.#createTree(this.#layerStructure);
-        this.#checkEventListener();
-        this.#showInitialLayers(this.#layerStructure);
+        this.createTree(this.layerStructure);
+        this.checkEventListener();
+        this.showInitialLayers(this.layerStructure);
     }
 
     /**
      * jstree 생성
      * JQuery 의존적
      */
-    #createTree(treeList) {
+    createTree(treeList) {
+        console.log('parent:createTree')
         //1. map div 에 tree용 영역 생성
         this.#createTreeDiv();
 
         //2. tree 구조체 내에
-        let wrap = this.#createWrap(treeList);
-        $(`#${this.#TREE_DIV_ID}`).html(wrap);
+        let wrap = this.createWrap(treeList);
+        $(`#${this.TREE_DIV_ID}`).html(wrap);
         // $(".map_info a").trigger("click");
-        $(`#${this.#TREE_DIV_ID}`).jstree({
+        $(`#${this.TREE_DIV_ID}`).jstree({
             core: {
                 themes: {
                     icons: false,
@@ -194,20 +195,20 @@ export class LayerTree extends MOPublisher {
             plugins: ["checkbox", "wholerow"],
         });
 
-        this.#INSTANCE_JS_TREE = $(`#${this.#TREE_DIV_ID}`).jstree(true);
+        this.INSTANCE_JS_TREE = $(`#${this.TREE_DIV_ID}`).jstree(true);
     }
 
     #createTreeDiv() {
-        let treeDiv = document.querySelector(`#${this.#TREE_DIV_ID}`);
+        let treeDiv = document.querySelector(`#${this.TREE_DIV_ID}`);
         if (treeDiv instanceof HTMLDivElement) {
             treeDiv.insertAdjacentHTML(
                 `beforeend`,
-                this.#TREE_ELEMENT.getHTML()
+                this.TREE_ELEMENT.getHTML()
             );
         } else {
             throw new Error(
                 `layerTree 객체위한 DIV가 생성되지 않음: div id=${
-                    this.#TREE_DIV_ID
+                    this.TREE_DIV_ID
                 }`
             );
         }
@@ -216,7 +217,7 @@ export class LayerTree extends MOPublisher {
     /**
      * 트리 html 생성 리턴
      */
-    #createWrap(array, level) {
+    createWrap(array, level) {
         let html = ``;
         level = level || 1;
         array.forEach((layerCode) => {
@@ -231,12 +232,12 @@ export class LayerTree extends MOPublisher {
             if (isGroup == "Y") {
                 html += `<li id="${id}">${name}<ul>`;
             } else {
-                let src = this.#makeLegendSrc(layerCode);
+                let src = this.makeLegendSrc(layerCode);
                 html += `<li id="layerid_${id}" data-layerid="${id}" data-type="${type}" class="${type} ${id}"><img src="${src}" style="width:16px;"/>&nbsp;&nbsp;${name}</li>`;
             }
             if (hasChild) {
                 level++;
-                html += this.#createWrap(layerCode[KEY.CHILD_MARK], level);
+                html += this.createWrap(layerCode[KEY.CHILD_MARK], level);
                 html += `</ul></li>`;
                 level--;
             }
@@ -250,7 +251,7 @@ export class LayerTree extends MOPublisher {
     /**
      * 초기 선택 노드 셋팅
      */
-    #showInitialLayers(structuredLayerCode) {
+    showInitialLayers(structuredLayerCode) {
         if (structuredLayerCode instanceof Array) {
             for (let layerCode of structuredLayerCode) {
                 let id = layerCode[KEY.LAYER_ID];
@@ -260,16 +261,16 @@ export class LayerTree extends MOPublisher {
                     layerCode[KEY.CHILD_MARK] &&
                     layerCode[KEY.CHILD_MARK].length > 0
                 ) {
-                    this.#showInitialLayers(layerCode[KEY.CHILD_MARK]);
+                    this.showInitialLayers(layerCode[KEY.CHILD_MARK]);
                 }
 
                 if (visible === "Y") {
-                    let tnode = this.#INSTANCE_JS_TREE.get_node(
+                    let tnode = this.INSTANCE_JS_TREE.get_node(
                         "layerid_" + id
                     );
                     if (!tnode) continue;
                     if (tnode.state.selected == false) {
-                        this.#INSTANCE_JS_TREE.check_node(tnode);
+                        this.INSTANCE_JS_TREE.check_node(tnode);
                     }
                 }
             }
@@ -279,10 +280,10 @@ export class LayerTree extends MOPublisher {
     /**
      * 체크박스 선택시 이벤트
      */
-    #checkEventListener() {
+    checkEventListener() {
         let me = this;
         let nodeId;
-        $(`#${this.#TREE_DIV_ID}`).bind("changed.jstree", function (e, data) {
+        $(`#${this.TREE_DIV_ID}`).bind("changed.jstree", function (e, data) {
             if (data.action === "ready") return;
 
             let visible = false;
@@ -306,7 +307,7 @@ export class LayerTree extends MOPublisher {
                     return {
                         id : id,
                         boolVisible : visible,
-                        layerPurposeCategory : me.layerObjCategoryKey,
+                        layerPurposeCategory : me.layerPurposeCategoryKey,
                         legendHtmlString : htmlStr,
                         layerCode : getLayerCode(id),
                     };
@@ -317,14 +318,14 @@ export class LayerTree extends MOPublisher {
         });
         function makeHtmlStr(layer_id){
             let layerCode = getLayerCode(layer_id);
-            let imgSrc = me.#makeLegendSrc(layerCode);
+            let imgSrc = me.makeLegendSrc(layerCode);
             return `<img src="${imgSrc}" style="width:16px;"/>&nbsp;&nbsp;${layerCode[KEY.LAYER_NAME]}`
         }
         function getLayerCode(layer_id){
             return me.layerCodeArr.find(el=>el[KEY.LAYER_ID]==layer_id);
         }
         function pushLayerList(nodeId, layerList) {
-            let node = me.#INSTANCE_JS_TREE.get_node(nodeId);
+            let node = me.INSTANCE_JS_TREE.get_node(nodeId);
             let layerid;
             if (nodeId.indexOf(KEY.LAYER_ID) > -1) {
                 layerid = node.data.layerid;
@@ -341,7 +342,7 @@ export class LayerTree extends MOPublisher {
         {
             id: undefined,
             boolVisible: true,
-            layerPurposeCategory: this.layerObjCategoryKey,
+            layerPurposeCategory: this.layerPurposeCategoryKey,
             legendHtmlString:'',
             layerCode:[],
         },
@@ -357,13 +358,13 @@ export class LayerTree extends MOPublisher {
     /**
      * 이미지 정보
      */
-    #makeLegendSrc(layerInfoElem) {
+    makeLegendSrc(layerInfoElem) {
         let src;
         let iconPath = this.defaults.iconPath;
         if (layerInfoElem[KEY.ICON_NAME]) {
             src = iconPath + layerInfoElem[KEY.ICON_NAME];
         } else {
-            let ss = this.#makeLegendImage(layerInfoElem);
+            let ss = this.makeLegendImage(layerInfoElem);
             src = ss.src;
         }
         return src;
@@ -372,7 +373,7 @@ export class LayerTree extends MOPublisher {
     /**
      * 이미지 생성
      */
-    #makeLegendImage(layerinfo) {
+    makeLegendImage(layerinfo) {
         let image = document.createElement("img");
         let canvas = document.createElement("canvas");
         canvas.width = 16;
@@ -426,7 +427,7 @@ export class LayerTree extends MOPublisher {
         let tempTreeIdArr = this.#getTreeIdArr(typeName);
         if (tempTreeIdArr.length > 0) {
             tempTreeIdArr.forEach((treeId) => {
-                this.#INSTANCE_JS_TREE.deselect_node(treeId);
+                this.INSTANCE_JS_TREE.deselect_node(treeId);
             });
         }
     }
@@ -436,7 +437,7 @@ export class LayerTree extends MOPublisher {
             let tempTreeIdArr = this.#getTreeIdArr(typeName, ftrIdn);
             if (tempTreeIdArr.length > 0) {
                 tempTreeIdArr.forEach((treeId) => {
-                    this.#INSTANCE_JS_TREE.select_node(treeId);
+                    this.INSTANCE_JS_TREE.select_node(treeId);
                 });
             }
         } else {
@@ -480,7 +481,7 @@ export class LayerTree extends MOPublisher {
 
         const spin = new Spinner(default_spinner);
         const target_spin = document.querySelector(
-            `#${this.#INSTANCE_MOGISMAP.default_mapSpec.target}`
+            `#${this.INSTANCE_MOGISMAP.default_mapSpec.target}`
         );
         /**
          * 테이블이름과 관련된 레이어들 코드정보 객체 찾아 내부 변수로 등록. 찾으면 true
@@ -522,7 +523,7 @@ export class LayerTree extends MOPublisher {
          */
         const isEveryNodeSelected = (treeIdArr) => {
             return treeIdArr.every((nodeId) =>
-                this.#INSTANCE_JS_TREE.is_selected(nodeId)
+                this.INSTANCE_JS_TREE.is_selected(nodeId)
             );
         };
 
@@ -541,8 +542,8 @@ export class LayerTree extends MOPublisher {
             if (isEveryNodeSelected(tempTreeIdArr)) {
                 reso();
             } else {
-                this.#INSTANCE_MOGISMAP.view.setZoom(minZoom + 0.2);
-                this.#INSTANCE_MOGISMAP.map.once("rendercomplete", (e) => {
+                this.INSTANCE_MOGISMAP.view.setZoom(minZoom + 0.2);
+                this.INSTANCE_MOGISMAP.map.once("rendercomplete", (e) => {
                     //Spinner 정지
                     spin.stop();
                     reso();
@@ -551,7 +552,7 @@ export class LayerTree extends MOPublisher {
                 //Spinner 가동
                 spin.spin(target_spin);
                 tempTreeIdArr.forEach((treeId) => {
-                    this.#INSTANCE_JS_TREE.select_node(treeId);
+                    this.INSTANCE_JS_TREE.select_node(treeId);
                 });
             }
         });

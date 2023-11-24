@@ -75,7 +75,7 @@
     <script type="module">
     import { Spinner } from './lib/spin.js/spin.js';
     import {TileLoadProgress} from './MO_GIS/classes/addon/TileLoadProgress.js';
-    import {Measure} from './MO_GIS/classes/addon/measure.js';
+    import {MOMeasure} from './MO_GIS/classes/addon/MO.Measure.js';
     import mainMap from './main.js'
     import ZoomSlider from './lib/openlayers_v7.5.1/control/ZoomSlider.js';
 
@@ -137,11 +137,7 @@
     });
 
     //측정도구
-    let measure = new Measure(mainMap.map, false);
-    // let zoomy = document.getElementById('zoomy');
-    // console.log(zoomy);
-    // mainMap.map.addControl(new ZoomSlider({target:zoomy}))
-
+    let measure = new MOMeasure(mainMap, false);
 
     document.querySelectorAll(`input[name="control_measure"]`).forEach(node=>{
         node.addEventListener('change',function(e){
@@ -241,7 +237,9 @@
         </div>
 
         <!-- <div id="zoomy" style="border: 1px solid red; width: 40px; height: 130px;"></div> -->
-        <div class="color-picker"></div>
+        <div class="color-picker"  style="border: 1px solid red; width: 60px; height: 60px;">
+            <div class="color-pickers"></div>
+        </div>
     </div>
 </body>
 

@@ -6,6 +6,7 @@ import { getArea, getLength } from "../../../lib/openlayers_v7.5.1/sphere.js";
 import { Circle as CircleStyle, Fill,
     RegularShape, Stroke,Style,Text, } from "../../../lib/openlayers_v7.5.1/style.js";
 import Map from "../../../lib/openlayers_v7.5.1/Map.js";
+import { MOGISMap } from "../MO.MOGISMap.js";
 
 /**
  * ol.map 객체와 상호작용하여, 길이/면적 측정 상호작용할 수 있도록 하는 객체
@@ -29,6 +30,7 @@ export class MOMeasure {
 
     draw;
 
+    #INSTNACE_MOGISMap;
     #INSTNACE_OL_MAP;
     #INSTANCE_MEASURE_LAYER;
 
@@ -38,7 +40,12 @@ export class MOMeasure {
      * @param {boolean} [makeBtn=true] - 측정도구 버튼 필드 신규 생성여부
      * @memberof Measure
      */
-    constructor(ol_map, makeBtn=true) {
+    constructor(mogisMap, makeBtn=true) {
+        let ol_map
+        if(mogisMap instanceof MOGISMap){
+            this.#INSTNACE_MOGISMap=mogisMap;
+            ol_map = mogisMap.map;
+        }
         if (ol_map instanceof Map) {
             this.#INSTNACE_OL_MAP = ol_map;
             
@@ -47,8 +54,8 @@ export class MOMeasure {
             }
             this.#activate();
         }else{
-            console.log(ol_map);
-            throw new Error(`입력된 객체가 ol.Map 객체가 아님`);
+            console.log(mogisMap);
+            throw new Error(`입력된 객체가 MOGISMap 객체가 아님`);
         }
     }
 
@@ -259,18 +266,20 @@ export class MOMeasure {
     /**
      *
      *
-     * @param {String} drawType - LineString | Polygon
+     * @param {(LineString | Polygon | undefined)} drawType - LineString | Polygon
      * @memberof Measure
      */
     activeMeasure(drawType) {
         let me = this;
-        if(me.draw){
-            me.#INSTNACE_OL_MAP.removeInteraction(me.draw);
+        if(this.draw){
+            this.#INSTNACE_OL_MAP.removeInteraction(me.draw);
             this.disableMeasure();
         }
         if(!drawType){
             console.log('reset');
+            this.#INSTNACE_MOGISMap.enableSelect(true);
         }else{
+            this.#INSTNACE_MOGISMap.enableSelect(false);
             this.enableMeasure();
             const activeTip = "마우스 클릭으로  " + (drawType === "Polygon" ? "도형" : "선분") + "을 그립니다";
             const idleTip = "마우스 클릭으로 시작지점 선택합니다";
