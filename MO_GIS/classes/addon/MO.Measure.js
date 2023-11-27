@@ -12,7 +12,7 @@ import { MOGISMap } from "../MO.MOGISMap.js";
  * ol.map 객체와 상호작용하여, 길이/면적 측정 상호작용할 수 있도록 하는 객체
  * 지도 당 한개 객체
  *
- * @export
+ * @export 
  * @class Measure
  * 출처 : https://openlayers.org/en/v7.5.2/examples/measure-style.html
  */
