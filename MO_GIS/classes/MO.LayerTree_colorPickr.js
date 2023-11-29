@@ -1,8 +1,5 @@
 import * as KEY from '../common/MO.keyMap.js';
-import { MOGISMap } from './MO.MOGISMap.js';
-import {Spinner} from '../../lib/spin.js/spin.js';
 import $ from '../../lib/jquery-3.7.1/jquery-3.7.1_esm.js';
-import jstree from '../../lib/jstree-3.3.16/jstree-3.3.16_esm.js';
 import { LayerTree } from './MO.LayerTree.js';
 import Pickr from '../../lib/pickr-1.9.0/dist/pickr_1.9.0_esm.js';
 

@@ -281,6 +281,7 @@ export class LayerTree extends MOPublisher {
      * 체크박스 선택시 이벤트
      */
     checkEventListener() {
+        this.checkEventListener= ()=>{}
         let me = this;
         let nodeId;
         $(`#${this.TREE_DIV_ID}`).bind("changed.jstree", function (e, data) {

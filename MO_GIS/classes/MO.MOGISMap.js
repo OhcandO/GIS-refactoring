@@ -13,7 +13,7 @@ import { Point } from '../../lib/openlayers_v7.5.1/geom.js';
 import { transform } from '../../lib/openlayers_v7.5.1/proj.js';
 import { Style } from '../../lib/openlayers_v7.5.1/style.js';
 import VectorSource from '../../lib/openlayers_v7.5.1/source/Vector.js';
-import { MOSimpleMap } from './MO.MOSimpleMap.js';
+import { MOSimpleMap } from './abstract/MO.MOSimpleMap.js';
 
 
 /**
