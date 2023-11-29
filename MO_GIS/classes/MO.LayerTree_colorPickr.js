@@ -67,7 +67,6 @@ export class LayerTree_colorPickr extends LayerTree {
                     }
                 }
             }).on('save', (color, instance) => {
-                console.log('Event: "save"');
 
                 //1. MOGISMap 의 LayerCodeObj 찾아서 해당 색깔 값 교체하기
                 let colorString = color.toRGBA().toString(0);
@@ -77,9 +76,20 @@ export class LayerTree_colorPickr extends LayerTree {
 
                 layerCodeArr.map(layerCodeObj=> (layerCodeObj[KEY.LAYER_ID] == param[KEY.LAYER_ID] ? layerCodeObj[param['key']]=colorString : layerCodeObj)  );
                 
+                let tnode = this.INSTANCE_JS_TREE.get_node("layerid_" + param.id);
+
+                if (tnode?.state.selected == true) {
+                    this.INSTANCE_JS_TREE.uncheck_node(tnode);
+                }
+
                 //2. TODO
                 this.INSTANCE_MOGISMAP.discardLayer(Number(param.id), layerPurposeCategoryKey);
-                this.INSTANCE_MOGISMAP.ctrlLayer(Number(param.id),true,this.layerPurposeCategoryKey)
+                // this.INSTANCE_MOGISMAP.ctrlLayer(Number(param.id),true,this.layerPurposeCategoryKey)
+                
+                
+                if (tnode?.state.selected == false) {
+                    this.INSTANCE_JS_TREE.check_node(tnode);
+                }
             });
         })
 
