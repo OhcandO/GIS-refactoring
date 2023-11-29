@@ -319,7 +319,6 @@ export class MOSimpleMap extends MOSubscriber{
     #getLayer(layer_id,la_pu_cate_key){
         let targetLayer;
         if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
-            console.log(layer_id,la_pu_cate_key);
             targetLayer = this.layers[la_pu_cate_key].get(layer_id);
         }else{
             const allLayers = this.INSTANCE.MAP.getLayers().getArray();
