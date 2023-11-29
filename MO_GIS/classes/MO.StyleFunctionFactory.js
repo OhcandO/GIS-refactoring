@@ -58,9 +58,9 @@ const default_style={
  */
 export function createStyleFunction (layerCode) {
 
-        if(layerCode =='HIGHLIGHT'){
+        if(layerCode ==KEY.HIGHLIGHT_SOURCE_LAYER_KEY){
             return getStyleFunc_HIGHTLIGHT();
-        }else if(layerCode =='ADDRESS'){
+        }else if(layerCode ==KEY.ADDRESS_SOURCE_LAYER_KEYks){
             return getStyleFunc_ADDRESS();
         }
 

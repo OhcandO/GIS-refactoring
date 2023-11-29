@@ -120,7 +120,10 @@ export const BOOL_IS_GROUP = `boolIsgroup` // 해당 레이어가 '형식상' �
  * @enum { {BASE:['base',5], RISKMAP:['risk',1], LEAK:['leak',2], PUBLIC:['public',3], PIPENET:['pipnet',4], MANAGE:['manage',6], COMPLAINT:['comp',7], REALTIME:['realtime',8], PORTABLE:['portable',9] }} LAYER_PURPOSE_CATEGORY
  */
 /**
- * @typedef {Array<string|number>} LayerPurposeAndOrder
+ * @typedef {"base" | "risk" | "leak" | "public" | "pipnet"| "manage"| "comp"| "realtime"| "portable"} LayerPurpose
+ */
+/**
+ * @typedef {Array<LayerPurpose|number>} LayerPurposeAndOrder
  */
 /**
  * 레이어들의 목적으로 다르게 운용하기위해 구분
@@ -176,6 +179,7 @@ export const SRID = `srid`;
 export const SOURCE_CATEGORY = `category`;
 /** 주소검색 결과를 표현하기 위한 임시 소스와 레이어 */
 export const ADDRESS_SOURCE_LAYER_KEY = 'address';
+export const HIGHLIGHT_SOURCE_LAYER_KEY = 'highlight';
 /* Openlayers Feature들의 타입 구분 */
 export const OL_GEOMETRY_TYPE_POINT = 'POINT';
 export const OL_GEOMETRY_TYPE_LINE = 'LINE';

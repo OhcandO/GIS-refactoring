@@ -71,22 +71,15 @@ export class LayerTree_colorPickr extends LayerTree {
 
                 //1. MOGISMap 의 LayerCodeObj 찾아서 해당 색깔 값 교체하기
                 let colorString = color.toRGBA().toString(0);
-                let param = instance.getRoot().root.parentElement.dataset;
-
-                let layerCodeArr = this.INSTANCE_MOGISMAP.layerCodeObject[param[(KEY.LAYER_PURPOSE_CATEGORY_KEY).toLowerCase()]];
-
-                let target = layerCodeArr.find(el=>el.id == param.id);
+                const param = instance.getRoot().root.parentElement.dataset;
+                let layerPurposeCategoryKey = param[(KEY.LAYER_PURPOSE_CATEGORY_KEY).toLowerCase()];
+                let layerCodeArr = this.INSTANCE_MOGISMAP.layerCodeObject[layerPurposeCategoryKey];
 
                 layerCodeArr.map(layerCodeObj=> (layerCodeObj[KEY.LAYER_ID] == param[KEY.LAYER_ID] ? layerCodeObj[param['key']]=colorString : layerCodeObj)  );
-                console.log(target);
                 
                 //2. TODO
-                /*
-                mainMap.layers.base.forEach((val,idx)=>{
-                    mainMap.map.removeLayer(val);
-                    mainMap.layers.base.delete(idx);
-                })
-                */
+                this.INSTANCE_MOGISMAP.discardLayer(Number(param.id), layerPurposeCategoryKey);
+                this.INSTANCE_MOGISMAP.ctrlLayer(Number(param.id),true,this.layerPurposeCategoryKey)
             });
         })
 
