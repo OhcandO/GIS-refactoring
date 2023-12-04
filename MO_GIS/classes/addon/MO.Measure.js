@@ -17,11 +17,83 @@ import { MOGISMap } from "../MO.MOGISMap.js";
  * 출처 : https://openlayers.org/en/v7.5.2/examples/measure-style.html
  */
 export class MOMeasure {
-    style;
-    labelStyle;
-    tipStyle;
-    modifyStyle;
-    segmentStyle;
+    style = new Style({
+        fill: new Fill({ color: "rgba(255, 255, 255, 0.2)" }),
+        stroke: new Stroke({
+            color: "rgba(0, 0, 0, 0.5)",
+            lineDash: [10, 10],
+            width: 2,
+        }),
+        image: new CircleStyle({
+            radius: 5,
+            stroke: new Stroke({ color: "rgba(0, 0, 0, 0.7)" }),
+            fill: new Fill({ color: "rgba(255, 255, 255, 0.2)" }),
+        }),
+    });
+
+
+    labelStyle= new Style({
+            text: new Text({
+                font: "14px Calibri,sans-serif",
+                fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
+                backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.7)" }),
+                padding: [3, 3, 3, 3],
+                textBaseline: "bottom",
+                offsetY: -15,
+            }),
+            image: new RegularShape({
+                radius: 8,
+                points: 3,
+                angle: Math.PI,
+                displacement: [0, 10],
+                fill: new Fill({ color: "rgba(0, 0, 0, 0.7)" }),
+            }),
+        });
+
+
+    tipStyle= new Style({
+            text: new Text({
+                font: "12px Calibri,sans-serif",
+                fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
+                backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
+                padding: [2, 2, 2, 2],
+                textAlign: "left",
+                offsetX: 15,
+            }),
+        });
+    modifyStyle=new Style({
+        image: new CircleStyle({
+            radius: 5,
+            stroke: new Stroke({ color: "rgba(0, 0, 0, 0.7)" }),
+            fill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
+        }),
+        text: new Text({
+            text: "수정하려면 드래그하세요",
+            font: "12px Calibri,sans-serif",
+            fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
+            backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.7)" }),
+            padding: [2, 2, 2, 2],
+            textAlign: "left",
+            offsetX: 15,
+        }),
+    });
+    segmentStyle= new Style({
+        text: new Text({
+            font: "12px Calibri,sans-serif",
+            fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
+            backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
+            padding: [2, 2, 2, 2],
+            textBaseline: "bottom",
+            offsetY: -12,
+        }),
+        image: new RegularShape({
+            radius: 6,
+            points: 3,
+            angle: Math.PI,
+            displacement: [0, 8],
+            fill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
+        }),
+    });
     segmentStyles;
 
     source;
@@ -80,83 +152,6 @@ export class MOMeasure {
      * 설정 초기화
      */    
     #activate() {
-        this.style = new Style({
-            fill: new Fill({ color: "rgba(255, 255, 255, 0.2)" }),
-            stroke: new Stroke({
-                color: "rgba(0, 0, 0, 0.5)",
-                lineDash: [10, 10],
-                width: 2,
-            }),
-            image: new CircleStyle({
-                radius: 5,
-                stroke: new Stroke({ color: "rgba(0, 0, 0, 0.7)" }),
-                fill: new Fill({ color: "rgba(255, 255, 255, 0.2)" }),
-            }),
-        });
-
-        this.labelStyle = new Style({
-            text: new Text({
-                font: "14px Calibri,sans-serif",
-                fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
-                backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.7)" }),
-                padding: [3, 3, 3, 3],
-                textBaseline: "bottom",
-                offsetY: -15,
-            }),
-            image: new RegularShape({
-                radius: 8,
-                points: 3,
-                angle: Math.PI,
-                displacement: [0, 10],
-                fill: new Fill({ color: "rgba(0, 0, 0, 0.7)" }),
-            }),
-        });
-
-        this.tipStyle = new Style({
-            text: new Text({
-                font: "12px Calibri,sans-serif",
-                fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
-                backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
-                padding: [2, 2, 2, 2],
-                textAlign: "left",
-                offsetX: 15,
-            }),
-        });
-
-        this.modifyStyle = new Style({
-            image: new CircleStyle({
-                radius: 5,
-                stroke: new Stroke({ color: "rgba(0, 0, 0, 0.7)" }),
-                fill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
-            }),
-            text: new Text({
-                text: "수정하려면 드래그하세요",
-                font: "12px Calibri,sans-serif",
-                fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
-                backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.7)" }),
-                padding: [2, 2, 2, 2],
-                textAlign: "left",
-                offsetX: 15,
-            }),
-        });
-
-        this.segmentStyle = new Style({
-            text: new Text({
-                font: "12px Calibri,sans-serif",
-                fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
-                backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
-                padding: [2, 2, 2, 2],
-                textBaseline: "bottom",
-                offsetY: -12,
-            }),
-            image: new RegularShape({
-                radius: 6,
-                points: 3,
-                angle: Math.PI,
-                displacement: [0, 8],
-                fill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
-            }),
-        });
 
         this.segmentStyles = [this.segmentStyle];
 
@@ -170,7 +165,7 @@ export class MOMeasure {
         // this.enableMeasure();
     }//#activate
 
-    formatLength(line) {
+    #formatLength(line) {
         const length = getLength(line);
         let output;
         if (length > 100) {
@@ -181,7 +176,7 @@ export class MOMeasure {
         return output;
     }
 
-    formatArea(polygon) {
+    #formatArea(polygon) {
         const area = getArea(polygon);
         let output;
         if (area > 10000) {
@@ -192,7 +187,7 @@ export class MOMeasure {
         return output;
     }
 
-    styleFunction(feature, segments, drawType, tip) {
+    #styleFunction(feature, segments, drawType, tip) {
         let me = this;
         const styles = [];
         const geometry = feature.getGeometry();
@@ -202,11 +197,11 @@ export class MOMeasure {
             styles.push(me.style);
             if (type === "Polygon") {
                 point = geometry.getInteriorPoint();
-                label = me.formatArea(geometry);
+                label = me.#formatArea(geometry);
                 line = new LineString(geometry.getCoordinates()[0]);
             } else if (type === "LineString") {
                 point = new Point(geometry.getLastCoordinate());
-                label = me.formatLength(geometry);
+                label = me.#formatLength(geometry);
                 line = geometry;
             }
         }
@@ -214,7 +209,7 @@ export class MOMeasure {
             let count = 0;
             line.forEachSegment(function (a, b) {
                 const segment = new LineString([a, b]);
-                const label = me.formatLength(segment);
+                const label = me.#formatLength(segment);
                 if (me.segmentStyles.length - 1 < count) {
                     me.segmentStyles.push(me.segmentStyle.clone());
                 }
@@ -238,14 +233,14 @@ export class MOMeasure {
         return styles;
     }
 
-    enableMeasure() {
+    #enableMeasure() {
         let me = this;
 
         this.#INSTANCE_MEASURE_LAYER = new VectorLayer({
             source: this.source,
             style: function (feature) {
                 // return me.styleFunction(feature, showSegments.checked);
-                return me.styleFunction(feature, true);
+                return me.#styleFunction(feature, true);
             },
             zIndex: 500
         });
@@ -255,7 +250,7 @@ export class MOMeasure {
             this.#INSTNACE_OL_MAP.addInteraction(this.modify);
         }
     }
-    disableMeasure(){
+    #disableMeasure(){
         if(this.#INSTANCE_MEASURE_LAYER){
             this.#INSTNACE_OL_MAP.removeLayer(this.#INSTANCE_MEASURE_LAYER);
             this.#INSTNACE_OL_MAP.removeInteraction(this.draw);
@@ -264,23 +259,27 @@ export class MOMeasure {
         }
     }
     /**
+     * 선택된 geometry type 에 따라 길이, 면적 측정 가능하게 함
+     * 또는, false 입력시 원 상태로 돌아가는 로직 
      *
-     *
-     * @param {(LineString | Polygon | undefined)} drawType - LineString | Polygon
+     * @param {(LineString | Polygon | false)} drawType - LineString | Polygon
      * @memberof Measure
      */
     activeMeasure(drawType) {
         let me = this;
         if(this.draw){
             this.#INSTNACE_OL_MAP.removeInteraction(me.draw);
-            this.disableMeasure();
+            this.#disableMeasure();
         }
         if(!drawType){
             console.log('reset');
-            this.#INSTNACE_MOGISMap.enableSelect(true);
+            //select 상호작용이 선언되었던 상황이면 재 기용
+            if(mainMap.INSTANCE.INTERACTION.SELECT){
+                this.#INSTNACE_MOGISMap.enableSelect(true);
+            }
         }else{
             this.#INSTNACE_MOGISMap.enableSelect(false);
-            this.enableMeasure();
+            this.#enableMeasure();
             const activeTip = "마우스 클릭으로  " + (drawType === "Polygon" ? "도형" : "선분") + "을 그립니다";
             const idleTip = "마우스 클릭으로 시작지점 선택합니다";
             let tip = idleTip;
@@ -289,7 +288,7 @@ export class MOMeasure {
                 type: drawType,
                 style: function (feature) {
                     // return me.styleFunction(feature,showSegments.checked,drawType,tip);
-                    return me.styleFunction(feature, true,drawType,tip);
+                    return me.#styleFunction(feature, true,drawType,tip);
                 },
             });
             this.draw.on("drawstart", function () {
@@ -311,20 +310,5 @@ export class MOMeasure {
             me.modify.setActive(true);
             me.#INSTNACE_OL_MAP.addInteraction(me.draw);
         }
-    }
-
-    enableEvent() {
-        let me = this;
-        typeSelect.onchange = function () {
-            me.#INSTNACE_OL_MAP.removeInteraction(me.draw);
-            addInteraction();
-        };
-
-        addInteraction();
-
-        // showSegments.onchange = function () {
-        //     me.vector.changed();
-        //     me.draw.getOverlay().changed();
-        // };
     }
 }
