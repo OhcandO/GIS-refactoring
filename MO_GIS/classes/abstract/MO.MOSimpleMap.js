@@ -65,8 +65,10 @@ export class MOSimpleMap extends MOSubscriber{
         /**@type {View|undefined} */
         VIEW:undefined,
         LAYER:{
+            /** @type {Array<Layer>|undefined} */
+            BACKGROUND:undefined,
             /** 목적설정 안된 레이어들
-             * @type {Map<string,Layer>}*/
+             * @type {Map<number,Layer>}*/
             default: new Map(),
             highlight:{
                 /** @type {Layer|undefined} */
@@ -262,6 +264,7 @@ export class MOSimpleMap extends MOSubscriber{
             if(baseLayers.length >0){
                 this.INSTANCE.MAP.setLayers(baseLayers);
                 // this.baseLayers = baseLayers;
+                this.INSTANCE.LAYER.BACKGROUND = baseLayers;
             }
         } else{
             //this.#ERROR_factory()
