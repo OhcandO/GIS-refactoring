@@ -64,6 +64,17 @@ export class MOSimpleMap extends MOSubscriber{
         MAP:undefined,
         /**@type {View|undefined} */
         VIEW:undefined,
+        LAYER:{
+            /** 목적설정 안된 레이어들
+             * @type {Map<string,Layer>}*/
+            default: new Map(),
+            highlight:{
+                /** @type {Layer|undefined} */
+                Point:undefined,
+                LineString:undefined,
+                Polygon:undefined,
+            }
+        }
     }
 
     /**목적 별
@@ -74,21 +85,6 @@ export class MOSimpleMap extends MOSubscriber{
         /** @type {Array<KEY.layerCodeObj>} */
         default:[],
     };
-    /**목적 별 
-     * ol.layer 들의 리스트
-     *  layerCodeObject 상 KEY.LAYER_ID 를 key로, 레이어객체를 value 로 함
-     */
-    layers={
-        /** 목적설정 안된 레이어들
-         * @type {Map<string,Layer>}*/
-        default: new Map(),
-        highlight:{
-			/** @type {Layer|undefined} */
-			Point:undefined,
-			LineString:undefined,
-			Polygon:undefined,
-		},
-    }
 
     /**
      * 기본 배경지도의 소스(API키 포함)+레이어 정보 코드 리스트
@@ -265,6 +261,7 @@ export class MOSimpleMap extends MOSubscriber{
             });
             if(baseLayers.length >0){
                 this.INSTANCE.MAP.setLayers(baseLayers);
+                // this.baseLayers = baseLayers;
             }
         } else{
             //this.#ERROR_factory()
@@ -319,7 +316,7 @@ export class MOSimpleMap extends MOSubscriber{
     #getLayer(layer_id,la_pu_cate_key){
         let targetLayer;
         if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
-            targetLayer = this.layers[la_pu_cate_key].get(layer_id);
+            targetLayer = this.INSTANCE.LAYER[la_pu_cate_key].get(layer_id);
         }else{
             const allLayers = this.INSTANCE.MAP.getLayers().getArray();
             targetLayer = allLayers.find(layer=>layer.get(KEY.LAYER_ID)===layer_id);
@@ -336,7 +333,7 @@ export class MOSimpleMap extends MOSubscriber{
         let targetLayer = this.#getLayer(layer_id,la_pu_cate_key);
         if(targetLayer instanceof Layer){
             this.INSTANCE.MAP.removeLayer(targetLayer);
-            let layerMap = this.layers[la_pu_cate_key];
+            let layerMap = this.INSTANCE.LAYER[la_pu_cate_key];
             if(layerMap instanceof Map){
                 layerMap.delete(layer_id);
             }else{
@@ -352,18 +349,18 @@ export class MOSimpleMap extends MOSubscriber{
     removeLayerGroup(la_pu_cate_key){
         if(la_pu_cate_key === KEY.ADDRESS_SOURCE_LAYER_KEY){
 
-            if(this.layers[KEY.ADDRESS_SOURCE_LAYER_KEY]){
-                this.map.removeLayer(this.layers[KEY.ADDRESS_SOURCE_LAYER_KEY]);
-                this.layers[KEY.ADDRESS_SOURCE_LAYER_KEY] = undefined;
+            if(this.INSTANCE.LAYER[KEY.ADDRESS_SOURCE_LAYER_KEY]){
+                this.map.removeLayer(this.INSTANCE.LAYER[KEY.ADDRESS_SOURCE_LAYER_KEY]);
+                this.INSTANCE.LAYER[KEY.ADDRESS_SOURCE_LAYER_KEY] = undefined;
             }
         }else if (la_pu_cate_key === KEY.HIGHLIGHT_SOURCE_LAYER_KEY){
-			Object.values(this.layers.highlight).flat().forEach(layer=> this.map.removeLayer(layer));
-			this.layers.highlight.LineString = undefined;
-			this.layers.highlight.Point = undefined;
-			this.layers.highlight.Polygon = undefined;
+			Object.values(this.INSTANCE.LAYER.highlight).flat().forEach(layer=> this.map.removeLayer(layer));
+			this.INSTANCE.LAYER.highlight.LineString = undefined;
+			this.INSTANCE.LAYER.highlight.Point = undefined;
+			this.INSTANCE.LAYER.highlight.Polygon = undefined;
 			
 		}else if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
-            let layerMap = this.layers[la_pu_cate_key];
+            let layerMap = this.INSTANCE.LAYER[la_pu_cate_key];
             if(layerMap instanceof Map){
                 [...layerMap.values()].forEach(layer=>this.map.removeLayer(layer));
                 layerMap.clear();
@@ -428,9 +425,9 @@ export class MOSimpleMap extends MOSubscriber{
         if(layer) {
             //레이어를 맵에 등록
             if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
-                this.layers[la_pu_cate_key].set(layerCodeID,layer);
+                this.INSTANCE.LAYER[la_pu_cate_key].set(layerCodeID,layer);
             }else{
-                this.layers['default'].set(layerCodeID,layer);
+                this.INSTANCE.LAYER['default'].set(layerCodeID,layer);
             }
             this.INSTANCE.MAP.addLayer(layer);
         }

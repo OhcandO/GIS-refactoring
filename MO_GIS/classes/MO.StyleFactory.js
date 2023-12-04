@@ -87,7 +87,7 @@ export class StyleFactory extends MOFactory {
      */
     #getLayerType() {
         //'group', 'BASE' 는 DB상 나눠놓은 코드이고, 벡터 데이터는 아니므로 여기서는 제외
-        const validLayerGeometryTypes = ["POINT","LINE","POLYGON" /* ,'group','BASE' */];
+        const validLayerGeometryTypes = ["Point","LineString","Polygon" /* ,'group','BASE' */];
         
         let layerType = this.getSpec()[KEY.LAYER_GEOMETRY_TYPE];
         if (layerType) {

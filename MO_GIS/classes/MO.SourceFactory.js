@@ -67,7 +67,7 @@ export class SourceFactory extends MOFactory{
      * @returns {VectorSource}
      */
     getSimpleVectorSource(){
-        return VectorSource();
+        return new VectorSource();
     }
     /**
      * 초기화

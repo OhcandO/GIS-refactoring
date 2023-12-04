@@ -60,12 +60,10 @@ export function createStyleFunction (layerCode) {
 
         if(layerCode ==KEY.HIGHLIGHT_SOURCE_LAYER_KEY){
             return getStyleFunc_HIGHTLIGHT();
-        }else if(layerCode ==KEY.ADDRESS_SOURCE_LAYER_KEYks){
+        }else if(layerCode ==KEY.ADDRESS_SOURCE_LAYER_KEY){
             return getStyleFunc_ADDRESS();
         }
 
-    
-    
     let tempStyleOption;
 
     tempStyleOption = getUpdatedLayerCode(layerCode);
@@ -77,11 +75,11 @@ export function createStyleFunction (layerCode) {
     }
 
     let styleFunc;
-    if(layerType ==KEY.OL_GEOMETRY_TYPE_POINT){
+    if(layerType ==KEY.OL_GEOMETRY_OBJ.POINT){
         styleFunc= getStyleFunc_POINT(layerCode,tempStyleOption);
-    }else if (layerType == KEY.OL_GEOMETRY_TYPE_LINE){
+    }else if (layerType == KEY.OL_GEOMETRY_OBJ.LINE){
         styleFunc= getStyleFunc_LINE(layerCode, tempStyleOption);
-    }else if (layerType == KEY.OL_GEOMETRY_TYPE_POLYGON){
+    }else if (layerType == KEY.OL_GEOMETRY_OBJ.POLYGON){
         styleFunc= getStyleFunc_POLYGON(layerCode, tempStyleOption);
     }
 
@@ -89,17 +87,26 @@ export function createStyleFunction (layerCode) {
 }
 
 /**
+ * 
+ * @param {KEY.OPENLAYERS_GEOMETRY_TYPE} geometryType 
+ * @param {*} scaleFunction 
+ */
+function createStyleFunctionWithScale(geometryType, scaleFunction){
+
+}
+
+/**
  * 적합한 레이어 타입을 판별하고 대문자로 반환
  * @param {string} layerCode 
- * @returns {string}
+ * @returns {KEY.OPENLAYERS_GEOMETRY_TYPE}
  */
 function getLayerType(layerCode) {
     //'group', 'BASE' 는 DB상 나눠놓은 코드이고, 벡터 데이터는 아니므로 여기서는 제외
-    const validLayerGeometryTypes = ["POINT","LINE","POLYGON" ,""/*,'group','BASE'*/];
+    const validLayerGeometryTypes = ["Point","LineString","Polygon" /*'BASE'*/];
     
     let layerType = layerCode[KEY.LAYER_GEOMETRY_TYPE];
     if (layerType) {
-        layerType = layerType.toUpperCase();
+        // layerType = layerType.toUpperCase();
         if (validLayerGeometryTypes.includes(layerType)) {
             return layerType;
         }
@@ -141,9 +148,9 @@ function getUpdatedLayerCode(layerCode) {
         console.error(e);
     }
 
-    if (layerType == KEY.OL_GEOMETRY_TYPE_LINE) {
+    if (layerType == KEY.OL_GEOMETRY_OBJ.LINE) {
         returnLayerCode.text.placement = "line";
-    } else if (layerType == KEY.OL_GEOMETRY_TYPE_POLYGON) {
+    } else if (layerType == KEY.OL_GEOMETRY_OBJ.POLYGON) {
         returnLayerCode.icon.scale = 1.5;
     }
 

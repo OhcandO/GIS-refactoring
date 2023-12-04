@@ -60,6 +60,49 @@ export class MOGISMap extends MOSimpleMap{
         MAP:undefined,
         /**@type {View|undefined} */
         VIEW:undefined,
+        LAYER:{
+            /** 목적설정 안된 레이어들
+             * @type {Map<string,Layer>}*/
+            default: new Map(),
+            /** 주소검색한 곳들을 feature로 하는 레이어
+             * @type {Layer|undefined}*/
+            address:undefined,
+            /** 강조표시할 feature로 구성된 레이어. GeometryType 에 따라 구분함
+             */
+            highlight:{
+                /** @type {Layer|undefined} */
+                Point:undefined,
+                LineString:undefined,
+                Polygon:undefined,
+            },
+            /** (지능수도플) 리스크맵
+             * @type {Map<string,Layer>}*/
+            risk: new Map(),
+            /** (지능수도플) 누수예상지점
+             * @type {Map<string,Layer>}*/
+            leak: new Map(), 
+            /** (지능수도플) 공공서비스
+             * @type {Map<string,Layer>}*/
+            public: new Map(), 
+            /** (지능수도플) 관망해석결과
+             * @type {Map<string,Layer>}*/
+            pipnet: new Map(), 
+            /** 기본 GIS 시설물 e.g. 관로, 계측기, 블록 등
+             * @type {Map<string,Layer>}*/
+            base: new Map(), 
+            /** 중점 관리지역
+             * @type {Map<string,Layer>}*/
+            manage: new Map(), 
+            /** (지능수도플) 상습민원지역
+             * @type {Map<string,Layer>}*/
+            comp: new Map(), 
+            /** (지능수도플) 실시간 상황감지
+             * @type {Map<string,Layer>}*/
+            realtime: new Map(), 
+            /** (지능수도플) 이동형 누수센서
+             * @type {Map<string,Layer>}*/
+            portable: new Map(), 
+        },
         INTERACTION:{
             /** @type {Select|undefined} */
             SELECT:undefined,
@@ -108,53 +151,6 @@ export class MOGISMap extends MOSimpleMap{
          * @type {Array<KEY.layerCodeObj>} */
         portable:[], 
     };
-    /**목적 별 
-     * ol.layer 들의 리스트
-     *  layerCodeObject 상 KEY.LAYER_ID 를 key로, 레이어객체를 value 로 함
-     */
-    layers={
-        /** 목적설정 안된 레이어들
-         * @type {Map<string,Layer>}*/
-        default: new Map(),
-        /** 주소검색한 곳들을 feature로 하는 레이어
-         * @type {Layer|undefined}*/
-        address:undefined,
-        /** 강조표시할 feature로 구성된 레이어. GeometryType 에 따라 구분함
-         */
-        highlight:{
-			/** @type {Layer|undefined} */
-			Point:undefined,
-			LineString:undefined,
-			Polygon:undefined,
-		},
-        /** (지능수도플) 리스크맵
-         * @type {Map<string,Layer>}*/
-        risk: new Map(),
-        /** (지능수도플) 누수예상지점
-         * @type {Map<string,Layer>}*/
-        leak: new Map(), 
-        /** (지능수도플) 공공서비스
-         * @type {Map<string,Layer>}*/
-        public: new Map(), 
-        /** (지능수도플) 관망해석결과
-         * @type {Map<string,Layer>}*/
-        pipnet: new Map(), 
-        /** 기본 GIS 시설물 e.g. 관로, 계측기, 블록 등
-         * @type {Map<string,Layer>}*/
-        base: new Map(), 
-        /** 중점 관리지역
-         * @type {Map<string,Layer>}*/
-        manage: new Map(), 
-        /** (지능수도플) 상습민원지역
-         * @type {Map<string,Layer>}*/
-        comp: new Map(), 
-        /** (지능수도플) 실시간 상황감지
-         * @type {Map<string,Layer>}*/
-        realtime: new Map(), 
-        /** (지능수도플) 이동형 누수센서
-         * @type {Map<string,Layer>}*/
-        portable: new Map(), 
-    }
 
     /**
      * 기본 배경지도의 소스(API키 포함)+레이어 정보 코드 리스트
@@ -372,7 +368,7 @@ export class MOGISMap extends MOSimpleMap{
             }
 
         //1. 기 발행 주소 레이어 있는지 체크
-            let addressLayer = this.layers[KEY.ADDRESS_SOURCE_LAYER_KEY];
+            let addressLayer = this.INSTANCE.LAYER[KEY.ADDRESS_SOURCE_LAYER_KEY];
         //1-1. 없으면 소스, 레이어 생성 | 있으면 레이어와 소스 접근자 생성
             if(!(addressLayer instanceof Layer)){
                 addressLayer = this.#Factory.layer.getSimpleVectorLayer();
@@ -411,6 +407,7 @@ export class MOGISMap extends MOSimpleMap{
         //5. 방금 추가한 feature 로 이동
             this.view.fit(addressFeature.getGeometry(),{duration:300, maxZoom:15});
 
+            this.INSTANCE.LAYER[KEY.ADDRESS_SOURCE_LAYER_KEY] = addressLayer;
         }else{
             console.log(`입력좌표 : ${point_x}, ${point_y}`)
             throw new Error(`주어진 좌표가 적합한 숫자 (또는 문자) 가 아님`)
@@ -432,11 +429,11 @@ export class MOGISMap extends MOSimpleMap{
             
 		//1. 기 발행 주소 레이어 있는지 체크
 			if(geometryType == 'Point'){
-            	highlightLayer = this.layers[KEY.HIGHLIGHT_SOURCE_LAYER_KEY].Point;
+            	highlightLayer = this.INSTANCE.LAYER[KEY.HIGHLIGHT_SOURCE_LAYER_KEY].Point;
 			} else if (geometryType == 'LineString'){
-            	highlightLayer = this.layers[KEY.HIGHLIGHT_SOURCE_LAYER_KEY].LineString;
+            	highlightLayer = this.INSTANCE.LAYER[KEY.HIGHLIGHT_SOURCE_LAYER_KEY].LineString;
 			} else if (geometryType == 'Polygon' || geometryType == 'MultiPolygon'){
-            	highlightLayer = this.layers[KEY.HIGHLIGHT_SOURCE_LAYER_KEY].Polygon;
+            	highlightLayer = this.INSTANCE.LAYER[KEY.HIGHLIGHT_SOURCE_LAYER_KEY].Polygon;
 			} else{
 				throw new Error(`geometry 타입은 Point, LineString, Polygon, MultiPolygon만 가능`)
 			}
@@ -468,7 +465,7 @@ export class MOGISMap extends MOSimpleMap{
 				//소스에 features 추가한 상태라면 리프레시
 				highlightSource.refresh();
 			}
-            this.layers[KEY.HIGHLIGHT_SOURCE_LAYER_KEY][geometryType] = highlightLayer;
+            this.INSTANCE.LAYER[KEY.HIGHLIGHT_SOURCE_LAYER_KEY][geometryType] = highlightLayer;
 			
 			
 		}

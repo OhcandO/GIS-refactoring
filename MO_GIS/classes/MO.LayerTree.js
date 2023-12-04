@@ -382,14 +382,14 @@ export class LayerTree extends MOPublisher {
         let ctx = canvas.getContext("2d");
         ctx.beginPath();
 
-        if (layerinfo[KEY.LAYER_GEOMETRY_TYPE] == KEY.OL_GEOMETRY_TYPE_POLYGON) {
+        if (layerinfo[KEY.LAYER_GEOMETRY_TYPE] == KEY.OL_GEOMETRY_OBJ.POLYGON) {
             ctx.moveTo(1, 1);
             ctx.lineTo(15, 1);
             ctx.lineTo(15, 15);
             ctx.lineTo(1, 15);
             ctx.lineTo(1, 1);
         } else if (
-            layerinfo[KEY.LAYER_GEOMETRY_TYPE] == KEY.OL_GEOMETRY_TYPE_LINE
+            layerinfo[KEY.LAYER_GEOMETRY_TYPE] == KEY.OL_GEOMETRY_OBJ.LINE
         ) {
             ctx.moveTo(1, 15);
             ctx.lineTo(5, 1);
@@ -403,7 +403,7 @@ export class LayerTree extends MOPublisher {
             ctx.lineTo(1, 1);
         }
 
-        if (layerinfo[KEY.LAYER_GEOMETRY_TYPE] == KEY.OL_GEOMETRY_TYPE_POLYGON) {
+        if (layerinfo[KEY.LAYER_GEOMETRY_TYPE] == KEY.OL_GEOMETRY_OBJ.POLYGON) {
             ctx.fillStyle = layerinfo[KEY.COLOR_FILL];
             ctx.fill();
         }

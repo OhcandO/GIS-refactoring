@@ -28,7 +28,7 @@
 @property {number} zIndex
 @property {number|string} lineWidth
 @property {string} lineStyle
-@property {string} layerType
+@property {string} geomType
 @property {string} colorFill
 @property {string} colorLine
 @property {string} font
@@ -63,7 +63,7 @@
     "zIndex": 6,
     "lineWidth": "2",
     "lineStyle": "[3,5,1,4]",
-    "layerType": "POLYGON",
+    "geomType": "Polygon",
     "colorFill": "rgba(88, 187, 78, 0.66)",
     "colorLine": "rgba(21, 80, 0, 0.7)",
     "font": "25px Malgun Gothic",
@@ -86,7 +86,7 @@ export const LAYER_NAME = `layerTitle`
 /** (특히 Geoserver에서) 각 레이어들의 식별명
  * @type {string}*/
 export const TYPE_NAME = `typeName`; //geoserver 용 레이어 식별자
-export const LAYER_GEOMETRY_TYPE = `layerType`; //BASE, group, POINT, LINE, POLYGON 등 레이어 타입
+export const LAYER_GEOMETRY_TYPE = `geomType`; //BASE, POINT, LINE, POLYGON 등 레이어 타입
 
 /* △△△△△△레이어 스타일(Style) 관련△△△△△△△△△△△△△ */
 export const LINE_WIDTH = `lineWidth`;
@@ -180,10 +180,19 @@ export const SOURCE_CATEGORY = `category`;
 /** 주소검색 결과를 표현하기 위한 임시 소스와 레이어 */
 export const ADDRESS_SOURCE_LAYER_KEY = 'address';
 export const HIGHLIGHT_SOURCE_LAYER_KEY = 'highlight';
+
 /* Openlayers Feature들의 타입 구분 */
-export const OL_GEOMETRY_TYPE_POINT = 'POINT';
-export const OL_GEOMETRY_TYPE_LINE = 'LINE';
-export const OL_GEOMETRY_TYPE_POLYGON = 'POLYGON';
+/**
+ * @typedef {'Point'|'LineString'|'Polygon'} OPENLAYERS_GEOMETRY_TYPE 오픈레이어스에서 사용하는 Geometry 타입명
+ */
+/**
+ * @enum {OPENLAYERS_GEOMETRY_TYPE} OL_GEOM_TYPE
+ */
+export const OL_GEOMETRY_OBJ={
+    POINT:'Point',
+    LINE:'LineString',
+    POLYGON:'Polygon',
+}
 
 
 export const CONSOLE_DECO={

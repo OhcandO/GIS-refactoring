@@ -23,7 +23,7 @@ export class MOLegend extends MOSubscriber {
     /** 레이어 목적 별 그룹 자체의 우선순위 (MO.KeyMap.js) 
      * e.g. ={base:4, leak: 2, pipenet:1,...}
      * MO.KeyMap.js 에 명시된 순서로 갱신됨
-     * @type {object} */
+     *  */
     categoryOrder={ base: 5, comp: 7, leak: 2,
         manage: 6,pipnet: 4, portable: 9,public: 3,
         realtime: 8, risk: 1,};

@@ -131,7 +131,7 @@ export class LayerTree_colorPickr extends LayerTree {
                 // let src = this.makeLegendSrc(layerCode);
                 // html += `<li id="layerid_${id}" ><img src="${src}" style="width:16px;"/> &nbsp;${name}`;
                 html += `<li id="layerid_${id}"  data-layerid="${id}">&nbsp;${name}`;
-                if(type == KEY.OL_GEOMETRY_TYPE_LINE) {
+                if(type == KEY.OL_GEOMETRY_OBJ.LINE) {
                     html += `<div class="colorPickr_container" style="display:inline-flex; flex-direction: row; flex-wrap: nowrap;">
                                 <div    data-${KEY.LAYER_ID}="${id}"
                                         data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
@@ -140,7 +140,7 @@ export class LayerTree_colorPickr extends LayerTree {
                                 </div>
                             </div>`
                 }
-                if(type == KEY.OL_GEOMETRY_TYPE_POLYGON) {
+                if(type == KEY.OL_GEOMETRY_OBJ.POLYGON) {
                     html += `<div class="colorPickr_container" style="display:inline-flex; flex-direction: row; flex-wrap: nowrap;">
                             <div    data-${KEY.LAYER_ID}="${id}"
                             data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
