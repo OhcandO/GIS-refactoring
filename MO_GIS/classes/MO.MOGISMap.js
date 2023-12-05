@@ -14,6 +14,7 @@ import { transform } from '../../lib/openlayers_v7.5.1/proj.js';
 import { Style } from '../../lib/openlayers_v7.5.1/style.js';
 import VectorSource from '../../lib/openlayers_v7.5.1/source/Vector.js';
 import { MOSimpleMap } from './abstract/MO.MOSimpleMap.js';
+import { MOOverlay } from './addon/MO.overlay.js';
 
 
 /**
@@ -113,6 +114,19 @@ export class MOGISMap extends MOSimpleMap{
             },
             /** @type {Function|undefined} */
             POINTER:undefined,
+        },
+        OVERLAY:{
+            /**@type {Map<string,Array<MOOverlay>>} */
+            default:new Map(),
+           /** 중점 관리지역
+             * @type {Map<string,Array<MOOverlay>>}*/
+           manage: new Map(), 
+           /** (지능수도플) 상습민원지역
+            * @type {Map<string,Array<MOOverlay>>}*/
+           comp: new Map(), 
+           /** (지능수도플) 실시간 상황감지
+            * @type {Map<string,Array<MOOverlay>>}*/
+           realtime: new Map(), 
         }
     }
 
@@ -222,8 +236,9 @@ export class MOGISMap extends MOSimpleMap{
             let dataArr = publisher.PublisherData;
             if(dataArr?.length>0){
                 dataArr.forEach(ctrlObj=>{
-                    this.ctrlLayer(ctrlObj[KEY.LAYER_ID], ctrlObj[KEY.BOOL_VISIBLE], ctrlObj[KEY.LAYER_PURPOSE_CATEGORY_KEY])
-                })
+                    this.ctrlLayer(ctrlObj[KEY.LAYER_ID], ctrlObj[KEY.BOOL_VISIBLE], ctrlObj[KEY.LAYER_PURPOSE_CATEGORY_KEY]);
+                    this.ctrlOverlay(ctrlObj[KEY.LAYER_PURPOSE_CATEGORY_KEY],ctrlObj[KEY.BOOL_VISIBLE],ctrlObj[KEY.LAYER_ID]);
+                });
             }
         }
     }
@@ -347,8 +362,6 @@ export class MOGISMap extends MOSimpleMap{
 
     /* 🌐🌐주소검색 관련.. 🌐🌐*/
 
-    
-
     /**
      * 주어진 x,y 좌표를 주소검색용 레이어에 발행하는 함수
      * @param {number} point_x - x 좌표 숫자 int or float
@@ -470,4 +483,69 @@ export class MOGISMap extends MOSimpleMap{
 			
 		}
 	}
+
+
+    //🟠🟠Overlay 관련 🟠🟠🟠🟠
+
+    /**
+     *  Overlay 확장인 MOverlay 를 객체에 등록함
+     * @param {MOOverlay} moverlay 
+     * @param {KEY.LayerPurpose} la_pu_cate_key 
+     * @param {string} [layer_id='default'] 
+     */
+    addMOverlay(moverlay,la_pu_cate_key, layer_id='default'){
+
+        if(moverlay instanceof MOOverlay){
+            //1. la_pu_cate_key 있음
+            let targetMap;
+            if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
+                targetMap = this.INSTANCE.OVERLAY[la_pu_cate_key];
+            }else{
+                targetMap = this.INSTANCE.OVERLAY.default;
+            }
+
+            //2. layer_id 있음
+            if(layer_id){
+                let overlayArr = targetMap.get(layer_id);
+                if(overlayArr instanceof Array){
+                    overlayArr.push(moverlay);
+                }else{
+                    overlayArr = [moverlay];
+                    targetMap.set(layer_id,overlayArr);
+                }
+            }
+            
+
+        }else{
+            throw new Error(`overlay 가 MOOverlay 객체가 아님`);
+        }
+    }
+
+    /**
+     * 개별 MOVerlay 또는 그룹을 보이고 지우는 컨트롤 
+     * @param {KEY.LayerPurpose} la_pu_cate_key 
+     * @param {boolean} visible 
+     * @param {string} [layer_id] 
+     */
+    ctrlOverlay(la_pu_cate_key,visible,layer_id='default'){
+        let overlayGroup;
+        if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
+            overlayGroup = this.INSTANCE.OVERLAY[la_pu_cate_key];
+        }else{
+            overlayGroup = this.INSTANCE.OVERLAY.default;
+        }
+
+        if(overlayGroup instanceof Map && overlayGroup.size>0){
+
+            if(layer_id){
+                let moverlayArr = overlayGroup.get(layer_id);
+                if(moverlayArr instanceof Array){
+                    if(visible) moverlayArr.forEach(moverlay=>this.map.addOverlay(moverlay));
+                    else moverlayArr.forEach(moverlay=>this.map.removeOverlay(moverlay));
+                }
+            }else{
+                throw new Error(`layer_id 명시되어야 합니다 기본 : 'default'`)
+            }
+        }
+    }
 }

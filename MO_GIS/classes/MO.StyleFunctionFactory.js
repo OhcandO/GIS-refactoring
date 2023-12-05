@@ -14,9 +14,10 @@ const default_style={
         anchor: [0.5, 0.5], //이미지 정 중앙
         displacement: [0, 0], //이격정도 [5, 6] : 오른쪽으로 5, 위쪽으로 6
         opacity: 1, //투명도 0~1
-        scale: 1,
         rotateWithView: false,
         declutterMode: undefined, // ['declutter', 'obstacle', 'none']
+        height:20,
+        width:20,
     },
 
     text : {
@@ -151,7 +152,8 @@ function getUpdatedLayerCode(layerCode) {
     if (layerType == KEY.OL_GEOMETRY_OBJ.LINE) {
         returnLayerCode.text.placement = "line";
     } else if (layerType == KEY.OL_GEOMETRY_OBJ.POLYGON) {
-        returnLayerCode.icon.scale = 1.5;
+        returnLayerCode.icon.width = 45;
+        returnLayerCode.icon.height = 45;
     }
 
     return returnLayerCode;

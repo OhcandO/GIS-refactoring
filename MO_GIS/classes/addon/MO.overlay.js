@@ -1,7 +1,7 @@
 /**
  * @module ol/Overlay
 */
-import {Overlay} from '../lib/openlayers_v7.5.1/Overlay'
+import Overlay from '../../../lib/openlayers_v7.5.1/Overlay.js';
 
 /**
  * 드래그 하여 overlay anchor 를 재 배치하고, 원래 자리로 돌아올 수 있게 만드는
@@ -10,14 +10,14 @@ import {Overlay} from '../lib/openlayers_v7.5.1/Overlay'
  */
 export class MOOverlay extends Overlay {
     coordOrigin;
-    dragstart;
-    dragend;
+    dragstart={};
+    dragend={};
     startPixel;
     endPixel;
-
+    overId;
     constructor(obj) {
         super(obj);
-
+        this.overId = new Date().getTime();
         this.element.addEventListener('pointerdown', this.#registDragging);
         this.element.addEventListener('pointerup', this.#unregistDragging);
         this.element.addEventListener('dragstart', this.#saveDeparture);
@@ -35,7 +35,7 @@ export class MOOverlay extends Overlay {
      * @param {PointerEvent} e 포인터 이벤트 객체
      */
     #registDragging = e => {
-        if (!coordOrigin) coordOrigin = this.getPosition();
+        if (!this.coordOrigin) this.coordOrigin = this.getPosition();
         this.element.draggable = true;
     }
 
@@ -52,8 +52,8 @@ export class MOOverlay extends Overlay {
      * @param {DragEvent} e 
      */
     #saveDeparture = e => {
-        dragstart[e.id] = e;
-        startPixel = [e.clientX, e.clientY];
+        this.dragstart[e.id] = e;
+        this.startPixel = [e.clientX, e.clientY];
     }
 
     /**
@@ -61,8 +61,8 @@ export class MOOverlay extends Overlay {
      * @param {DragEvent} e 
      */
     #saveArrival = e => {
-        dragend[e.id] = e;
-        endPixel = [e.clientX, e.clientY];
+        this.dragend[e.id] = e;
+        this.endPixel = [e.clientX, e.clientY];
     }
     
     /**
@@ -70,8 +70,8 @@ export class MOOverlay extends Overlay {
      * @param {PointerEvent} e 
      */
     #removeArrival = e=> {
-        delete dragend[e.id];
-        endPixel = [];
+        delete this.dragend[e.id];
+        this.endPixel = [];
     }
     
     /**
@@ -79,21 +79,21 @@ export class MOOverlay extends Overlay {
      * @param {DragEvent} e 
      */
     #moveOverlay = e => {
-        const dif = [endPixel[0] - startPixel[0], endPixel[1] - startPixel[1]];
+        const dif = [this.endPixel[0] - this.startPixel[0], this.endPixel[1] - this.startPixel[1]];
         const originOverlayPixel = this.getMap().getPixelFromCoordinate(this.getPosition());
         this.setPosition(this.getMap().getCoordinateFromPixel([originOverlayPixel[0] + dif[0], originOverlayPixel[1] + dif[1]]));
     }
     
     #createResetBtn = e => {
         this.element.insertAdjacentHTML(`beforeend`,
-                                               `<div id='ol-overlay-reset${idx}' style='position: absolute;top: 0px;right: 0px;
+                                               `<div id='ol-overlay-reset${this.overId}' style='position: absolute;top: 0px;right: 0px;
                                                     font-size: 12px;cursor: pointer;background-color: navy;color: white;padding: 2px;
                                                    border-radius: 6px;'>[RESET]<div>`);
 
-        document.querySelector(`#ol-overlay-reset${idx}`).addEventListener('click', e=> {
+        document.querySelector(`#ol-overlay-reset${this.overId}`).addEventListener('click', e=> {
             e.preventDefault();
             e.stopPropagation();
-            this.setPosition(coordOrigin);
+            this.setPosition(this.coordOrigin);
             e.target.remove();
             this.#removeArrival(e);
         });

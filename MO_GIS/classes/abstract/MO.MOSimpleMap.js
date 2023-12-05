@@ -118,6 +118,7 @@ export class MOSimpleMap extends MOSubscriber{
 		this.INSTANCE.MAP = new olMap({
                 target: this.default_mapSpec.target,
                 view: this.view,
+                controls:[]
             });
 	}
     get view() {
