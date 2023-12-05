@@ -5,6 +5,7 @@ import { MOGISMap } from './MO_GIS/classes/MO.MOGISMap.js';
 import { LayerTree_colorPickr } from './MO_GIS/classes/MO.LayerTree_colorPickr.js';
 import { MOLegend } from './MO_GIS/classes/addon/MO.Legend.js';
 import Pickr from './lib/pickr-1.9.0/dist/pickr_1.9.0_esm.js';
+import { MOOverlay } from './MO_GIS/classes/addon/MO.overlay.js';
 // export {Pickr} ;
 // import { LayerTree_new } from './MO_GIS/classes/MO.LayerTree_new.js';
 
@@ -61,7 +62,6 @@ mainMap.setBaseLayerCodeArr(baseLayerCode);
 //기본 지도 생성
 mainMap.setBaseLayer();
 
-
 //layerTree 개시
 
 //"GIS관망도" 레이어 코드
@@ -84,7 +84,42 @@ mainMap.setSelectCallback((feature,layer)=>{
     }
 })
 
-const pickr = Pickr.create({
+let elString = `
+    <div class="area_bubble">
+        <strong>중점관리지역 명1</strong>
+        <a href="#" class="date_num">2023.10.12 / 1회</a>
+    </div>`;
+let elem = document.createElement('div');
+// elem.insertAdjacentHTML('beforeend',elString);
+    
+let elTemp = document.querySelector(`template#area_bubble`);
+let elTemp2 = elTemp.content.cloneNode(true);
+elTemp2.querySelector('strong').textContent = 'wnwnwwnwn';
+elem.append(elTemp2);
+
+let position = [14295702.455528673, 4388430.824922459];
+/*
+    id         : "overlay_flw" + obj.ftrIdn,
+    position   : position,
+    offset     : [15, 15],
+    positioning: "top-left", //포인트 좌표에서의 팝업 위치 'center-center' 'bottom-left' 'top-left'
+    element    : container,
+    className  : "custom-green-popup",
+*/
+
+let moverlay = new MOOverlay({
+    id : 'temptemprevo',
+    position   : position,
+    offset     : [15, 15],
+    positioning: "top-left", //포인트 좌표에서의 팝업 위치 'center-center' 'bottom-left' 'top-left'
+    element    : elem,        
+});
+
+mainMap.addMOverlay(moverlay,'comp');
+
+
+
+/* const pickr = Pickr.create({
     el: '.color-picker',
     theme: 'classic', // or 'monolith', or 'nano'
     // useAsButton:true,
@@ -114,7 +149,7 @@ pickr
 .on('init', instance => { console.log('Event: "init"', instance);})
 .on('hide', instance => { console.log('Event: "hide"', instance);})
 .on('show', (color, instance) => { console.log('Event: "show"', color, instance);})
-.on('save', (color, instance) => { console.log('Event: "save"', color, instance);})
+.on('save', (color, instance) => { console.log('Event: "save"', color, instance);}) */
 // .on('clear', instance => { console.log('Event: "clear"', instance);})
 // .on('change', (color, source, instance) => { console.log('Event: "change"', color, source, instance);})
 // .on('changestop', (source, instance) => { console.log('Event: "changestop"', source, instance);})
@@ -125,4 +160,4 @@ export default mainMap;
 
 globalThis.mindone = KEY.mindone;
 globalThis.mainMap = mainMap;
-globalThis.Pickr = Pickr;
+globalThis.overlay = moverlay;
