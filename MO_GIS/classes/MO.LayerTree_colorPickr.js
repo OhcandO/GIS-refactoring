@@ -12,18 +12,13 @@ import Pickr from '../../lib/pickr-1.9.0/dist/pickr_1.9.0_esm.js';
  * @author jhoh
  */
 export class LayerTree_colorPickr extends LayerTree {
-    defaults = {
-        contextPath: "",
-        iconPath: "./MO_GIS/images/icons/",
-    };
-
     /**
      * jstree 생성
      * JQuery 의존적
      */
     createTree(treeList) {
         //1. map div 에 tree용 영역 생성
-        this.#createTreeDiv();
+        this.createTreeDiv();
 
         let wrap = this.createWrap(treeList);
         $(`#${this.TREE_DIV_ID}`).html(wrap);
@@ -44,11 +39,12 @@ export class LayerTree_colorPickr extends LayerTree {
         document.getElementById(this.TREE_DIV_ID).querySelectorAll(`div.colorPickr`).forEach(node=>{
             Pickr.create({
                 el: node,
-                theme: 'classic', // or 'monolith', or 'nano'
+                theme: 'monolith', //'classic' or 'monolith', or 'nano'
                 // useAsButton:true,
-                sliders:'v', //'v', 'hv'
+                sliders:'h', //'v', 'hv'
                 defaultRepresentation: 'RGBA',
                 default:node.dataset.rgba,
+                appClass: 'colorPickr_palette',
                 components: {
                     // Main components
                     preview: true,
@@ -56,11 +52,12 @@ export class LayerTree_colorPickr extends LayerTree {
                     hue: true,
                     // Input / output Options
                     interaction: {
-                        rgba: true,
-                        hex: true,
+                        rgba: false,
+                        hex: false,
                         input: true,
                         clear: false,
-                        save: true
+                        save: true,
+                        cancel:false,
                     }
                 }
             }).on('save', (color, instance) => {
@@ -79,7 +76,7 @@ export class LayerTree_colorPickr extends LayerTree {
                     this.INSTANCE_JS_TREE.uncheck_node(tnode);
                 }
 
-                //2. TODO
+                //2. 기 발행 레이어 파기
                 this.INSTANCE_MOGISMAP.discardLayer(Number(param.id), layerPurposeCategoryKey);
                 // this.INSTANCE_MOGISMAP.ctrlLayer(Number(param.id),true,this.layerPurposeCategoryKey)
                 
@@ -88,29 +85,42 @@ export class LayerTree_colorPickr extends LayerTree {
                     this.INSTANCE_JS_TREE.check_node(tnode);
                 }
             });
-        })
+        });
+        
+        document.querySelectorAll(`button.linePickr`).forEach(node=>{
+		    node.addEventListener('click',(e)=>{
+		        let id = e.target.dataset.id;
+		        let key = e.target.dataset.layerpurposecategory;
+		        let input = document.querySelector(`input[name='lineWidth'][data-id='${id}'][data-layerpurposecategory='${key}']`);
+		        let width = input.value;
+		
+		        this.INSTANCE_MOGISMAP.layerCodeObject[key].map(el=>(el.id==id ? el.lineWidth=Number(width) : el));
+		        
+		        let tnode = this.INSTANCE_JS_TREE.get_node("layerid_" + id);
+
+                if (tnode?.state.selected == true) {
+                    this.INSTANCE_JS_TREE.uncheck_node(tnode);
+                }
+
+                //2. 기 발행 레이어 파기
+                this.INSTANCE_MOGISMAP.discardLayer(Number(id), key);
+                
+                if (tnode?.state.selected == false) {
+                    this.INSTANCE_JS_TREE.check_node(tnode);
+                }
+		        
+		    })
+		})
 
 
         //colorPicker 컨테이너에 이벤트 버블링/캡쳐링 중단
         document.querySelectorAll('div.colorPickr_container').forEach(node=>{
             node.addEventListener('click',e=>e.stopPropagation())
         });
-    }
-
-    #createTreeDiv() {
-        let treeDiv = document.querySelector(`#${this.TREE_DIV_ID}`);
-        if (treeDiv instanceof HTMLDivElement) {
-            treeDiv.insertAdjacentHTML(
-                `beforeend`,
-                this.TREE_ELEMENT.getHTML()
-            );
-        } else {
-            throw new Error(
-                `layerTree 객체위한 DIV가 생성되지 않음: div id=${
-                    this.TREE_DIV_ID
-                }`
-            );
-        }
+        //colorPicker 팔레트에 이벤트 버블링/캡쳐링 중단
+        document.querySelectorAll('div.colorPickr_palette').forEach(node=>{
+			node.addEventListener('click',e=>e.stopPropagation())	
+		});
     }
 
     createWrap(array, level) {
@@ -124,37 +134,58 @@ export class LayerTree_colorPickr extends LayerTree {
             let hasChild = false;
 
             if (layerCode[KEY.CHILD_MARK]?.length > 0) hasChild = true;
-            if (level == 1) html += `<ul>`;
+            if (level == 1) html += `<ul class="contlist w165">`;
             if (isGroup == "Y") {
-                html += `<li id="${id}">${name}<ul>`;
+                html += `<li id="${id}">${name}<ul class="contlist w165">`;
             } else {
-                // let src = this.makeLegendSrc(layerCode);
-                // html += `<li id="layerid_${id}" ><img src="${src}" style="width:16px;"/> &nbsp;${name}`;
-                html += `<li id="layerid_${id}"  data-layerid="${id}">&nbsp;${name}`;
+                html += `<li id="layerid_${id}" data-layerid="${id}" data-type="${type}" class="${type} ${id}">	${name}`;
                 if(type == KEY.OL_GEOMETRY_OBJ.LINE) {
-                    html += `<div class="colorPickr_container" style="display:inline-flex; flex-direction: row; flex-wrap: nowrap;">
+                    html += `<div class="colorPickr_container" style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;">
+                                <div>선 색</div>
                                 <div    data-${KEY.LAYER_ID}="${id}"
                                         data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
                                         data-key="${KEY.COLOR_LINE}">
                                     <div class="colorPickr" data-rgba="${layerCode[KEY.COLOR_LINE]}"></div>
-                                </div>
+                                </div> 
+                                <div>선두께</div>                               
+                                <div>
+                                	<input type="number" name="lineWidth" required 
+                                	min="0.1" max="10" value="${layerCode[KEY.LINE_WIDTH]}" step="0.1"
+                                	data-${KEY.LAYER_ID}="${id}"
+                                        data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
+                                	 /><button class="linePickr" data-${KEY.LAYER_ID}="${id}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
+                                </div>                               
                             </div>`
                 }
                 if(type == KEY.OL_GEOMETRY_OBJ.POLYGON) {
-                    html += `<div class="colorPickr_container" style="display:inline-flex; flex-direction: row; flex-wrap: nowrap;">
+                    html += `<div class="colorPickr_container" style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;">
+                    		<div>선 색</div>
                             <div    data-${KEY.LAYER_ID}="${id}"
-                            data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
-                            data-key="${KEY.COLOR_LINE}">
-                                <div class="colorPickr" data-rgba="${layerCode[KEY.COLOR_LINE]}"></div>
+	                            data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
+	                            data-key="${KEY.COLOR_LINE}">
+                            	<div class="colorPickr" data-rgba="${layerCode[KEY.COLOR_LINE]}"></div>
                              </div>
+                             <div>선두께</div>                               
+                                <div>
+                                	<input type="number" name="lineWidth" required 
+                                	min="0.1" max="10" value="${layerCode[KEY.LINE_WIDTH]}" step="0.1"
+                                	data-${KEY.LAYER_ID}="${id}"
+                                        data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
+                                	 /><button class="linePickr" data-${KEY.LAYER_ID}="${id}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
+                                </div>
+                             <div>면 색</div>
                              <div    data-${KEY.LAYER_ID}="${id}"
                                         data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
                                         data-key="${KEY.COLOR_FILL}">
-                                <div class="colorPickr" data-rgba="${layerCode[KEY.COLOR_FILL]}"></div>
+                               	 <div class="colorPickr" data-rgba="${layerCode[KEY.COLOR_FILL]}"></div>
                               </div>  
                              </div>`
                 }
-                html += `</li>`;
+                html +=`<label class="switch">
+						<input type="checkbox" value="on/off" id="layerid_${id}_check">
+						<span class="slider round"></span>
+					</label>
+				</li>`;
             }
             if (hasChild) {
                 level++;
@@ -169,96 +200,4 @@ export class LayerTree_colorPickr extends LayerTree {
         return html;
     }
 
-    /**
-     * 체크박스 선택시 이벤트
-     */
-    checkEventListener() {
-        let me = this;
-        let nodeId;
-        $(`#${this.TREE_DIV_ID}`).bind("changed.jstree", function (e, data) {
-            if (data.action === "ready") return;
-
-            let visible = false;
-            if (data.action === "select_node") visible = true;
-
-            let layerCode_id_arr = [];
-            if (data.node.children.length > 0) {
-                for (let id in data.node.children_d) {
-                    nodeId = data.node.children_d[id];
-                    pushLayerList(nodeId, layerCode_id_arr);
-                }
-            } else {
-                nodeId = data.node.id;
-                pushLayerList(nodeId, layerCode_id_arr);
-            }
-            if (layerCode_id_arr.length > 0) {
-                //MOSubscriber (Legend 객체와 MOGISMap 객체)에 전달할 내용 구성
-                me.ctrlLayerDataArr=[];
-                let tempArr = layerCode_id_arr.map((id) => {
-                    let htmlStr = `<span>${makeHtmlStr(id)}</span>`;
-                    return {
-                        id : id,
-                        boolVisible : visible,
-                        layerPurposeCategory : me.layerPurposeCategoryKey,
-                        legendHtmlString : htmlStr,
-                        layerCode : getLayerCode(id),
-                    };
-                });
-                me.ctrlLayerDataArr = tempArr;
-                me.notify();
-            }
-        });
-        function makeHtmlStr(layer_id){
-            let layerCode = getLayerCode(layer_id);
-            let imgSrc = me.makeLegendSrc(layerCode);
-            return `<img src="${imgSrc}" style="width:16px;"/>&nbsp;&nbsp;${layerCode[KEY.LAYER_NAME]}`
-        }
-        function getLayerCode(layer_id){
-            return me.layerCodeArr.find(el=>el[KEY.LAYER_ID]==layer_id);
-        }
-        function pushLayerList(nodeId, layerList) {
-            let node = me.INSTANCE_JS_TREE.get_node(nodeId);
-            let layerid;
-            if (nodeId.indexOf(KEY.LAYER_ID) > -1) {
-                layerid = node.data.layerid;
-                layerList.push(layerid);
-            }
-        }
-    }
-
-    //🟨🟨🟨MOPublisher 함수등록🟨🟨🟨🟨🟨🟨🟨🟨🟨
-   
-   /** publisherData로서 MOSubscriber 에게 전달할 정보 객체 
-    * @type {Array<KEY.LegendCodeObj>} */
-    ctrlLayerDataArr = [
-        {
-            id: undefined,
-            boolVisible: true,
-            layerPurposeCategory: this.layerPurposeCategoryKey,
-            legendHtmlString:'',
-            layerCode:[],
-        },
-    ];
-
-    /** MOSubscriber 들이 가져가는 데이터 */
-    get PublisherData() {
-        return this.ctrlLayerDataArr;
-    }
-
-    //🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨
-
-    /**
-     * 이미지 정보
-     */
-    makeLegendSrc(layerInfoElem) {
-        let src;
-        let iconPath = this.defaults.iconPath;
-        if (layerInfoElem[KEY.ICON_NAME]) {
-            src = iconPath + layerInfoElem[KEY.ICON_NAME];
-        } else {
-            let ss = this.makeLegendImage(layerInfoElem);
-            src = ss.src;
-        }
-        return src;
-    }
 }
