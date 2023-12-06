@@ -86,6 +86,9 @@ export class SourceFactory extends MOFactory{
      */
     #buildSource() {
         if (this.#isValid_category_source()) {
+            if(this.getSpec()[KEY.LAYER_GEOMETRY_TYPE] == KEY.VIRTUAL_SOURCE_LAYER_KEY){
+                return this.getSimpleVectorSource();
+            }
             try {
                 return this.#srcBuilder(
                     this.getSpec()[KEY.SOURCE_CATEGORY],
@@ -112,6 +115,11 @@ export class SourceFactory extends MOFactory{
         let bool = false;
         let category = this.getSpec()[KEY.SOURCE_CATEGORY]; //vworld, geoserver, emap etc.
         let sourceType = this.getSpec()[KEY.SOURCE_TYPE]; //vector, xyz, wmts etc.
+        let geomType = this.getSpec()[KEY.LAYER_GEOMETRY_TYPE]; // Point, Polygon.... virtual
+        //가상 레이어일 때
+        if(geomType == KEY.VIRTUAL_SOURCE_LAYER_KEY){
+            return true;
+        }
 
         if(!(category && sourceType)){
             console.groupCollapsed(`"category" 및 "source_type" 지정안됨`);
@@ -155,7 +163,6 @@ export class SourceFactory extends MOFactory{
 
         } else if (category == `vworld` && sourceType == `wmts`) {
             return this.#srcBuilder_wmts();
-
         } else {
             console.log(`정의되지 않은 category, sourceType`);
             console.log(category, sourceType);

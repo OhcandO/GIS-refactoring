@@ -102,14 +102,15 @@ function createStyleFunctionWithScale(geometryType, scaleFunction){
  * @returns {KEY.OPENLAYERS_GEOMETRY_TYPE}
  */
 function getLayerType(layerCode) {
-    //'group', 'BASE' 는 DB상 나눠놓은 코드이고, 벡터 데이터는 아니므로 여기서는 제외
-    const validLayerGeometryTypes = ["Point","LineString","Polygon" /*'BASE'*/];
+    // const validLayerGeometryTypes = ["Point","LineString","Polygon" /*'BASE'*/];
     
     let layerType = layerCode[KEY.LAYER_GEOMETRY_TYPE];
     if (layerType) {
         // layerType = layerType.toUpperCase();
-        if (validLayerGeometryTypes.includes(layerType)) {
+        if (Object.values(KEY.OL_GEOMETRY_OBJ).includes(layerType)) {
             return layerType;
+        }else if (layerType == KEY.VIRTUAL_SOURCE_LAYER_KEY){
+            return 'Polygon';
         }
     } else {
         console.log(`valid layerTypes : `, validLayerGeometryTypes);

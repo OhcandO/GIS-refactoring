@@ -167,7 +167,7 @@ export const LEGEND_HTML_STRING = 'legendHtmlString';
 export const ORIGIN = `origin`;
 export const SOURCE_PATHNAME = `sourcePathname`;
 /**
- * 소스 객체의 타입을 구분하기 위함. e.g. vector, wmts
+ * 소스를 Openlayers 상 클래스로 구분하기 위함. e.g. vector, wmts
  */
 export const SOURCE_TYPE = `sourceType`;
 export const CQL_FILTER = `cqlfilter`;
@@ -179,7 +179,10 @@ export const SRID = `srid`;
 export const SOURCE_CATEGORY = `category`;
 /** 주소검색 결과를 표현하기 위한 임시 소스와 레이어 */
 export const ADDRESS_SOURCE_LAYER_KEY = 'address';
+/** 강조효과 표현하기 위한 임시 소스와 레이어 */
 export const HIGHLIGHT_SOURCE_LAYER_KEY = 'highlight';
+/** 데이터 없는 빈 (vector) 소스와 레이어 */
+export const VIRTUAL_SOURCE_LAYER_KEY = 'virtual';
 
 /* Openlayers Feature들의 타입 구분 */
 /**

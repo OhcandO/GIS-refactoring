@@ -119,6 +119,25 @@ mainMap.addMOverlay(moverlay,'comp');
 
 
 
+
+
+
+
+
+
+
+
+// Worker API 
+const tempWorker = new Worker('./MO_GIS/classes/worker/MO.Worker.js'); 
+tempWorker.onmessage=e=>{
+    console.log(`----returned`);
+    console.log(e);
+};
+setTimeout(function(){
+    console.log(`worker sending!`)
+    tempWorker.postMessage({date:new Date(), val:123123});
+},2000);
+globalThis.wok = tempWorker;
 /* const pickr = Pickr.create({
     el: '.color-picker',
     theme: 'classic', // or 'monolith', or 'nano'

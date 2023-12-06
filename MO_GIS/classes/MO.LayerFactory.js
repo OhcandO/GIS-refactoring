@@ -126,15 +126,10 @@ export class LayerFactory extends MOFactory{
         }
         let returnlayer;
         try{
-            //1. 배경지도용 WMTS 소스
-            // if(this.#INSTANCE_ol_Source instanceof WMTS){
-            //     returnlayer = new TileLayer(updatedOption);
-            // }
-    
-            //2. 배경지도용 XYZ 소스
-            // else if (this.#INSTANCE_ol_Source instanceof XYZ){
-            //     returnlayer = new TileLayer(updatedOption)
-            // }
+            //1. 가상레이어
+            if (this.getSpec()[KEY.LAYER_GEOMETRY_TYPE]==KEY.VIRTUAL_SOURCE_LAYER_KEY){
+                returnlayer = this.getSimpleVectorLayer();
+            }
     
             //3. VectorImage 레이어용
             if (this.#INSTANCE_ol_Source instanceof VectorSource){
