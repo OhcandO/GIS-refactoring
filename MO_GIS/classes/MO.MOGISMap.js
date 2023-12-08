@@ -115,8 +115,11 @@ export class MOGISMap extends MOSimpleMap{
             /** @type {Function|undefined} */
             POINTER:undefined,
         },
+        /**
+         * @typedef {Map<number,Array<MOOverlay>>} MOverlayGroup 레이어아이디(숫자) - 오버레이 배열 쌍
+         */
         OVERLAY:{
-            /**@type {Map<string,Array<MOOverlay>>} */
+            /**@type {MOverlayGroup} */
             default:new Map(),
            /** 중점 관리지역
              * @type {Map<string,Array<MOOverlay>>}*/
@@ -522,7 +525,36 @@ export class MOGISMap extends MOSimpleMap{
     }
 
     /**
-     * 개별 MOVerlay 또는 그룹을 보이고 지우는 컨트롤 
+     * 발행되거나 보관중인 MOVerlay 인스턴스를 삭제
+     * @param {KEY.LayerPurpose} la_pu_cate_key 
+     * @param {number} layer_id 
+     * @param {string} [mOverlay_id ]
+     */
+    discardMOverlay (la_pu_cate_key, layer_id, mOverlay_id){
+        let moverlayGroupMap;
+        if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
+            moverlayGroupMap = this.INSTANCE.OVERLAY[la_pu_cate_key];
+        }else{
+            moverlayGroupMap = this.INSTANCE.OVERLAY.default;
+        }
+
+        if(moverlayGroupMap instanceof Map){
+            //1. 특정 레이어에 속하는 오버레이만 제거
+            if(layer_id){
+                moverlayGroupMap.get(layer_id).forEach(mOverlay=>{
+                    this.map.removeOverlay(mOverlay);
+                });
+                moverlayGroupMap.clear();
+            }else{
+                throw new Error (`오버레이가 속한 레이어의 아이디가 필요함 : ${layer_id}`)
+            }
+        }else{
+            throw new Error (`overlay group 이 적합하지 않음`);
+        }
+    }
+
+    /**
+     * 개별 MOVerlay 또는 그룹을 켜고 끄는 컨트롤 메서드
      * @param {KEY.LayerPurpose} la_pu_cate_key 
      * @param {boolean} visible 
      * @param {string} [layer_id] 
@@ -534,14 +566,17 @@ export class MOGISMap extends MOSimpleMap{
         }else{
             overlayGroup = this.INSTANCE.OVERLAY.default;
         }
-
+		
         if(overlayGroup instanceof Map && overlayGroup.size>0){
 
             if(layer_id){
                 let moverlayArr = overlayGroup.get(layer_id);
                 if(moverlayArr instanceof Array){
-                    if(visible) moverlayArr.forEach(moverlay=>this.map.addOverlay(moverlay));
-                    else moverlayArr.forEach(moverlay=>this.map.removeOverlay(moverlay));
+                    if(visible) {
+						moverlayArr.forEach(moverlay=>{
+							this.map.addOverlay(moverlay);
+						});
+					}else moverlayArr.forEach(moverlay=>this.map.removeOverlay(moverlay));
                 }
             }else{
                 throw new Error(`layer_id 명시되어야 합니다 기본 : 'default'`)
