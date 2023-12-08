@@ -115,11 +115,8 @@ export class MOGISMap extends MOSimpleMap{
             /** @type {Function|undefined} */
             POINTER:undefined,
         },
-        /**
-         * @typedef {Map<number,Array<MOOverlay>>} MOverlayGroup 레이어아이디(숫자) - 오버레이 배열 쌍
-         */
         OVERLAY:{
-            /**@type {MOverlayGroup} */
+            /**@type {Map<string,Array<MOOverlay>>} */
             default:new Map(),
            /** 중점 관리지역
              * @type {Map<string,Array<MOOverlay>>}*/
@@ -541,6 +538,7 @@ export class MOGISMap extends MOSimpleMap{
         if(moverlayGroupMap instanceof Map){
             //1. 특정 레이어에 속하는 오버레이만 제거
             if(layer_id){
+				if(moverlayGroupMap.size==0) return;
                 moverlayGroupMap.get(layer_id).forEach(mOverlay=>{
                     this.map.removeOverlay(mOverlay);
                 });
@@ -582,5 +580,5 @@ export class MOGISMap extends MOSimpleMap{
                 throw new Error(`layer_id 명시되어야 합니다 기본 : 'default'`)
             }
         }
-    }
+    }    
 }
