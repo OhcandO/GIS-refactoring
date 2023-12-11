@@ -1,0 +1,20 @@
+{
+  "name": "gis-refactoring",
+  "version": "1.0.0",
+  "description": "MindOne GIS Openlayers 라이브러리 최적 사용을 위한 JS 모듈화 프로젝트.\r 지도가 필요한 화면에 간단하게 적용하여, \"미리 설정한 스타일의\" 지도 화면과 상호작용을 제공하도록 함.",
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  }
+}

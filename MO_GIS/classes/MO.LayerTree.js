@@ -177,9 +177,8 @@ export class LayerTree extends MOPublisher {
      * JQuery 의존적
      */
     createTree(treeList) {
-        console.log('parent:createTree')
         //1. map div 에 tree용 영역 생성
-        this.#createTreeDiv();
+        this.createTreeDiv();
 
         //2. tree 구조체 내에
         let wrap = this.createWrap(treeList);
@@ -198,7 +197,7 @@ export class LayerTree extends MOPublisher {
         this.INSTANCE_JS_TREE = $(`#${this.TREE_DIV_ID}`).jstree(true);
     }
 
-    #createTreeDiv() {
+    createTreeDiv() {
         let treeDiv = document.querySelector(`#${this.TREE_DIV_ID}`);
         if (treeDiv instanceof HTMLDivElement) {
             treeDiv.insertAdjacentHTML(

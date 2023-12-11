@@ -6,6 +6,10 @@ import { LayerTree_colorPickr } from './MO_GIS/classes/MO.LayerTree_colorPickr.j
 import { MOLegend } from './MO_GIS/classes/addon/MO.Legend.js';
 import Pickr from './lib/pickr-1.9.0/dist/pickr_1.9.0_esm.js';
 import { MOOverlay } from './MO_GIS/classes/addon/MO.overlay.js';
+import { Spinner } from './lib/spin.js/spin.js';
+import {TileLoadProgress} from './MO_GIS/classes/addon/TileLoadProgress.js';
+import {MOMeasure} from './MO_GIS/classes/addon/MO.Measure.js';
+
 // export {Pickr} ;
 // import { LayerTree_new } from './MO_GIS/classes/MO.LayerTree_new.js';
 
@@ -176,6 +180,83 @@ pickr
 // .on('swatchselect', (color, instance) => {console.log('Event: "swatchselect"', color, instance);})
 ;
 export default mainMap;
+
+
+
+    const default_spinner = {
+        lines: 15, length: 38, width: 12, radius: 38, scale: 1, corners: 1, speed: 1, rotate: 0,
+        animation: "spinner-line-fade-more", direction: "1", color: "#ffffff",
+        fadeColor: "transparent", top: "50%", left: "50%", shadow: "grey 3px 4px 8px 1px",
+        zIndex: 2000000000, className: "spinner", position: "absolute",};
+    let tileLoadProgress = new TileLoadProgress(document.querySelector(`#progress`));
+    //----SPINNER
+    let spin = new Spinner(default_spinner);
+    mainMap.map.on("loadstart",()=>{
+        // showMapLoading(); 
+        tileLoadProgress.show();
+    })
+    mainMap.map.on("loadend",()=>{
+        // hideMapLoading(); 
+        tileLoadProgress.hide();
+    })
+
+
+    mainMap.map.getLayers().getArray().filter(layer=>layer.get(`layerType`)=='BASE')
+    .forEach(baseLayer=>{
+        baseLayer.getSource().on(`tileloadstart`,function(){tileLoadProgress.addLoading()})
+        baseLayer.getSource().on(`tileloadend`,function(){tileLoadProgress.addLoaded()})
+    })
+
+
+
+    //지도 위 이벤트들
+        //배경지도 선택기 노출 버튼
+    document.querySelector(`#baseLayerShifter_btn`).addEventListener(`click`,function(e){
+        let options = document.querySelector(`#baseLayerShifter_option`);
+        if(options.style.display ==='') options.style.display='block';
+        else options.style.display ='';
+    });
+    //배경지도 선택기
+    document.querySelectorAll(`.layerChanger`)
+    .forEach(node => {
+        const baseLayers= ['Base','midnight','gray','Satellite'];
+        const hybridLayer= 'Hybrid';
+
+            node.addEventListener(`click`, function (e) {
+                let layerName = node.dataset[`layer`];
+                //하이브리드 레이어 켜고 끄기
+                if(layerName===hybridLayer) {
+                    let hyb = mainMap.map.getLayers().getArray().find(layer=>layer.get('typeName')==hybridLayer);
+                    if(hyb) hyb.getVisible()? hyb.setVisible(false): hyb.setVisible(true);
+                }else{
+                    //다른 레이어들은 바꾸기
+                    mainMap.map.getLayers().getArray().filter(layer=>baseLayers.includes(layer.get('typeName')))
+                    .forEach(layer => {
+                        if (baseLayers.includes(layerName) && layer.get('typeName') === layerName) {
+                            layer.setVisible(true);
+                        } else layer.setVisible(false);
+                    })
+                }
+            });
+    });
+
+    //측정도구
+    let measure = new MOMeasure(mainMap, false);
+
+    document.querySelectorAll(`input[name="control_measure"]`).forEach(node=>{
+        node.addEventListener('change',function(e){
+            if(e.target.checked){
+                measure.activeMeasure(e.target.value);
+            }
+        })
+    })
+
+    function showMapLoading(){spin.spin(document.querySelector(`#map`));}
+    function hideMapLoading(){spin.stop();}
+
+    globalThis.mainMap_prepare = showMapLoading;
+    globalThis.mainMap_done= hideMapLoading;
+
 
 globalThis.mindone = KEY.mindone;
 globalThis.mainMap = mainMap;
