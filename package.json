@@ -16,5 +16,13 @@
   "devDependencies": {
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OhcandO/GIS-refactoring.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OhcandO/GIS-refactoring/issues"
+  },
+  "homepage": "https://github.com/OhcandO/GIS-refactoring#readme"
 }
