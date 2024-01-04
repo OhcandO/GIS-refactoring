@@ -196,7 +196,10 @@ export const OL_GEOMETRY_OBJ={
     LINE:'LineString',
     POLYGON:'Polygon',
 }
-
+/**
+ * select interaction 편의를 위해, 줌이 이 수준 이상 확대되면 select 되지 않도록 조치
+ */
+export const POLYGON_SELECT_MARGINAL_ZOOM = 15;
 
 export const CONSOLE_DECO={
         HEADER:`border:2px solid blue; border-radius:5px;

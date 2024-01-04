@@ -84,7 +84,7 @@ export class LayerFactory extends MOFactory{
      * 레이어 중 zIndex가 가장 높은 벡터레이어 생성 (주소검색용)
      * @returns {VectorImageLayer}
      */
-    getSimpleVectorLayer=() =>new VectorImageLayer({zIndex:Infinity});
+    getSimpleVectorLayer=() =>new VectorImageLayer({zIndex:20});
 
     #isValid_ol_Source(sourceInstance){
         let bool = false;

@@ -23,15 +23,17 @@ export class SourceFactory extends MOFactory{
     #default_sourceSpec = {
         // strategy : LoadingStrategy,//loading strategy. out of : all, bbox, tile
         crossOrigin : 'anonymous', //XYZ 
-        minZoom : 19 //XYZ
+        minZoom : 19, //XYZ
+        viewSrid:'EPSG:3857', 
     };
     
-    #INSTANCE_ol_Source; //생성자에 입력된 내용이 default 와 합쳐져 등록됨
+    INSTANCE_ol_Source; //생성자에 입력된 내용이 default 와 합쳐져 등록됨
     
     /**
      * Creates an instance of SourceFactory.
      * @param {object} par 소스팩토리 생성을 위한 object
      * @param {number} par.minZoom 소스차원에서 zoom 설정. 10으로 정하면 view가 11로 확대되어도 레이어를 요청하지 않음(ol.source.XYZ 만 해당)
+     * @param {string} par.viewSrid 뷰포트의 기준 좌표계
      * @memberof SourceFactory
      */
     constructor(par){
@@ -44,16 +46,16 @@ export class SourceFactory extends MOFactory{
     }
 
     getSource() {
-        if(!this.#INSTANCE_ol_Source) {
+        if(!this.INSTANCE_ol_Source) {
             try{
-                this.#INSTANCE_ol_Source = this.#buildSource();
+                this.INSTANCE_ol_Source = this.#buildSource();
             }catch(e){
                 console.error(e);
                 return undefined;
             }
         }
-        if(this.#INSTANCE_ol_Source instanceof Source){
-            return this.#INSTANCE_ol_Source;
+        if(this.INSTANCE_ol_Source instanceof Source){
+            return this.INSTANCE_ol_Source;
         }else{
             console.groupCollapsed(`해당 source 객체는 openlayers 인스턴스 아님`);
             console.log(inputLayerSpec);
@@ -67,14 +69,16 @@ export class SourceFactory extends MOFactory{
      * @returns {VectorSource}
      */
     getSimpleVectorSource(){
-        return new VectorSource();
+        return new VectorSource(this.#default_sourceSpec);
     }
+    
+    
     /**
      * 초기화
      */
     resetFactory(){
         super.resetFactory();        
-        this.#INSTANCE_ol_Source = undefined;
+        this.INSTANCE_ol_Source = undefined;
     }
 
     /**
@@ -85,12 +89,12 @@ export class SourceFactory extends MOFactory{
      * @memberof MOSourceConfig
      */
     #buildSource() {
-        if (this.#isValid_category_source()) {
+        if (this.isValid_category_source()) {
             if(this.getSpec()[KEY.LAYER_GEOMETRY_TYPE] == KEY.VIRTUAL_SOURCE_LAYER_KEY){
                 return this.getSimpleVectorSource();
             }
             try {
-                return this.#srcBuilder(
+                return this.srcBuilder(
                     this.getSpec()[KEY.SOURCE_CATEGORY],
                     this.getSpec()[KEY.SOURCE_TYPE]
                 );
@@ -111,7 +115,7 @@ export class SourceFactory extends MOFactory{
      * 본 클래스 내에서 다룰 수 있는지 여부를 우선으로 판가름함
      * @returns {boolean}
      */
-    #isValid_category_source() {
+    isValid_category_source() {
         let bool = false;
         let category = this.getSpec()[KEY.SOURCE_CATEGORY]; //vworld, geoserver, emap etc.
         let sourceType = this.getSpec()[KEY.SOURCE_TYPE]; //vector, xyz, wmts etc.
@@ -153,16 +157,16 @@ export class SourceFactory extends MOFactory{
      * @param {String} sourceType 소스타입
      * @returns {Source}
      */
-    #srcBuilder(category, sourceType) {
+    srcBuilder(category, sourceType) {
         if (category == `geoserver` && sourceType == `vector`) {
-            return this.#srcBuilder_vector();
+            return this.srcBuilder_vector();
 
         } else if (category == `vworld` && sourceType == `xyz`) {
             
-            return this.#srcBuilder_xyz();
+            return this.srcBuilder_xyz();
 
         } else if (category == `vworld` && sourceType == `wmts`) {
-            return this.#srcBuilder_wmts();
+            return this.srcBuilder_wmts();
         } else {
             console.log(`정의되지 않은 category, sourceType`);
             console.log(category, sourceType);
@@ -184,7 +188,8 @@ export class SourceFactory extends MOFactory{
                 //숫자로만 이뤄져있나
                 SRID = `EPSG:` + SRID;
             } else {
-                SRID = undefined;
+                throw new Error(`SRID 가 유효하지 않음 : ${SRID}`);
+//                SRID = undefined;
             }
             return SRID;
         }
@@ -238,10 +243,10 @@ export class SourceFactory extends MOFactory{
     }
 
     /**
-     * 
-     * @returns 
+     * vworld WebMapTileService 의 getCompatibilities 방식을 사용한 MapTile 소스 빌드
+	 * 2023-12월 기준 vworld getCompatibilities 내용을 미리 저장해 놓고 APIKEY 만 교체해서 사용하고 있음    
      */
-    #srcBuilder_wmts(){
+    srcBuilder_wmts(){
          if(this.#isValid_apiKey()){
             const typeName = this.getSpec()[KEY.TYPE_NAME];
             const wmtsConfigTemplate = vworld_compatibilities.replaceAll('{{{ $APIKEY }}}',this.getSpec()[KEY.APIKEY]);
@@ -257,10 +262,11 @@ export class SourceFactory extends MOFactory{
         }
     }
 
-    #srcBuilder_vector(){
+
+    srcBuilder_vector(userSrid){
         let geojson_option={};
             
-        let srid = this.#getValidSrid();
+        let srid = userSrid || this.#getValidSrid();
         let geoUrl ;
         try{
             geoUrl = this.#urlBuilder_geoserver();
@@ -269,7 +275,7 @@ export class SourceFactory extends MOFactory{
         }
         if(srid) {
             geojson_option[`dataProjection`]=srid;
-            geojson_option[`featureProjection`]='EPSG:3857';
+            geojson_option[`featureProjection`]=this.#default_sourceSpec.viewSrid;
         }
         let vectorOption;
         try{
@@ -291,7 +297,8 @@ export class SourceFactory extends MOFactory{
         }
     }
 
-    #srcBuilder_xyz(){
+	/** 구 xyz 소스 */
+    srcBuilder_xyz(){
         let sourceOption={
             url: this.#urlBuilder_vworld_xyz(),
             maxZoom : 19,
@@ -304,7 +311,7 @@ export class SourceFactory extends MOFactory{
         return new XYZ(sourceOption);
 //        return new ol.source.XYZ(sourceOption);
     }
-
+    
     #isValid_apiKey(){
         let bool = false;
         let apiKey = this.getSpec()[KEY.APIKEY];

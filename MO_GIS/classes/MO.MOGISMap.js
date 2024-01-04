@@ -283,9 +283,15 @@ export class MOGISMap extends MOSimpleMap{
                 hitTolerance : this.default_select.hitTolerance,
                 multi : this.default_select.multi,
                 style : createStyleFunction(KEY.HIGHLIGHT_SOURCE_LAYER_KEY),
-                layers: function(layer){
-                    return layer.get(KEY.BOOL_SELECTABLE)?.toUpperCase() ==='Y'
-                }
+                filter: function(feature,layer){
+					let featureType = feature.getGeometry().getType();
+					let boolFeature = true;
+					if(featureType == KEY.OL_GEOMETRY_OBJ.POLYGON){
+						boolFeature = me.view.getZoom() < KEY.POLYGON_SELECT_MARGINAL_ZOOM;
+					}
+					let boolLayer = layer.get(KEY.BOOL_SELECTABLE)?.toUpperCase() ==='Y';
+					return boolFeature && boolLayer;
+				},
             });
         }catch(e){
             console.error(e);

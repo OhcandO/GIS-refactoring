@@ -10,7 +10,7 @@ import Layer from '../../../lib/openlayers_v7.5.1/layer/Layer.js';
 import { MOSubscriber } from './MO.Subscriber.js';
 import { LayerTree } from '../MO.LayerTree.js';
 import { MOFactory } from './MO.Factory.js';
-
+import { defaults as defaultInteraction} from '../../../lib/openlayers_v7.5.1/interaction.js';
 /**
  * MOGISMap 객체를 생성하기 위한 파라미터 정의
  * @typedef {object} MOGIS_param
@@ -118,7 +118,8 @@ export class MOSimpleMap extends MOSubscriber{
 		this.INSTANCE.MAP = new olMap({
                 target: this.default_mapSpec.target,
                 view: this.view,
-                controls:[]
+                controls:[],
+                interactions: defaultInteraction({doubleClickZoom:false})
             });
 	}
     get view() {

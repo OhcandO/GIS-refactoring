@@ -218,6 +218,14 @@ function getStyleFunc_POLYGON(layerCode, tempStyleOption) {
     return function (feature, resolution) {
         let style = new Style();
             style.setStroke(new Stroke(tempStyleOption.stroke));
+            let conditionalStroke = style.getStroke();
+            if(resolution < KEY.POLYGON_SELECT_MARGINAL_RESOLUTION){
+	            conditionalStroke.setLineDash([10,10]);
+			}else{
+	            conditionalStroke.setLineDash(undefined);
+			}
+            style.setStroke(conditionalStroke);
+            
             style.setFill(new Fill(tempStyleOption.fill));
 
         //2. layerCode에 텍스트 컬럼 지정되었으면
@@ -232,7 +240,9 @@ function getStyleFunc_POLYGON(layerCode, tempStyleOption) {
             let geom = feature.getGeometry();
             let targetGeom;
             if (geom instanceof Polygon) {
-                targetGeom = geom.getInteriorPoint();
+//                targetGeom = geom.getInteriorPoint();
+				let ext = geom.getExtent()
+                targetGeom = new Point([0.5*ext[0]+0.5*ext[2],0.5*ext[1]+0.5*ext[3]]);
             } else if (geom instanceof MultiPolygon) {
                 targetGeom = geom.getInteriorPoints();
             } else {
@@ -268,7 +278,7 @@ function getStyleFunc_HIGHTLIGHT(){
             image: new CircleStyle({
                 fill: new Fill({color:fill.color}),
                 stroke: new Stroke(stroke),
-                radius: 5,
+                radius: 9,
             }),
             fill: new Fill({color:fill.color}),
             stroke: new Stroke(stroke),
@@ -277,7 +287,7 @@ function getStyleFunc_HIGHTLIGHT(){
         new Style({
             stroke: new Stroke({
                 color: 'rgba(233,51,51,1)',
-                width: stroke.width+4,
+                width: stroke.width*2,
             }),
         }),
     ];
