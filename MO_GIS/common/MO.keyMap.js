@@ -40,8 +40,8 @@
 @property {string} boolEditable
 @property {string} boolIsdefault
 @property {string} boolDownload
- 
- */
+
+*/
 /* △△△△△△레이어 식별 관련△△△△△△△△△△△△△ */
 /** 화면에서 표현될 레이어 제목. 범례, 레이어 선택 화면 등에서 표현되는 이름
  * @type {string}*/
@@ -67,6 +67,7 @@ export const LABEL_COLUMN = `label`;
 export const BOOL_SELECTABLE = `boolSelectable`;
 export const BOOL_SHOW_INITIAL = `boolIsdefault`; //'초기에 보여야 하는지' 여부. 상수 constant
 export const BOOL_VISIBLE = `boolVisible`; //'보여야 하는지' 여부. 변수 variable
+export const BOOL_DECLUTTER= `boolDeclutter`; //'보여야 하는지' 여부. 변수 variable
 export const Z_INDEX = `zIndex`;
 export const MIN_ZOOM = `minZoom`;
 
@@ -81,10 +82,10 @@ export const LAYER_ORDER = 'ordr'; //레이어 표출 순서
 export const BOOL_IS_GROUP = `boolIsgroup` // 해당 레이어가 '형식상' 레이어이며 그룹핑 용도로만 사용되는지 여부
 /*
  * 레이어들의 목적으로 다르게 운용하기위해 구분
- * @enum { {BASE:['base',5], RISKMAP:['risk',1], LEAK:['leak',2], PUBLIC:['public',3], PIPENET:['pipnet',4], MANAGE:['manage',6], COMPLAINT:['comp',7], REALTIME:['realtime',8], PORTABLE:['portable',9] }} LAYER_PURPOSE_CATEGORY
+ * @enum { {BASE:['base',5], RISKMAP:['risk',1], LEAK:['leak',2], PUBLIC:['public',3], PIPENET:['pipenet',4], MANAGE:['manage',6], COMPLAINT:['comp',7], REALTIME:['realtime',8], PORTABLE:['portable',9] }} LAYER_PURPOSE_CATEGORY
  */
 /**
- * @typedef {"base" | "risk" | "leak" | "public" | "pipnet"| "manage"| "comp"| "realtime"| "portable"} LayerPurpose
+ * @typedef {"base" | "risk" | "leak" | "public" | "pipenet"| "manage"| "comp"| "realtime"| "portable"} LayerPurpose
  */
 /**
  * @typedef {Array<LayerPurpose|number>} LayerPurposeAndOrder
@@ -103,7 +104,7 @@ export const LAYER_PURPOSE_CATEGORY= {
         /** (지능수도플) 공공서비스 */
         PUBLIC:['public',3], 
         /** (지능수도플) 관망해석결과 */
-        PIPENET:['pipnet',4], 
+        PIPENET:['pipenet',4], 
         /**(지능수도플) 중점 관리지역 */
         MANAGE:['manage',6], 
         /** (지능수도플) 상습민원지역 */
@@ -153,6 +154,8 @@ export const HIGHLIGHT_SOURCE_LAYER_KEY = 'highlight';
 /** 데이터 없는 빈 (vector) 소스와 레이어 */
 export const VIRTUAL_SOURCE_LAYER_KEY = 'virtual';
 
+
+
 /* Openlayers Feature들의 타입 구분 */
 /**
  * @typedef {'Point'|'LineString'|'Polygon'} OPENLAYERS_GEOMETRY_TYPE 오픈레이어스에서 사용하는 Geometry 타입명
@@ -168,7 +171,7 @@ export const OL_GEOMETRY_OBJ={
 /**
  * select interaction 편의를 위해, 줌이 이 수준 이상 확대되면 select 되지 않도록 조치
  */
-export const POLYGON_SELECT_MARGINAL_ZOOM = 15;
+export const POLYGON_SELECT_MARGINAL_RESOLUTION = 4;
 
 export const CONSOLE_DECO={
         HEADER:`border:2px solid blue; border-radius:5px;
