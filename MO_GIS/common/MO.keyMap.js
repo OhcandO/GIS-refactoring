@@ -42,42 +42,6 @@
 @property {string} boolDownload
  
  */
-/*
-{
-    "names": "YC 전체",
-    "ordr": 1,
-    "sourceType": "vector",
-    "category": "geoserver",
-    "srid": "EPSG:5186",
-    "origin": "http:\/\/118.42.103.144:9090",
-    "sourcePathname": "\/geoserver\/wfs",
-    "apiKey": null,
-    "id": 24,
-    "pid": 8,
-    "minZoom": 9,
-    "layerTitle": "YC 전체",
-    "typeName": "swap:wtl_blsm_as_yc",
-    "cqlfilter": null,
-    "iconName": null,
-    "label": "BLCK_NM",
-    "zIndex": 6,
-    "lineWidth": "2",
-    "lineStyle": "[3,5,1,4]",
-    "geomType": "Polygon",
-    "colorFill": "rgba(88, 187, 78, 0.66)",
-    "colorLine": "rgba(21, 80, 0, 0.7)",
-    "font": "25px Malgun Gothic",
-    "colorFontLine": "rgba(0, 0, 0, 1)",
-    "colorFontFill": "rgba(184, 106, 0, 1)",
-    "boolUseYn": "Y",
-    "boolIsgroup": null,
-    "boolSelectable": null,
-    "boolEditable": null,
-    "boolIsdefault": "Y",
-    "boolDownload": null
-}
-
-*/
 /* △△△△△△레이어 식별 관련△△△△△△△△△△△△△ */
 /** 화면에서 표현될 레이어 제목. 범례, 레이어 선택 화면 등에서 표현되는 이름
  * @type {string}*/
@@ -171,6 +135,11 @@ export const SOURCE_PATHNAME = `sourcePathname`;
  */
 export const SOURCE_TYPE = `sourceType`;
 export const CQL_FILTER = `cqlfilter`;
+
+/**
+ * (임시) GIS데이터 연계시, 원본 소스에서 지정한 특수 레이어 아이디일 것. 이것을 arcLayerId 로 임시지정
+ */
+export const ARC_LAYER_ID = `arcLayerId`;
 export const APIKEY = `apiKey`;
 export const SRID = `srid`;
 /**
