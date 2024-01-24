@@ -2,6 +2,7 @@ const path = require('path');
 
 module.exports = {
   // mode: "development",
+  mode: "production",
   entry: './main.js',
   // devtool:"inline-source-map",
   output: {
