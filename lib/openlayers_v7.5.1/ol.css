@@ -113,6 +113,7 @@
 
 .ol-viewport {
   touch-action: none;
+  border-radius:12px;
 }
 
 .ol-selectable {
@@ -135,16 +136,135 @@
   cursor: grab;
 }
 
+/*** zoom in,out : 20231123 ohj start ***
+*****************************************/
+#ol_zoomy_btn {position:relative;top:0;left:0;width:100%;}
+
 .ol-control {
-  position: absolute;
-  background-color: var(--ol-subtle-background-color);
-  border-radius: 4px;
+  /*background-color: var(--ol-subtle-background-color);
+  background-color:#000;
+  border-radius: 4px;*/
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
 }
 
 .ol-zoom {
-  top: .5em;
-  left: .5em;
+  /*top: .5em;
+  left: .5em;*/
+  width:100%;
 }
+
+.ol-zoom .ol-zoom-in {
+  /*border-radius: 2px 2px 0 0;*/
+  width:42px;
+  height:42px;
+  box-sizing:border-box;
+  background:#fff url(../../../../../bootstrap-template/gentelella/production/images/button/map_plus.png)no-repeat center center;
+  background-size:24px 24px;
+  border:2px solid var(--stroke-table);
+  border-radius:12px;
+  filter:drop-shadow(0 0 16px rgba(0,0,0,0.2));
+}
+
+.ol-zoom-in:hover,
+.ol-zoom-in:active,
+.ol-zoom-in:focus {background:#fff url(../../../../../bootstrap-template/gentelella/production/images/button/map_plus_on.png)no-repeat center center;
+  background-size:24px 24px;
+  text-decoration:none;
+  outline:0;
+}
+
+.ol-control button {
+  display: block;
+  margin: 0;
+  padding: 0;
+  color:transparent;
+  /*font-weight: bold;
+  text-decoration: none;*/
+  font-size: 0;
+  text-align: center;
+  height: 1.375em;
+  /*width: 1.375em;
+  line-height: .4em;
+  background-color: var(--ol-background-color);
+  border: none;
+  border-radius: 2px;*/
+}
+
+.ol-zoom .ol-zoom-out {
+  width:42px;
+  height:42px;
+  box-sizing:border-box;
+  background:#fff url(../../../../../bootstrap-template/gentelella/production/images/button/map_minus.png)no-repeat center center;
+  background-size:24px 24px;
+  border:2px solid var(--stroke-table);
+  border-radius:12px;
+  filter:drop-shadow(0 0 16px rgba(0,0,0,0.2));
+  margin-top:134px;
+}
+
+.ol-zoom-out:hover,
+.ol-zoom-out:active,
+.ol-zoom-out:focus {background:#fff url(../../../../../bootstrap-template/gentelella/production/images/button/map_minus_on.png)no-repeat center center;
+  background-size:24px 24px;
+  text-decoration:none;
+  outline:0;
+}
+
+.ol-zoom-in:focus-visible,
+.ol-zoom-out:focus-visible {outline:1px solid #000;}
+
+.ol-control button:hover,
+.ol-control button:focus {
+  text-decoration: none;
+  outline: 0;
+  /*color: var(--ol-foreground-color);*/
+}
+
+#ol_zoomy_range {
+  position:absolute;
+  top:48px;
+  left:0;
+  width:42px;
+  height:122px;
+  border-radius:12px;
+  border:2px solid var(--stroke-table);
+  background:#fff url(../../../../../bootstrap-template/gentelella/production/images/button/bg_zoomscroll.png)no-repeat center center;
+  background-size:26px 94px;
+  box-shadow:0 0 16px rgba(0, 0, 0, 0.2);
+  z-index:3;
+}
+
+.ol-zoomslider {
+  /*top: 4.5em;
+  left: .5em;
+  height: 200px;*/  
+  width:100%;
+  height:94px;
+  margin:12px 0;
+}
+
+.ol-zoomslider button {
+  position: relative;
+  display: block;
+  width:28px;
+  height:6px;
+  margin:0 5px;
+  padding:0;
+  color: var(--ol-subtle-foreground-color);
+  font-weight:bold;
+  text-decoration:none;
+  font-size:inherit;
+  text-align:center;
+  line-height:6px;
+  background-color:#fff;
+  border:0.063rem solid var(--black-sub);
+  border-radius:2px;
+}
+
+/*** zoom in,out : 20231123 ohj end ***/
 
 .ol-rotate {
   top: .5em;
@@ -168,23 +288,6 @@
   top: .5em;
 }
 
-.ol-control button {
-  display: block;
-  margin: 1px;
-  padding: 0;
-  color: var(--ol-subtle-foreground-color);
-  font-weight: bold;
-  text-decoration: none;
-  font-size: inherit;
-  text-align: center;
-  height: 1.375em;
-  width: 1.375em;
-  line-height: .4em;
-  background-color: var(--ol-background-color);
-  border: none;
-  border-radius: 2px;
-}
-
 .ol-control button::-moz-focus-inner {
   border: none;
   padding: 0;
@@ -206,21 +309,6 @@
 
 .ol-touch .ol-zoom-extent {
   top: 5.5em;
-}
-
-.ol-control button:hover,
-.ol-control button:focus {
-  text-decoration: none;
-  outline: 1px solid var(--ol-subtle-foreground-color);
-  color: var(--ol-foreground-color);
-}
-
-.ol-zoom .ol-zoom-in {
-  border-radius: 2px 2px 0 0;
-}
-
-.ol-zoom .ol-zoom-out {
-  border-radius: 0 0 2px 2px;
 }
 
 .ol-attribution {
@@ -286,17 +374,6 @@
 
 .ol-attribution.ol-uncollapsible button {
   display: none;
-}
-
-.ol-zoomslider {
-  top: 4.5em;
-  left: .5em;
-  height: 200px;
-}
-
-.ol-zoomslider button {
-  position: relative;
-  height: 10px;
 }
 
 .ol-touch .ol-zoomslider {
