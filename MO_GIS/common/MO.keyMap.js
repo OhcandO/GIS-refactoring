@@ -206,7 +206,7 @@ export const CONSOLE_DECO={
  * @param {String} [parent_id_key] 개별 JSON 요소들의 상위 ID 를 참조할 키 명칭
  * @param {String} [child_mark] NESTED 구조체 만들기 위한 
  * @param {String} [most_upper_id] 최상위 아이디
- * @returns 
+ * @returns {Array}
  */
 export function jsonNestor (array, target_id_key, parent_id_key, child_mark, most_upper_id){
 if(array?.length>0){

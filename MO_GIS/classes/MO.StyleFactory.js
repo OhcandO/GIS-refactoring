@@ -255,7 +255,6 @@ export class StyleFactory extends MOFactory {
          *
          * @param {Feature} feature
          * @param {Number} resolution
-         * @returns
          */
         let styleFunc= function (feature, resolution) {
             let style = new Style();

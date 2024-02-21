@@ -148,7 +148,7 @@ export class MOPublisher {
 
     /**
      * 이 Subject에 등록된 모든 MObserver 배열 반환
-     * @returns {[MOSubscriber]} MObserver 배열
+     * @returns {MOSubscriber} MObserver 배열
      */
     #getSubscriberList(groupName) {
         const tempArr = groupName
