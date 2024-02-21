@@ -30,18 +30,24 @@ export class SourceFactory extends MOFactory{
     INSTANCE_ol_Source; //생성자에 입력된 내용이 default 와 합쳐져 등록됨
     
     /**
+     * @typedef {object} source_param Openlayers 소스객체 생성 팩토리 초기화 변수
+     * @prop {number} [minZoom] 소스차원에서 zoom 설정. 10으로 정하면 view가 11로 확대되어도 레이어를 요청하지 않음(ol.source.XYZ 만 해당)
+     * @prop {string} [viewSrid] 뷰포트의 기준 좌표계
+     */
+	
+	
+    /**
      * Creates an instance of SourceFactory.
-     * @param {object} par 소스팩토리 생성을 위한 object
-     * @param {number} par.minZoom 소스차원에서 zoom 설정. 10으로 정하면 view가 11로 확대되어도 레이어를 요청하지 않음(ol.source.XYZ 만 해당)
-     * @param {string} par.viewSrid 뷰포트의 기준 좌표계
+     * @param {source_param} par 소스팩토리 생성을 위한 object
      * @memberof SourceFactory
      */
     constructor(par){
         super();
         Object.assign(this.#default_sourceSpec, par);
 
-        //EPSG:5186 초기등록
+        //EPSG:5181,5186 초기등록
         proj4.defs("EPSG:5186","+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
+        proj4.defs("EPSG:5181","+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=500000 +ellps=GRS80 +units=m +no_defs");
         register(proj4);
     }
 
@@ -90,15 +96,16 @@ export class SourceFactory extends MOFactory{
      */
     #buildSource() {
         if (this.isValid_category_source()) {
-            if(this.getSpec()[KEY.LAYER_GEOMETRY_TYPE] == KEY.VIRTUAL_SOURCE_LAYER_KEY){
+            if(this.getSpec()[KEY.SOURCE_CATEGORY] == KEY.VIRTUAL_SOURCE_LAYER_KEY){
                 return this.getSimpleVectorSource();
             }
             try {
                 return this.srcBuilder(
                     this.getSpec()[KEY.SOURCE_CATEGORY],
-                    this.getSpec()[KEY.SOURCE_TYPE]
+                    this.getSpec()[KEY.SOURCE_CLASS]
                 );
             } catch (e) {
+				console.error(e);
                 console.groupCollapsed(`openlayers source 객체 생성실패`);
                 console.table(this.getSpec());
                 console.groupEnd();
@@ -118,14 +125,13 @@ export class SourceFactory extends MOFactory{
     isValid_category_source() {
         let bool = false;
         let category = this.getSpec()[KEY.SOURCE_CATEGORY]; //vworld, geoserver, emap etc.
-        let sourceType = this.getSpec()[KEY.SOURCE_TYPE]; //vector, xyz, wmts etc.
-        let geomType = this.getSpec()[KEY.LAYER_GEOMETRY_TYPE]; // Point, Polygon.... virtual
+        let sourceClass = this.getSpec()[KEY.SOURCE_CLASS]; //vector, xyz, wmts etc.
         //가상 레이어일 때
-        if(geomType == KEY.VIRTUAL_SOURCE_LAYER_KEY){
+        if(category == KEY.VIRTUAL_SOURCE_LAYER_KEY){
             return true;
         }
 
-        if(!(category && sourceType)){
+        if(!(category && sourceClass)){
             console.groupCollapsed(`"category" 및 "source_type" 지정안됨`);
             console.table(this.getSpec());
             console.groupEnd();
@@ -134,17 +140,17 @@ export class SourceFactory extends MOFactory{
 
         //현재는 이 도메인과 소스타입으로만 구성중임
         const AVAILABLE_CATEGORY_SOURCE = [
-            { category: `vworld`, sourceType: `wmts` },
-            { category: `vworld`, sourceType: `xyz` },
-            { category: `geoserver`, sourceType: `geojson` },
-            { category: `geoserver`, sourceType: `vector` },
+            { category: `vworld`, sourceClass: `wmts` },
+            { category: `vworld`, sourceClass: `xyz` },
+            { category: `geoserver`, sourceClass: `geojson` },
+            { category: `geoserver`, sourceClass: `vector` },
         ];
 
         bool = AVAILABLE_CATEGORY_SOURCE.some(
-            (e) => e.category == category && e.sourceType == sourceType
+            (e) => e.category == category && e.sourceClass == sourceClass
         );
         if (!bool) {
-            console.groupCollapsed(`유효하지 않은 category, sourceType 지정`);
+            console.groupCollapsed(`유효하지 않은 category, sourceClass 지정`);
             console.table(this.getSpec());
             console.groupEnd();
         }
@@ -154,23 +160,23 @@ export class SourceFactory extends MOFactory{
     /**
      *
      * @param {String} category 카테고리
-     * @param {String} sourceType 소스타입
+     * @param {String} sourceClass 소스타입
      * @returns {Source}
      */
-    srcBuilder(category, sourceType) {
-        if (category == `geoserver` && sourceType == `vector`) {
+    srcBuilder(category, sourceClass) {
+        if (category == `geoserver` && sourceClass == `vector`) {
             return this.srcBuilder_vector();
 
-        } else if (category == `vworld` && sourceType == `xyz`) {
+        } else if (category == `vworld` && sourceClass == `xyz`) {
             
             return this.srcBuilder_xyz();
 
-        } else if (category == `vworld` && sourceType == `wmts`) {
+        } else if (category == `vworld` && sourceClass == `wmts`) {
             return this.srcBuilder_wmts();
         } else {
-            console.log(`정의되지 않은 category, sourceType`);
-            console.log(category, sourceType);
-            throw new Error(`정의되지 않은 category, sourceType`);
+            console.log(`정의되지 않은 category, sourceClass`);
+            console.log(category, sourceClass);
+            throw new Error(`정의되지 않은 category, sourceClass`);
         }
     }
 
@@ -200,7 +206,7 @@ export class SourceFactory extends MOFactory{
      * @returns {URL}
      */
     #urlBuilder_geoserver() {
-        let origin = this.getSpec()[KEY.ORIGIN] ||location.origin;
+        let origin = this.getSpec()[KEY.ORIGIN] ?? location.origin;
         let pathName = this.getSpec()[KEY.SOURCE_PATHNAME]; // "/geoserver/waternet/wfs/";
         let returnURL;
         if (pathName) {
@@ -231,7 +237,7 @@ export class SourceFactory extends MOFactory{
         }
     }
     #urlBuilder_vworld_xyz() {
-        let origin = this.getSpec()[this.KEY.ORIGIN] ||location.origin;
+        let origin = this.getSpec()[KEY.ORIGIN] ??location.origin;
         let pathName = this.getSpec()[KEY.SOURCE_PATHNAME]; // "http://xdworld.vworld.kr:8080/2d/Satellite/service/{z}/{x}/{y}.jpeg";
         if (pathName) {
             return new URL(pathName, origin); //origin 은 sourceURL 이 absolute 라면 무시됨

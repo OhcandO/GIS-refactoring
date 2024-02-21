@@ -1,5 +1,6 @@
 import * as KEY from '../common/MO.keyMap.js';
 import {MOFactory} from './abstract/MO.Factory.js';
+
 import WMTS from '../../lib/openlayers_v7.5.1/source/WMTS.js';
 import Source from '../../lib/openlayers_v7.5.1/source/Source.js';
 import XYZ from '../../lib/openlayers_v7.5.1/source/XYZ.js';
@@ -7,6 +8,7 @@ import VectorSource  from '../../lib/openlayers_v7.5.1/source/Vector.js';
 import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
 import TileLayer from '../../lib/openlayers_v7.5.1/layer/Tile.js';
 import VectorImageLayer from '../../lib/openlayers_v7.5.1/layer/VectorImage.js';
+import TileArcGISRest from '../../lib/openlayers_v7.5.1/source/TileArcGISRest.js';
 
 /**
  * MOSourceConfig 인스턴스로 Openlayers Layer 객체를 생산하는 객체
@@ -38,14 +40,19 @@ export class LayerFactory extends MOFactory{
     #INSTANCE_olLayer;
 
 	/**
+	 * @typedef {object} layer_param 레이어팩토리 옵션 
+     * @property {boolean} [declutter] 서로겹침허용 여부
+     * @property {boolean} [visible] 레이어 초기 보임여부 
+     * @property {boolean} [isBase] 기본 배경 레이어로서 사용될지 여부 
+     * @property {number} [opacity] 투명도. 0~1 범위 소숫점 가능
+     * @property {number} [minZoom] 설정된 줌 보다 멀리 떨어지면 레이어 비활성
+     * @property {number} [zIndex] 레이어들이 서로 겹쳐있을 때 숫자가 클수록 위쪽에 위치 (다른 레이어 가림)
+	 * 
+	 */
+
+	/**
      * 레이어 팩토리 생성
-     * @param {object} [default_param] 레이어팩토리 옵션 
-     * @param {boolean} [default_param.declutter] 서로겹침허용 여부
-     * @param {boolean} [default_param.visible] 레이어 초기 보임여부 
-     * @param {boolean} [default_param.isBase] 기본 배경 레이어로서 사용될지 여부 
-     * @param {number} [default_param.opacity] 투명도. 0~1 범위 소숫점 가능
-     * @param {number} [default_param.minZoom] 설정된 줌 보다 멀리 떨어지면 레이어 비활성
-     * @param {number} [default_param.zIndex] 레이어들이 서로 겹쳐있을 때 숫자가 클수록 위쪽에 위치 (다른 레이어 가림)
+     * @param {layer_param} default_param 
      * @memberof LayerFactory
      */
     constructor(default_param){
@@ -61,6 +68,7 @@ export class LayerFactory extends MOFactory{
 
     setSource(sourceInstance){
         if(this.#isValid_ol_Source(sourceInstance)){
+//			this.resetFactory();
             this.#INSTANCE_ol_Source = sourceInstance;
         }else{
             console.error(`입력된 레이어 소스설정 인스턴스가 적합하지 않음`)
@@ -80,11 +88,17 @@ export class LayerFactory extends MOFactory{
             throw new Error(`해당 layer 객체는 openlayers Layer 인스턴스 아님`);
         }
     }
+    
+    
     /**
-     * 레이어 중 zIndex가 가장 높은 벡터레이어 생성 (주소검색용)
+     * 레이어 중 zIndex가 가장 높은 벡터레이어 생성 
+	 * @param {layer_param} paramm
      * @returns {VectorImageLayer}
      */
-    getSimpleVectorLayer=() =>new VectorImageLayer({zIndex:20});
+    getSimpleVectorLayer=(paramm) =>{
+		let tempSpec = Object.assign({},this.#default_leyerSpec,paramm)
+		return new VectorImageLayer(tempSpec);
+	};
 
     #isValid_ol_Source(sourceInstance){
         let bool = false;
@@ -105,6 +119,7 @@ export class LayerFactory extends MOFactory{
 
         returnLayerCode.zIndex = src[KEY.Z_INDEX] ?? this.#default_leyerSpec.zIndex;
         returnLayerCode.minZoom = src[KEY.MIN_ZOOM] ?? this.#default_leyerSpec.minZoom;
+        returnLayerCode.declutter = src[KEY.BOOL_DECLUTTER] ?? this.#default_leyerSpec.declutter;
         // returnLayerCode.properties.id = src[KEY.LAYER_ID] ?? this.#default_leyerSpec.properties.id;
         // returnLayerCode.properties.typeName = src[KEY.TYPE_NAME] ?? this.#default_leyerSpec.properties.typeName;
         // returnLayerCode.properties.isBase = src[KEY.LAYER_GEOMETRY_TYPE]?.toUpperCase()==='BASE' ? true:false;
@@ -127,7 +142,7 @@ export class LayerFactory extends MOFactory{
         let returnlayer;
         try{
             //1. 가상레이어
-            if (this.getSpec()[KEY.LAYER_GEOMETRY_TYPE]==KEY.VIRTUAL_SOURCE_LAYER_KEY){
+            if (this.getSpec()[KEY.SOURCE_CATEGORY]==KEY.VIRTUAL_SOURCE_LAYER_KEY){
                 returnlayer = this.getSimpleVectorLayer();
             }
     
@@ -173,6 +188,11 @@ export class LayerFactory extends MOFactory{
             else if (this.#INSTANCE_ol_Source instanceof XYZ){
                 returnlayer = new TileLayer(updatedOption)
             }
+            
+            //3. 내부망용 arcGis Tile REST 소스
+            else if (this.#INSTANCE_ol_Source instanceof TileArcGISRest){
+				returnlayer = new TileLayer(updatedOption);
+			}
         } catch(e){
             console.log(`레이어 생성 실패 #baseLayerBuilder`);
             console.error(e);
