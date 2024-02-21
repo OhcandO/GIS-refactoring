@@ -10,7 +10,8 @@ import Layer from '../../../lib/openlayers_v7.5.1/layer/Layer.js';
 import { MOSubscriber } from './MO.Subscriber.js';
 import { LayerTree } from '../MO.LayerTree.js';
 import { MOFactory } from './MO.Factory.js';
-import { defaults as defaultInteraction} from '../../../lib/openlayers_v7.5.1/interaction.js';
+import { MouseWheelZoom, defaults as defaultInteraction} from '../../../lib/openlayers_v7.5.1/interaction.js';
+import LayerGroup from '../../../lib/openlayers_v7.5.1/layer/Group.js';
 /**
  * MOGISMap 객체를 생성하기 위한 파라미터 정의
  * @typedef {object} MOGIS_param
@@ -39,6 +40,8 @@ export class MOSimpleMap extends MOSubscriber{
         center: [14142459.590502, 4506517.583030],
         enableRotation: false,
         zoom:12,
+        constrainResolution:true,
+        resolutions:undefined,
     };
 
     /** ol.Map 객체의 기본 정보*/
@@ -52,7 +55,7 @@ export class MOSimpleMap extends MOSubscriber{
         multi: false,
     }
 
-    #Factory = {
+    Factory = {
         /**@type {SourceFactory} */
         source: new SourceFactory(),
         /**@type {LayerFactory} */
@@ -68,7 +71,7 @@ export class MOSimpleMap extends MOSubscriber{
             /** @type {Array<Layer>|undefined} */
             BACKGROUND:undefined,
             /** 목적설정 안된 레이어들
-             * @type {Map<number,Layer>}*/
+             * @type {Map<string,Array<Layer>>}*/
             default: new Map(),
             highlight:{
                 /** @type {Layer|undefined} */
@@ -101,12 +104,12 @@ export class MOSimpleMap extends MOSubscriber{
         super(NAME);
         if (mapConfigSpec instanceof Object && mapConfigSpec.target) {
             Object.entries(mapConfigSpec).forEach(([key, val]) => {
-                if (this.default_mapSpec[key]) this.default_mapSpec[key] = val;
-                if (this.default_viewSpec[key]) this.default_viewSpec[key] = val;
-                if (this.default_select[key]) this.default_select[key] = val;
+                if (Object.keys(this.default_mapSpec).includes(key)) this.default_mapSpec[key] = val;
+                if (Object.keys(this.default_viewSpec).includes(key)) this.default_viewSpec[key] = val;
+                if (Object.keys(this.default_select).includes(key)) this.default_select[key] = val;
             });
         }else{
-            throw new Error(`지도객체 위치할 'target'의 아이디 값을 정의해야 합니다.`)
+            throw new Error(`지도객체 위치할 'target'(=DIV html Element) 의 ID 값을 정의해야 합니다.`)
         }
     }
 
@@ -119,7 +122,7 @@ export class MOSimpleMap extends MOSubscriber{
                 target: this.default_mapSpec.target,
                 view: this.view,
                 controls:[],
-                interactions: defaultInteraction({doubleClickZoom:false})
+                interactions: defaultInteraction({doubleClickZoom:false, mouseWheelZoom:false}).extend([new MouseWheelZoom({constrainResolution:true, duration:150, timeout:50}),])
             });
 	}
     get view() {
@@ -150,7 +153,7 @@ export class MOSimpleMap extends MOSubscriber{
 
     /**
      * 레이어 소스 + 스타일 JSON 등록
-     * @param {JSON} layerCDArr 레이어코드 json 배열
+     * @param {Array | object} layerCDArr 레이어코드 json 배열
      * @param {string} [categoryKey] 레이어코드 구분자
      * @memberof MOGISMap
      */
@@ -160,9 +163,15 @@ export class MOSimpleMap extends MOSubscriber{
                 if(this.isValid_layerPurposeCategoryKey(categoryKey)){
                     
                     //카테고리 키도 입력
-                    layerCDArr.forEach(layerCode=>layerCode[KEY.LAYER_PURPOSE_CATEGORY_KEY] = categoryKey);
-                    
-                    this.layerCodeObject[categoryKey] = layerCDArr;
+                    layerCDArr.forEach(layerCode=>{
+						layerCode[KEY.LAYER_PURPOSE_CATEGORY_KEY] = categoryKey;
+					});
+                    //PK 검사(레이어 아이디)해 같으면 덮어씌우면서 병합
+                    this.layerCodeObject[categoryKey] = layerCDArr.reduce((pre,cur)=>{
+						const tempArr = pre.filter(a=>a[KEY.LAYER_ID]!=cur[KEY.LAYER_ID]);
+						tempArr.push(cur);
+						return tempArr;
+					},this.layerCodeObject[categoryKey]);
                     
                 }else{
                     console.error(`레이어 카테고리 키가 적합하지 않음: ${categoryKey}`);
@@ -172,7 +181,34 @@ export class MOSimpleMap extends MOSubscriber{
             }else{
                 this.layerCodeObject['default'] = layerCDArr;
             }
-        } else {
+        } else if (layerCDArr[KEY.LAYER_ID]){
+			if(categoryKey){
+                if(this.isValid_layerPurposeCategoryKey(categoryKey)){
+                    
+                    //카테고리 키도 입력
+                    layerCDArr[KEY.LAYER_PURPOSE_CATEGORY_KEY] = categoryKey;
+                    
+                    //PK 검사
+                    //같은게 있으면 덮어씌우기, 없으면 그냥 push
+                    if(this.layerCodeObject[categoryKey].some(obj=>obj[KEY.LAYER_ID]==layerCDArr[KEY.LAYER_ID])){
+						console.group(`새로운 layerCodeObj 로 기존 내용 덮어씁니다`);
+						console.log(`기 등록 layerCodeObj`,this.layerCodeObject[categoryKey].find(el=>el[KEY.LAYER_ID]==layerCDArr[KEY.LAYER_ID]));
+						console.log(`현재 layerCodeObj`,layerCDArr);
+						console.groupEnd();
+						const temparr = this.layerCodeObject[categoryKey].filter(el=>el[KEY.LAYER_ID]==layerCDArr[KEY.LAYER_ID]);
+						temparr.push(layerCDArr);
+						this.layerCodeObject[categoryKey]=temparr;
+					}else this.layerCodeObject[categoryKey].push(layerCDArr);
+                    
+                }else{
+                    console.error(`레이어 카테고리 키가 적합하지 않음: ${categoryKey}`);
+                    console.error(`default 카테고리로 임시 지정`);
+                    this.layerCodeObject['default'] = layerCDArr;    
+                }
+            }else{
+                this.layerCodeObject['default'] = layerCDArr;
+            }
+		}else {
             console.error(`layerCode JSON 객체가 적합하지 않음`);
             throw new Error(`layerCode JSON 객체가 적합하지 않음`);
         }
@@ -192,11 +228,11 @@ export class MOSimpleMap extends MOSubscriber{
         }
     }
     get example_BaseLayerCodeArr(){
-        const arr = [{  sourceType: "wmts", category: "vworld", srid: "EPSG:3857", origin: "https://api.vworld.kr",sourcePathname: "/req/wmts/1.0.0/{key}/{layer}/{tileMatrix}/{tileRow}/{tileCol}.{tileType}",id: 1, layerTitle: "vworld_base", typeName: "Base", boolIsdefault: "Y", apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60",  layerType: "BASE", }];
+        const arr = [{  sourceClass: "wmts", category: "vworld", srid: "EPSG:3857", origin: "https://api.vworld.kr",sourcePathname: "/req/wmts/1.0.0/{key}/{layer}/{tileMatrix}/{tileRow}/{tileCol}.{tileType}",id: 1, layerTitle: "vworld_base", typeName: "Base", boolShowInit: "Y", apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60",  layerType: "BASE", }];
         console.log(arr);
     }
     get example_LayerCodeArr(){
-        const arr = [{"names":"YC 전체","ordr":1,"sourceType":"vector","category":"geoserver","srid":"EPSG:5186","origin":"http:\/\/118.42.103.144:9090","sourcePathname":"\/geoserver\/wfs","apiKey":null,"id":24,"pid":8,"minZoom":9,"layerTitle":"YC 전체","typeName":"swap:wtl_blsm_as_yc","cqlfilter":null,"iconName":null,"label":"BLCK_NM","zIndex":6,"lineWidth":"2","lineStyle":"[3,5,1,4]","layerType":"POLYGON","colorFill":"rgba(88, 187, 78, 0.66)","colorLine":"rgba(21, 80, 0, 0.7)","font":"25px Malgun Gothic","colorFontLine":"rgba(0, 0, 0, 1)","colorFontFill":"rgba(184, 106, 0, 1)","boolUseYn":"Y","boolIsgroup":null,"boolSelectable":null,"boolEditable":null,"boolIsdefault":"Y","boolDownload":null}];
+        const arr = [{"names":"YC 전체","ordr":1,"sourceClass":"vector","category":"geoserver","srid":"EPSG:5186","origin":"http:\/\/118.42.103.144:9090","sourcePathname":"\/geoserver\/wfs","apiKey":null,"id":24,"pid":8,"minZoom":9,"layerTitle":"YC 전체","typeName":"swap:wtl_blsm_as_yc","cqlfilter":null,"iconName":null,"label":"BLCK_NM","zIndex":6,"lineWidth":"2","lineStyle":"[3,5,1,4]","layerType":"POLYGON","colorFill":"rgba(88, 187, 78, 0.66)","colorLine":"rgba(21, 80, 0, 0.7)","font":"25px Malgun Gothic","colorFontLine":"rgba(0, 0, 0, 1)","colorFontFill":"rgba(184, 106, 0, 1)","boolUseYn":"Y","boolIsgroup":null,"boolSelectable":null,"boolEditable":null,"boolShowInit":"Y","boolDownload":null}];
         console.log(arr);
     }
 
@@ -250,14 +286,14 @@ export class MOSimpleMap extends MOSubscriber{
 
                 let source ;
                 try{
-                    source = this.#Factory.source.getSource();
+                    source = this.Factory.source.getSource();
                 }catch(e){
                     console.error(e); 
                 }
-                this.#Factory.layer.setSource(source);
+                this.Factory.layer.setSource(source);
                 let layer ;
                 try{
-                    layer = this.#Factory.layer.getBaseLayer();
+                    layer = this.Factory.layer.getBaseLayer();
                 }catch(e){
                     console.error(e);
                 }
@@ -303,48 +339,65 @@ export class MOSimpleMap extends MOSubscriber{
      * 레이어 코드 아이디로 레이어 관리 (주로 LayerTree 에서)
      * @param {number} layer_id 
      * @param {boolean} [visible] 레이어객체 setVisible 값
-     * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key] 레이어 목적구분
+     * @param {KEY.LayerPurpose} [la_pu_cate_key] 레이어 목적구분
+	 * @returns {Promise}
      */
     ctrlLayer(layer_id,visible=true, la_pu_cate_key){
 
         let targetLayer = this.#getLayer(layer_id,la_pu_cate_key);
         
-        if(targetLayer instanceof Layer){ //기 발행 레이어 있는 경우
+        if(targetLayer instanceof Layer || targetLayer instanceof LayerGroup){ //기 발행 레이어 있는 경우
             targetLayer.setVisible(visible);
+            return Promise.resolve();
         }else if(visible){ //기 발행 레이어 없는데 켜야하는 경우
-            this.#addLayerToMap(layer_id,la_pu_cate_key);
+            this.#addLayerToMap(layer_id,la_pu_cate_key)
+            .then(Promise.resolve());
         }else{
             // 기 발행되지도 않았고, setVisible(false)인 상황
-            throw new Error(`레이어 발행 불가`)
+//            throw new Error(`레이어 발행 불가`)
+			return Promise.resolve();
         }
     }
+    
+    /**
+	 * 레이어 아이디 (와 레이어 카테고리 키)로 기 발행 레이어 반환
+	 * @param {number} layer_id 레이어 식별자 
+     * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key] 레이어 카테고리 식별키
+	 */
     #getLayer(layer_id,la_pu_cate_key){
+		if(!KEY.isNumeric(layer_id)){
+			throw new Error(`'layer_id' 값이 숫자가 아님: ${layer_id}`)
+		}
+		let layerId= Number(layer_id);
         let targetLayer;
         if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
-            targetLayer = this.INSTANCE.LAYER[la_pu_cate_key].get(layer_id);
+            targetLayer = this.INSTANCE.LAYER[la_pu_cate_key].get(layerId);
         }else{
             const allLayers = this.INSTANCE.MAP.getLayers().getArray();
-            targetLayer = allLayers.find(layer=>layer.get(KEY.LAYER_ID)===layer_id);
+            targetLayer = allLayers.find(layer=>layer.get(KEY.LAYER_ID)===layerId);
         }
         return targetLayer;
     }
 
     /**
-     * 
-     * @param {number} layer_id 
-     * @param {string} la_pu_cate_key 
+     * 기 발행된 레이어객체를 제거하고 레이어 참조위치도 제거
+     * @param {number} layer_id 레이어 식별자 
+     * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key] 레이어 카테고리 식별키 
      */
     discardLayer(layer_id,la_pu_cate_key){
         let targetLayer = this.#getLayer(layer_id,la_pu_cate_key);
-        if(targetLayer instanceof Layer){
-            this.INSTANCE.MAP.removeLayer(targetLayer);
-            let layerMap = this.INSTANCE.LAYER[la_pu_cate_key];
-            if(layerMap instanceof Map){
-                layerMap.delete(layer_id);
-            }else{
-                throw new Error(`invalid ${KEY.LAYER_PURPOSE_CATEGORY_KEY}`);
-            }
-        }
+        if(!(targetLayer instanceof Layer)) return;
+        this.INSTANCE.MAP.removeLayer(targetLayer);
+        let layerMap;
+        if(la_pu_cate_key){
+            layerMap = this.INSTANCE.LAYER[la_pu_cate_key];
+            if(layerMap instanceof Map) layerMap.delete(layer_id);
+		}else{
+			//layerMap = KEY.mergeMaps(Object.values(this.INSTANCE.LAYER));
+			Object.values(this.INSTANCE.LAYER).forEach(mm=>{
+			    if (mm instanceof Map && mm.has(layer_id)) mm.delete(layer_id);
+			});
+		}
     }
 
     /**
@@ -396,15 +449,15 @@ export class MOSimpleMap extends MOSubscriber{
 
         let source,layer;
         try{
-            source = this.#Factory.source.getSource();
-            this.#Factory.layer.setSource(source);
+            source = this.Factory.source.getSource();
+            this.Factory.layer.setSource(source);
         }catch(e){console.error(e);}
 
         try{
-            layer = this.#Factory.layer.getLayer();
+            layer = this.Factory.layer.getLayer();
         }catch(e){console.error(e);}
 
-        if(layerCode[KEY.SOURCE_TYPE]=='vector'){
+        if(layerCode[KEY.SOURCE_CLASS]=='vector'){
             try{
                 layer.setStyle (createStyleFunction(layerCode))
             }catch(e){
@@ -421,21 +474,29 @@ export class MOSimpleMap extends MOSubscriber{
      * @param {String} layerCodeID
      * @param {KEY.LAYER_PURPOSE_CATEGORY} [la_pu_cate_key]
      * @memberof MOGISMap
+	 * @returns {Promise}
      */
     #addLayerToMap(layerCodeID, la_pu_cate_key){
         let layer;
         try { 
             layer = this.#createLayerWithID(layerCodeID, la_pu_cate_key);
         }catch(e){console.error(e)}
-        if(layer) {
-            //레이어를 맵에 등록
-            if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
-                this.INSTANCE.LAYER[la_pu_cate_key].set(layerCodeID,layer);
-            }else{
-                this.INSTANCE.LAYER['default'].set(layerCodeID,layer);
-            }
-            this.INSTANCE.MAP.addLayer(layer);
-        }
+		return new Promise((res,rej)=>{
+	        if(layer) {
+	            //레이어를 맵에 등록
+	            if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
+	                this.INSTANCE.LAYER[la_pu_cate_key].set(layerCodeID,layer);
+	            }else{
+	                this.INSTANCE.LAYER['default'].set(layerCodeID,layer);
+	            }
+	            layer.once('postrender',function(){
+					res();
+				});
+	            this.INSTANCE.MAP.addLayer(layer);
+	        }else{
+				rej();	
+			}
+		});
     }
     isValid_layerPurposeCategoryKey(key){
         let bool = false;
@@ -453,14 +514,14 @@ export class MOSimpleMap extends MOSubscriber{
      */
     #assignLayerCodeToFactories(layerCode) {
         if (this.isValid_factories()) {
-            Object.values(this.#Factory).forEach(subFactory =>subFactory.setSpec(layerCode));
+            Object.values(this.Factory).forEach(subFactory =>subFactory.setSpec(layerCode));
         }
     }
 
     isValid_factories() {
         let bool = false;
         // Factory 에 등록된 모든 요소들이 MOFactory 의 서브클래스인지 확인
-        bool = Object.values(this.#Factory).every(fac => fac instanceof MOFactory);
+        bool = Object.values(this.Factory).every(fac => fac instanceof MOFactory);
         return bool;
     }
 

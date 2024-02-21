@@ -16,9 +16,8 @@ export class MOOverlay extends Overlay {
     endPixel;
     overId;
     /**
-     * 
-     * @param {import('../../../lib/openlayers_v7.5.1/Overlay.js').Options} obj 
-     */
+	 * @param {import('../../../lib/openlayers_v7.5.1/Overlay.js').Options} obj 
+	 */
     constructor(obj) {
         super(obj);
         this.overId = new Date().getTime();

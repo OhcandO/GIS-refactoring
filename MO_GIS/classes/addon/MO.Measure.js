@@ -112,7 +112,7 @@ export class MOMeasure {
      * @param {boolean} [makeBtn=true] - 측정도구 버튼 필드 신규 생성여부
      * @memberof Measure
      */
-    constructor(mogisMap, makeBtn=true) {
+    constructor(mogisMap, makeBtn=false) {
         let ol_map
         if(mogisMap instanceof MOGISMap){
             this.#INSTNACE_MOGISMap=mogisMap;

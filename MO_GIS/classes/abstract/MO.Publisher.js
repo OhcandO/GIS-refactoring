@@ -48,7 +48,7 @@ export class MOPublisher {
         if (!this.isSubscriberHere(subscriber)) {
             this.#push2ObsList(subscriber, groupName);
             if(!subscriber.isPublisherHere(this)) subscriber.regist(this);
-            console.log(`🟠신규 옵저버 구독시작✅ : ${subscriber.NAME}`);
+//            console.log(`🟠신규 옵저버 구독시작✅ : ${subscriber.NAME}`);
         } else {
             // console.log(`옵저버 이미 등록됨`);
         }

@@ -1,3 +1,5 @@
+import * as KEY from "../../common/MO.keyMap.js";
+
 /**
  * 조건에 따라 인스턴스를 생성하는 클래스들의 interface 
  *
@@ -10,14 +12,14 @@ export class MOFactory{
     // static layerSpec;
     /**
      * 개별 레이어 소스와 스타일이 정의된 Object
-     * @type {Object}
+     * @type {layerCodeObj}
      */
     layerCode;
 
     /**
      * 개별 레이어+소스+스타일 설정 정보를 등록함
      *
-     * @param {object} inputLayerSpec
+     * @param {KEY.layerCodeObj} inputLayerSpec
      * @memberof MOFactory
      */
     setSpec(inputLayerSpec) {
