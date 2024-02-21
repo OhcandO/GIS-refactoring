@@ -15,7 +15,7 @@ import { Style } from '../../lib/openlayers_v7.5.1/style.js';
 import VectorSource from '../../lib/openlayers_v7.5.1/source/Vector.js';
 import { MOSimpleMap } from './abstract/MO.MOSimpleMap.js';
 import { MOOverlay } from './addon/MO.overlay.js';
-
+import Overlay from '../../lib/openlayers_v7.5.1/Overlay.js';
 
 /**
  * ol.Map 확장하고 지도와 레이어 생성을 관장하는 Controller 역할수행
@@ -30,12 +30,13 @@ export class MOGISMap extends MOSimpleMap{
          * Openlayers 뷰 포트 객체가 표현하는 좌표계.
          * 배경지도의 원본 좌표계를 설정해 이미지가 열화 없이 표출되도록 함
          * @default 'EPSG:3857' vworld 배경지도 좌표계
-         * @memberof MOMapConfig
          */
         projection: `EPSG:3857`, //google map projected Pseudo-Mercator coordinate system. Also Vworld basemap coordinate
         center: [14142459.590502, 4506517.583030],
         enableRotation: false,
         zoom:12,
+        constrainResolution:true,
+        resolutions:undefined,
     };
 
     /** ol.Map 객체의 기본 정보*/
@@ -49,11 +50,11 @@ export class MOGISMap extends MOSimpleMap{
         multi: false,
     }
 
-    #Factory = {
+    Factory = {
         /**@type {SourceFactory} */
-        source: undefined,
+        source: new SourceFactory(),
         /**@type {LayerFactory} */
-        layer: undefined,
+        layer: new LayerFactory(),
     };
 
     INSTANCE={
@@ -87,7 +88,7 @@ export class MOGISMap extends MOSimpleMap{
             public: new Map(), 
             /** (지능수도플) 관망해석결과
              * @type {Map<string,Layer>}*/
-            pipnet: new Map(), 
+            pipenet: new Map(), 
             /** 기본 GIS 시설물 e.g. 관로, 계측기, 블록 등
              * @type {Map<string,Layer>}*/
             base: new Map(), 
@@ -114,6 +115,10 @@ export class MOGISMap extends MOSimpleMap{
             },
             /** @type {Function|undefined} */
             POINTER:undefined,
+            
+            
+            MODIFY:undefined,
+            SNAP:[],
         },
         OVERLAY:{
             /**@type {Map<string,Array<MOOverlay>>} */
@@ -132,7 +137,6 @@ export class MOGISMap extends MOSimpleMap{
 
     /**목적 별
      * 소스+레이어 정보 코드 리스트
-     * @type {object}
      */
     layerCodeObject = {
         /** @type {Array<KEY.layerCodeObj>} */
@@ -148,7 +152,7 @@ export class MOGISMap extends MOSimpleMap{
         public:[], 
         /** (지능수도플) 관망해석결과 
          * @type {Array<KEY.layerCodeObj>} */
-        pipnet:[], 
+        pipenet:[], 
         /** 본 GIS 시설물 e.g. 관로, 계측기, 블록 등 
          * @type {Array<KEY.layerCodeObj>} */
         base:[], //
@@ -177,15 +181,15 @@ export class MOGISMap extends MOSimpleMap{
      */
     constructor(mapConfigSpec,NAME='MOGISMap') {
         super(mapConfigSpec,NAME='MOGISMap');
-        if (mapConfigSpec instanceof Object && mapConfigSpec.target) {
-            Object.entries(mapConfigSpec).forEach(([key, val]) => {
-                if (this.default_mapSpec[key]) this.default_mapSpec[key] = val;
-                if (this.default_viewSpec[key]) this.default_viewSpec[key] = val;
-                if (this.default_select[key]) this.default_select[key] = val;
-            });
-        }else{
-            throw new Error(`지도객체 위치할 'target'의 아이디 값을 정의해야 합니다.`)
-        }
+		if (mapConfigSpec instanceof Object && mapConfigSpec.target) {
+		    Object.entries(mapConfigSpec).forEach(([key, val]) => {
+		        if (Object.keys(this.default_mapSpec).includes(key)) this.default_mapSpec[key] = val;
+		        if (Object.keys(this.default_viewSpec).includes(key)) this.default_viewSpec[key] = val;
+		        if (Object.keys(this.default_select).includes(key)) this.default_select[key] = val;
+		    });
+		}else{
+		    throw new Error(`지도객체 위치할 'target'(=DIV html Element) 의 ID 값을 정의해야 합니다.`)
+		}
     }
 
     //🔻⬜⬜⬜⬜⬜LayerCode 관련⬜⬜⬜⬜
@@ -202,9 +206,9 @@ export class MOGISMap extends MOSimpleMap{
     setFactory(factory) {
         if (factory instanceof MOFactory) {
             if (factory instanceof SourceFactory) {
-                this.#Factory.source = factory;
+                this.Factory.source = factory;
             } else if (factory instanceof LayerFactory) {
-                this.#Factory.layer = factory;
+                this.Factory.layer = factory;
             } 
             // else if (factory instanceof StyleFactory) {
             //     this.#Factory.style = factory;
@@ -264,8 +268,12 @@ export class MOGISMap extends MOSimpleMap{
                 this.#createSelectInteraction();
             }
         }else{
-            this.INSTANCE.MAP.removeInteraction(this.INSTANCE.INTERACTION.SELECT);
-            this.INSTANCE.MAP.un('pointermove',this.INSTANCE.INTERACTION.POINTER);
+            if(this.INSTANCE.INTERACTION.SELECT){
+            	this.INSTANCE.MAP.removeInteraction(this.INSTANCE.INTERACTION.SELECT);
+            }
+            if(this.INSTANCE.INTERACTION.POINTER){
+            	this.INSTANCE.MAP.un('pointermove',this.INSTANCE.INTERACTION.POINTER);
+            }
         }
     }
 
@@ -277,21 +285,26 @@ export class MOGISMap extends MOSimpleMap{
         this.INSTANCE.INTERACTION.POINTER = undefined;
     }
     #createSelectInteraction(){
+		let me =this;
         let selectInteraction;
+        
+        /** 마우스포인터 변경 및 selectInteraction 에 공통으로 사용되는 필터링 내용 */
+        const filterFunction = (feature,layer)=>{
+					let featureType = feature.getGeometry().getType();
+					let boolFeature = true;
+					if(featureType == KEY.OL_GEOMETRY_OBJ.POLYGON){
+						boolFeature = me.view.getResolution() >= KEY.POLYGON_SELECT_MARGINAL_RESOLUTION;
+					}
+					let boolLayer = layer.get(KEY.BOOL_SELECTABLE)?.toUpperCase() ==='Y';
+					return boolFeature && boolLayer;
+				};
+        
         try{
             selectInteraction = new Select({
                 hitTolerance : this.default_select.hitTolerance,
                 multi : this.default_select.multi,
                 style : createStyleFunction(KEY.HIGHLIGHT_SOURCE_LAYER_KEY),
-                filter: function(feature,layer){
-					let featureType = feature.getGeometry().getType();
-					let boolFeature = true;
-					if(featureType == KEY.OL_GEOMETRY_OBJ.POLYGON){
-						boolFeature = me.view.getZoom() < KEY.POLYGON_SELECT_MARGINAL_ZOOM;
-					}
-					let boolLayer = layer.get(KEY.BOOL_SELECTABLE)?.toUpperCase() ==='Y';
-					return boolFeature && boolLayer;
-				},
+                filter: filterFunction,
             });
         }catch(e){
             console.error(e);
@@ -305,10 +318,8 @@ export class MOGISMap extends MOSimpleMap{
         //선택 가능한 레이어 위에서 포인터 변경
         this.INSTANCE.INTERACTION.POINTER = (e)=>{
             if(!e.dragging){
-                let bool = e.map.forEachFeatureAtPixel(e.pixel,(feature,layer)=>{
-                            if(layer.get(KEY.BOOL_SELECTABLE)=='Y') return true;                
-                            else return false;                       
-                        },{hitTolerance:this.default_select.hitTolerance})
+                let bool = e.map.forEachFeatureAtPixel(e.pixel,filterFunction
+                ,{hitTolerance:this.default_select.hitTolerance})
         
                 if(bool) e.map.getTargetElement().style.cursor='pointer';
                 else     e.map.getTargetElement().style.cursor='';                
@@ -390,8 +401,9 @@ export class MOGISMap extends MOSimpleMap{
             let addressLayer = this.INSTANCE.LAYER[KEY.ADDRESS_SOURCE_LAYER_KEY];
         //1-1. 없으면 소스, 레이어 생성 | 있으면 레이어와 소스 접근자 생성
             if(!(addressLayer instanceof Layer)){
-                addressLayer = this.#Factory.layer.getSimpleVectorLayer();
-                addressLayer.setSource(this.#Factory.source.getSimpleVectorSource());
+                addressLayer = this.Factory.layer.getSimpleVectorLayer();
+                addressLayer.setZIndex(30);
+                addressLayer.setSource(this.Factory.source.getSimpleVectorSource());
             }else{
                 bool_isLayerOnMap = true;
             }
@@ -459,8 +471,8 @@ export class MOGISMap extends MOSimpleMap{
 		
         	//1-1. 없으면 소스, 레이어 생성 | 있으면 레이어와 소스 접근자 생성
             if(!(highlightLayer instanceof Layer)){
-                highlightLayer = this.#Factory.layer.getSimpleVectorLayer();
-                highlightLayer.setSource(this.#Factory.source.getSimpleVectorSource());
+                highlightLayer = this.Factory.layer.getSimpleVectorLayer();
+                highlightLayer.setSource(this.Factory.source.getSimpleVectorSource());
             }else{
 				bool_isLayerOnMap = true;
 			}
@@ -501,7 +513,7 @@ export class MOGISMap extends MOSimpleMap{
      */
     addMOverlay(moverlay,la_pu_cate_key, layer_id='default'){
 
-        if(moverlay instanceof MOOverlay){
+        if(moverlay instanceof Overlay){
             //1. la_pu_cate_key 있음
             let targetMap;
             if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
@@ -586,5 +598,106 @@ export class MOGISMap extends MOSimpleMap{
                 throw new Error(`layer_id 명시되어야 합니다 기본 : 'default'`)
             }
         }
-    }    
+    }
+    
+    
+    
+    //META_PS 스타일 불러오기
+    getStyleFunc_HIGHTLIGHT(){
+        createStyleFunction(KEY.HIGHLIGHT_SOURCE_LAYER_KEY);
+    }
+    
+    /* 🌐🌐의사결정지원 팝업 관련 🌐🌐*/
+
+    /**
+     * 주어진 x,y 좌표를 주소검색용 레이어에 발행하는 함수
+     * @param {number} point_x - x 좌표 숫자 int or float
+     * @param {number} point_y - y 좌표 숫자 int or float
+     * @param {string} label - 주소에 표현할 라벨
+     * @param {string} crs - 좌표계 e.g. "EPSG:5186"
+     * @param {OBJECT} txt - 민원 건수 텍스트 데이터
+     * @param {string} checkClass - 분류 갯수에 따른 크기 조절
+     * @param {string} offset - 팝업 위치 조절
+     */
+    addDecisionLayer(point_x,point_y,label,crs,txt,checkClass,offset){
+        let digit_x = Number(point_x);
+        let digit_y = Number(point_y);
+        
+        let bool_isLayerOnMap = false;
+        
+        if(isNumber(digit_x) && isNumber(digit_y)){
+            
+            let coord = [digit_x, digit_y];
+            if(crs){
+                coord = transform(coord,crs,this.default_viewSpec.projection);
+            }
+            
+            this.map.removeLayer(mainMap.INSTANCE.MAP.getLayerGroup().values_.layers.array_[6]);
+            
+            //1. 기 발행 주소 레이어 있는지 체크
+            let defaultLayer = this.INSTANCE.LAYER['default'];
+            defaultLayer = '';
+            //1-1. 없으면 소스, 레이어 생성 | 있으면 레이어와 소스 접근자 생성
+            if(!(defaultLayer instanceof Layer)){
+                defaultLayer = this.Factory.layer.getSimpleVectorLayer();
+                defaultLayer.setSource(this.Factory.source.getSimpleVectorSource());
+            }else{
+                bool_isLayerOnMap = true;
+            }
+            let defaultSource = defaultLayer.getSource();
+            
+            //2. 주어진 좌표로 Feature 객체 생성
+            let defaultFeature;
+            
+            try{
+                defaultFeature= new Feature({
+                            geometry: new Point(coord)
+                        });
+            }catch(e){
+                console.log(`feature 생성오류 : ${coord}`);
+                console.error(e)
+            }
+            
+            //4. 소스에 추가
+            if(defaultSource instanceof VectorSource) {
+                defaultSource.addFeature(defaultFeature);
+            }else{
+                throw new Error (`소스 구성 안됨`);
+            }
+
+
+            //4-1. 레이어 없는 상태였다면 ol.Map 에 추가
+            if(!bool_isLayerOnMap){
+                this.map.addLayer(defaultLayer);
+            }
+
+            //5. 팝업창 만들기
+            let element = document.createElement('div');
+            element.classList.add(checkClass);
+            element.innerHTML = txt;
+            document.body.appendChild(element);
+    
+            let popup = new ol.Overlay({
+                element: element,
+                positioning: 'bottom-center',
+                stopEvent: false,
+                offset: offset
+            });
+          
+            this.map.addOverlay(popup);
+            
+            let coordinates = defaultFeature.getGeometry().getCoordinates();
+              
+            popup.setPosition(coordinates);
+          
+            this.INSTANCE.LAYER['default'] = defaultLayer;
+            
+        }else{
+            console.log(`입력좌표 : ${point_x}, ${point_y}`)
+            throw new Error(`주어진 좌표가 적합한 숫자 (또는 문자) 가 아님`)
+        }
+        
+        function isNumber(n) { return !isNaN(parseFloat(n)) && !isNaN(n - 0) }
+    }
+
 }
