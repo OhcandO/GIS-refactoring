@@ -1,19 +1,3 @@
-/*
-	let paging = new MOPagin({}, featuresArr);
-	paging.setDecorateAResult(function(featuresArr) {
-		let htmlStr='';
-		featuresArr.forEach((feature) => {
-			htmlStr += "<li>";
-			htmlStr += "<a href='javascript:void(0)' onclick='gisSearch.dispatch_Select(\"" +feature.getId() +"\", this);'>";
-			htmlStr += "<span class='zip' >" + feature.get('FTR_IDN') + "</span>";
-			//...(중략)...			
-		});
-		return htmlStr;
-	});
-	paging.clearTargetChild();
-	paging.showMoreResult();
-*/
-
 /**
  * JSON 또는 배열 자료구조를 페이징 처리하고 꾸미고 배치하는 기능객체
  *
