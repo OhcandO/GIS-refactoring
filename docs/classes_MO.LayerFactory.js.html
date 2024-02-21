@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: classes/MO.LayerFactory.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: classes/MO.LayerFactory.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as KEY from '../common/MO.keyMap.js';
+import {MOFactory} from './abstract/MO.Factory.js';
+
+import WMTS from '../../lib/openlayers_v7.5.1/source/WMTS.js';
+import Source from '../../lib/openlayers_v7.5.1/source/Source.js';
+import XYZ from '../../lib/openlayers_v7.5.1/source/XYZ.js';
+import VectorSource  from '../../lib/openlayers_v7.5.1/source/Vector.js';
+import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
+import TileLayer from '../../lib/openlayers_v7.5.1/layer/Tile.js';
+import VectorImageLayer from '../../lib/openlayers_v7.5.1/layer/VectorImage.js';
+import TileArcGISRest from '../../lib/openlayers_v7.5.1/source/TileArcGISRest.js';
+
+/**
+ * MOSourceConfig 인스턴스로 Openlayers Layer 객체를 생산하는 객체
+ *
+ * @class LayerFactory
+ * @author jhoh
+ */
+export class LayerFactory extends MOFactory{
+
+     /**Openlayers 라이브러리의 Layer 객체에서 사용하는 키 값  */
+    #default_leyerSpec = {
+        zIndex: 5,
+        opacity: 1, //
+        minZoom: undefined, // 설정된 줌 보다 멀리 떨어지면 레이어 비활성
+        visible : true, //보임 or 보이지 않음
+        className: undefined, //'ol-layer',
+        extent:undefined, //[minX, minY, maxX, maxY] 로 표현된 영역만 표현
+        declutter: false, //VectorImage 한정. 요소들 모여있을 때 하나만 표시 여부
+        properties:{
+            id:undefined,
+            typeName:undefined,
+            isBase:false,
+        },
+    };
+
+
+
+    #INSTANCE_ol_Source;
+    #INSTANCE_olLayer;
+
+	/**
+	 * @typedef {object} layer_param 레이어팩토리 옵션 
+     * @property {boolean} [declutter] 서로겹침허용 여부
+     * @property {boolean} [visible] 레이어 초기 보임여부 
+     * @property {boolean} [isBase] 기본 배경 레이어로서 사용될지 여부 
+     * @property {number} [opacity] 투명도. 0~1 범위 소숫점 가능
+     * @property {number} [minZoom] 설정된 줌 보다 멀리 떨어지면 레이어 비활성
+     * @property {number} [zIndex] 레이어들이 서로 겹쳐있을 때 숫자가 클수록 위쪽에 위치 (다른 레이어 가림)
+	 * 
+	 */
+
+	/**
+     * 레이어 팩토리 생성
+     * @param {layer_param} default_param 
+     * @memberof LayerFactory
+     */
+    constructor(default_param){
+        super();
+        Object.assign(this.#default_leyerSpec, default_param);
+    }
+
+    resetFactory(){
+        super.resetFactory();
+        this.#INSTANCE_ol_Source = undefined;
+        this.#INSTANCE_olLayer = undefined;
+    }
+
+    setSource(sourceInstance){
+        if(this.#isValid_ol_Source(sourceInstance)){
+//			this.resetFactory();
+            this.#INSTANCE_ol_Source = sourceInstance;
+        }else{
+            console.error(`입력된 레이어 소스설정 인스턴스가 적합하지 않음`)
+            console.log(sourceInstance)
+            throw new Error (`입력된 레이어 소스설정 인스턴스가 적합하지 않음`);
+        }
+    }
+
+    getLayer(){
+        if(!this.#INSTANCE_olLayer) this.#INSTANCE_olLayer = this.#layerBuilder();
+        if(this.#INSTANCE_olLayer instanceof Layer){
+            return this.#INSTANCE_olLayer;
+        }else{
+            console.groupCollapsed(`해당 layer 객체는 openlayers Layer 인스턴스 아님`);
+            console.log(this.#INSTANCE_olLayer);
+            console.groupEnd();
+            throw new Error(`해당 layer 객체는 openlayers Layer 인스턴스 아님`);
+        }
+    }
+    
+    
+    /**
+     * 레이어 중 zIndex가 가장 높은 벡터레이어 생성 
+	 * @param {layer_param} paramm
+     * @returns {VectorImageLayer}
+     */
+    getSimpleVectorLayer=(paramm) =>{
+		let tempSpec = Object.assign({},this.#default_leyerSpec,paramm)
+		return new VectorImageLayer(tempSpec);
+	};
+
+    #isValid_ol_Source(sourceInstance){
+        let bool = false;
+        if(sourceInstance instanceof Source){
+            bool = true;
+        }else{
+            bool = false;
+        }
+        return bool;
+    }
+    
+    /** default Object에 source Object 를 합치되,
+     *  nullish 들은 제외시킴
+     *   */ 
+    #getUpatedLayerCode(){
+        let src = this.getSpec();
+        let returnLayerCode = structuredClone(this.#default_leyerSpec);
+
+        returnLayerCode.zIndex = src[KEY.Z_INDEX] ?? this.#default_leyerSpec.zIndex;
+        returnLayerCode.minZoom = src[KEY.MIN_ZOOM] ?? this.#default_leyerSpec.minZoom;
+        returnLayerCode.declutter = src[KEY.BOOL_DECLUTTER] ?? this.#default_leyerSpec.declutter;
+        // returnLayerCode.properties.id = src[KEY.LAYER_ID] ?? this.#default_leyerSpec.properties.id;
+        // returnLayerCode.properties.typeName = src[KEY.TYPE_NAME] ?? this.#default_leyerSpec.properties.typeName;
+        // returnLayerCode.properties.isBase = src[KEY.LAYER_GEOMETRY_TYPE]?.toUpperCase()==='BASE' ? true:false;
+        returnLayerCode.properties = src;
+        return this.filterNullishVals(returnLayerCode);
+    }
+
+    /**
+     * Source 인스턴스에 따라 레이어를 생성해 반환
+     * default layer 특성에 layerCode 의 내용을 합쳐 생성 parameter로 삼음
+     * @returns {Layer}
+     */
+    #layerBuilder(){
+        let updatedOption = this.#getUpatedLayerCode();
+        if(this.#INSTANCE_ol_Source instanceof Source){
+            updatedOption['source']=this.#INSTANCE_ol_Source;
+        }else{
+            throw new Error(`layerBuilder 직전 Source 가 적합하지 않음`)
+        }
+        let returnlayer;
+        try{
+            //1. 가상레이어
+            if (this.getSpec()[KEY.SOURCE_CATEGORY]==KEY.VIRTUAL_SOURCE_LAYER_KEY){
+                returnlayer = this.getSimpleVectorLayer();
+            }
+    
+            //3. VectorImage 레이어용
+            if (this.#INSTANCE_ol_Source instanceof VectorSource){
+                returnlayer = new VectorImageLayer(updatedOption);
+            }
+        } catch(e){
+            console.log(`레이어 생성 실패 #layerBuilder`);
+            console.error(e);
+        }
+        return returnlayer;
+    }
+
+    getBaseLayer(){
+        if(!this.#INSTANCE_olLayer) this.#INSTANCE_olLayer = this.#baseLayerBuilder();
+        if(this.#INSTANCE_olLayer instanceof Layer){
+            return this.#INSTANCE_olLayer;
+        }else{
+            console.groupCollapsed(`해당 layer 객체는 openlayers Layer 인스턴스 아님`);
+            console.log(this.#INSTANCE_olLayer);
+            console.groupEnd();
+            throw new Error(`해당 layer 객체는 openlayers Layer 인스턴스 아님`);
+        }
+    }
+
+    #baseLayerBuilder(){
+        let updatedOption = this.#getUpatedLayerCode();
+        updatedOption.visible = this.getSpec()[KEY.BOOL_SHOW_INITIAL]?.toUpperCase()==='Y' ? true:false;
+        if(this.#INSTANCE_ol_Source instanceof Source){
+            updatedOption['source']=this.#INSTANCE_ol_Source;
+        }else{
+            throw new Error(`layerBuilder 직전 Source 가 적합하지 않음`)
+        }
+        let returnlayer;
+        try{
+            //1. 배경지도용 WMTS 소스
+            if(this.#INSTANCE_ol_Source instanceof WMTS){
+                returnlayer = new TileLayer(updatedOption);
+            }
+    
+            //2. 배경지도용 XYZ 소스
+            else if (this.#INSTANCE_ol_Source instanceof XYZ){
+                returnlayer = new TileLayer(updatedOption)
+            }
+            
+            //3. 내부망용 arcGis Tile REST 소스
+            else if (this.#INSTANCE_ol_Source instanceof TileArcGISRest){
+				returnlayer = new TileLayer(updatedOption);
+			}
+        } catch(e){
+            console.log(`레이어 생성 실패 #baseLayerBuilder`);
+            console.error(e);
+        }
+        return returnlayer;
+    }
+
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ol_Overlay.html">ol/Overlay</a></li></ul><h3>Classes</h3><ul><li><a href="LayerFactory.html">LayerFactory</a></li><li><a href="LayerFactory.exports.LayerFactory.html">exports.LayerFactory</a></li><li><a href="LayerTree.html">LayerTree</a></li><li><a href="LayerTree_LayerTree.html">LayerTree</a></li><li><a href="LayerTree_new.html">LayerTree_new</a></li><li><a href="LayerTree_new_LayerTree.html">LayerTree</a></li><li><a href="MOFactory.html">MOFactory</a></li><li><a href="MOGISMap.html">MOGISMap</a></li><li><a href="MOGISMap_MOGISMap.html">MOGISMap</a></li><li><a href="MOLegend.html">MOLegend</a></li><li><a href="MOLegend_MOLegend.html">MOLegend</a></li><li><a href="MOMeasure.html">MOMeasure</a></li><li><a href="MOPagin.html">MOPagin</a></li><li><a href="MOPagin_MOPagin.html">MOPagin</a></li><li><a href="MOPublisher.html">MOPublisher</a></li><li><a href="MOSimpleMap.html">MOSimpleMap</a></li><li><a href="MOSourceConfig.html">MOSourceConfig</a></li><li><a href="MOSubscriber.html">MOSubscriber</a></li><li><a href="MapViewKit.html">MapViewKit</a></li><li><a href="SourceFactory.exports.SourceFactory.html">exports.SourceFactory</a></li><li><a href="SourceFactoryIntra.html">SourceFactoryIntra</a></li><li><a href="StyleFactory.html">StyleFactory</a></li><li><a href="TileLoadProgress.html">TileLoadProgress</a></li><li><a href="module-ol_Overlay.MOOverlay.html">MOOverlay</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ADDRESS_SOURCE_LAYER_KEY">ADDRESS_SOURCE_LAYER_KEY</a></li><li><a href="global.html#ARC_LAYER_ID">ARC_LAYER_ID</a></li><li><a href="global.html#CHILD_MARK">CHILD_MARK</a></li><li><a href="global.html#HIGHLIGHT_SOURCE_LAYER_KEY">HIGHLIGHT_SOURCE_LAYER_KEY</a></li><li><a href="global.html#LAYER_ID">LAYER_ID</a></li><li><a href="global.html#LAYER_NAME">LAYER_NAME</a></li><li><a href="global.html#LAYER_PURPOSE_CATEGORY">LAYER_PURPOSE_CATEGORY</a></li><li><a href="global.html#MAP">MAP</a></li><li><a href="global.html#OL_GEOMETRY_OBJ">OL_GEOMETRY_OBJ</a></li><li><a href="global.html#PARENT_ID">PARENT_ID</a></li><li><a href="global.html#POLYGON_SELECT_MARGINAL_RESOLUTION">POLYGON_SELECT_MARGINAL_RESOLUTION</a></li><li><a href="global.html#SOURCE_CATEGORY">SOURCE_CATEGORY</a></li><li><a href="global.html#SOURCE_CLASS">SOURCE_CLASS</a></li><li><a href="global.html#TYPE_NAME">TYPE_NAME</a></li><li><a href="global.html#VIEW">VIEW</a></li><li><a href="global.html#VIRTUAL_SOURCE_LAYER_KEY">VIRTUAL_SOURCE_LAYER_KEY</a></li><li><a href="global.html#base">base</a></li><li><a href="global.html#closeSearchModal">closeSearchModal</a></li><li><a href="global.html#comp">comp</a></li><li><a href="global.html#createStyleFunction">createStyleFunction</a></li><li><a href="global.html#createStyleFunctionForScale">createStyleFunctionForScale</a></li><li><a href="global.html#default">default</a></li><li><a href="global.html#default_spec">default_spec</a></li><li><a href="global.html#depthTabsAddress">depthTabsAddress</a></li><li><a href="global.html#getLayerCode">getLayerCode</a></li><li><a href="global.html#getLayerType">getLayerType</a></li><li><a href="global.html#getStyleFunc_POINT">getStyleFunc_POINT</a></li><li><a href="global.html#getTextStyle">getTextStyle</a></li><li><a href="global.html#getUpdatedLayerCode">getUpdatedLayerCode</a></li><li><a href="global.html#gisSearch">gisSearch</a></li><li><a href="global.html#iconPath">iconPath</a></li><li><a href="global.html#id">id</a></li><li><a href="global.html#isNumeric">isNumeric</a></li><li><a href="global.html#jsonNestor">jsonNestor</a></li><li><a href="global.html#layer">layer</a></li><li><a href="global.html#leak">leak</a></li><li><a href="global.html#manage">manage</a></li><li><a href="global.html#mapModifier">mapModifier</a></li><li><a href="global.html#mergeMaps">mergeMaps</a></li><li><a href="global.html#mgcInform">mgcInform</a></li><li><a href="global.html#pipenet">pipenet</a></li><li><a href="global.html#portable">portable</a></li><li><a href="global.html#projection">projection</a></li><li><a href="global.html#public">public</a></li><li><a href="global.html#realtime">realtime</a></li><li><a href="global.html#risk">risk</a></li><li><a href="global.html#searchFeature">searchFeature</a></li><li><a href="global.html#source">source</a></li><li><a href="global.html#target">target</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Feb 21 2024 20:55:10 GMT+0900 (대한민국 표준시)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

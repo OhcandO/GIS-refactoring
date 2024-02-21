@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: MOFactory</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: MOFactory</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2><span class="attribs"><span class="type-signature"></span></span>MOFactory<span class="signature">()</span><span class="type-signature"></span></h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+
+    
+    <h4 class="name" id="MOFactory"><span class="type-signature"></span>new MOFactory<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    조건에 따라 인스턴스를 생성하는 클래스들의 interface
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li>jhoh</li>
+        </ul>
+    </dd>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_abstract_MO.Factory.js.html">classes/abstract/MO.Factory.js</a>, <a href="classes_abstract_MO.Factory.js.html#line3">line 3</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="layerCode"><span class="type-signature"></span>layerCode<span class="type-signature"> :<a href="global.html#layerCodeObj">layerCodeObj</a></span></h4>
+
+
+
+
+<div class="description">
+    개별 레이어 소스와 스타일이 정의된 Object
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="global.html#layerCodeObj">layerCodeObj</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_abstract_MO.Factory.js.html">classes/abstract/MO.Factory.js</a>, <a href="classes_abstract_MO.Factory.js.html#line17">line 17</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="filterNullishVals"><span class="type-signature"></span>filterNullishVals<span class="signature">(obj)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    입력된 객체에서 value 값이 Nullish 인 것들 제외시킨 객체 반환그러니까 null, undefined, ""(emptyString) 만 거름
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>obj</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_abstract_MO.Factory.js.html">classes/abstract/MO.Factory.js</a>, <a href="classes_abstract_MO.Factory.js.html#line39">line 39</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getSpec"><span class="type-signature"></span>getSpec<span class="signature">()</span><span class="type-signature"> &rarr; {*}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    개별 레이어+소스+스타일 설정 정보를 불러옴
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_abstract_MO.Factory.js.html">classes/abstract/MO.Factory.js</a>, <a href="classes_abstract_MO.Factory.js.html#line56">line 56</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">*</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getValidKeyVal"><span class="type-signature"></span>getValidKeyVal<span class="signature">(small_obj, big_obj)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    같은 key를 사용하는, 작은 Object에 큰 Object 를 합치되, key 와 value 가 nullish 하지 않는 것들만 반환
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>small_obj</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">'기준 key'들이 있는 객체</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>big_obj</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">'기준 key' 의 값을 찾을 객체</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_abstract_MO.Factory.js.html">classes/abstract/MO.Factory.js</a>, <a href="classes_abstract_MO.Factory.js.html#line67">line 67</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="isNullish"><span class="type-signature"></span>isNullish<span class="signature">(input)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Nullish 여부 판가름 필터
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>input</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_abstract_MO.Factory.js.html">classes/abstract/MO.Factory.js</a>, <a href="classes_abstract_MO.Factory.js.html#line47">line 47</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="resetFactory"><span class="type-signature">(abstract) </span>resetFactory<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    factory 객체 내부 변수 초기화상속 클래스에서 메서드 확장 용도
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_abstract_MO.Factory.js.html">classes/abstract/MO.Factory.js</a>, <a href="classes_abstract_MO.Factory.js.html#line83">line 83</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setSpec"><span class="type-signature"></span>setSpec<span class="signature">(inputLayerSpec)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    개별 레이어+소스+스타일 설정 정보를 등록함
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>inputLayerSpec</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">KEY.layerCodeObj</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_abstract_MO.Factory.js.html">classes/abstract/MO.Factory.js</a>, <a href="classes_abstract_MO.Factory.js.html#line25">line 25</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ol_Overlay.html">ol/Overlay</a></li></ul><h3>Classes</h3><ul><li><a href="LayerFactory.html">LayerFactory</a></li><li><a href="LayerFactory.exports.LayerFactory.html">exports.LayerFactory</a></li><li><a href="LayerTree.html">LayerTree</a></li><li><a href="LayerTree_LayerTree.html">LayerTree</a></li><li><a href="LayerTree_new.html">LayerTree_new</a></li><li><a href="LayerTree_new_LayerTree.html">LayerTree</a></li><li><a href="MOFactory.html">MOFactory</a></li><li><a href="MOGISMap.html">MOGISMap</a></li><li><a href="MOGISMap_MOGISMap.html">MOGISMap</a></li><li><a href="MOLegend.html">MOLegend</a></li><li><a href="MOLegend_MOLegend.html">MOLegend</a></li><li><a href="MOMeasure.html">MOMeasure</a></li><li><a href="MOPagin.html">MOPagin</a></li><li><a href="MOPagin_MOPagin.html">MOPagin</a></li><li><a href="MOPublisher.html">MOPublisher</a></li><li><a href="MOSimpleMap.html">MOSimpleMap</a></li><li><a href="MOSourceConfig.html">MOSourceConfig</a></li><li><a href="MOSubscriber.html">MOSubscriber</a></li><li><a href="MapViewKit.html">MapViewKit</a></li><li><a href="SourceFactory.exports.SourceFactory.html">exports.SourceFactory</a></li><li><a href="SourceFactoryIntra.html">SourceFactoryIntra</a></li><li><a href="StyleFactory.html">StyleFactory</a></li><li><a href="TileLoadProgress.html">TileLoadProgress</a></li><li><a href="module-ol_Overlay.MOOverlay.html">MOOverlay</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ADDRESS_SOURCE_LAYER_KEY">ADDRESS_SOURCE_LAYER_KEY</a></li><li><a href="global.html#ARC_LAYER_ID">ARC_LAYER_ID</a></li><li><a href="global.html#CHILD_MARK">CHILD_MARK</a></li><li><a href="global.html#HIGHLIGHT_SOURCE_LAYER_KEY">HIGHLIGHT_SOURCE_LAYER_KEY</a></li><li><a href="global.html#LAYER_ID">LAYER_ID</a></li><li><a href="global.html#LAYER_NAME">LAYER_NAME</a></li><li><a href="global.html#LAYER_PURPOSE_CATEGORY">LAYER_PURPOSE_CATEGORY</a></li><li><a href="global.html#MAP">MAP</a></li><li><a href="global.html#OL_GEOMETRY_OBJ">OL_GEOMETRY_OBJ</a></li><li><a href="global.html#PARENT_ID">PARENT_ID</a></li><li><a href="global.html#POLYGON_SELECT_MARGINAL_RESOLUTION">POLYGON_SELECT_MARGINAL_RESOLUTION</a></li><li><a href="global.html#SOURCE_CATEGORY">SOURCE_CATEGORY</a></li><li><a href="global.html#SOURCE_CLASS">SOURCE_CLASS</a></li><li><a href="global.html#TYPE_NAME">TYPE_NAME</a></li><li><a href="global.html#VIEW">VIEW</a></li><li><a href="global.html#VIRTUAL_SOURCE_LAYER_KEY">VIRTUAL_SOURCE_LAYER_KEY</a></li><li><a href="global.html#base">base</a></li><li><a href="global.html#closeSearchModal">closeSearchModal</a></li><li><a href="global.html#comp">comp</a></li><li><a href="global.html#createStyleFunction">createStyleFunction</a></li><li><a href="global.html#createStyleFunctionForScale">createStyleFunctionForScale</a></li><li><a href="global.html#default">default</a></li><li><a href="global.html#default_spec">default_spec</a></li><li><a href="global.html#depthTabsAddress">depthTabsAddress</a></li><li><a href="global.html#getLayerCode">getLayerCode</a></li><li><a href="global.html#getLayerType">getLayerType</a></li><li><a href="global.html#getStyleFunc_POINT">getStyleFunc_POINT</a></li><li><a href="global.html#getTextStyle">getTextStyle</a></li><li><a href="global.html#getUpdatedLayerCode">getUpdatedLayerCode</a></li><li><a href="global.html#gisSearch">gisSearch</a></li><li><a href="global.html#iconPath">iconPath</a></li><li><a href="global.html#id">id</a></li><li><a href="global.html#isNumeric">isNumeric</a></li><li><a href="global.html#jsonNestor">jsonNestor</a></li><li><a href="global.html#layer">layer</a></li><li><a href="global.html#leak">leak</a></li><li><a href="global.html#manage">manage</a></li><li><a href="global.html#mapModifier">mapModifier</a></li><li><a href="global.html#mergeMaps">mergeMaps</a></li><li><a href="global.html#mgcInform">mgcInform</a></li><li><a href="global.html#pipenet">pipenet</a></li><li><a href="global.html#portable">portable</a></li><li><a href="global.html#projection">projection</a></li><li><a href="global.html#public">public</a></li><li><a href="global.html#realtime">realtime</a></li><li><a href="global.html#risk">risk</a></li><li><a href="global.html#searchFeature">searchFeature</a></li><li><a href="global.html#source">source</a></li><li><a href="global.html#target">target</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Feb 21 2024 20:55:10 GMT+0900 (대한민국 표준시)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

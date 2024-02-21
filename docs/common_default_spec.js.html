@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: common/default_spec.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: common/default_spec.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import proj4 from '../../lib/proj4js-2.9.2/proj4j-2.9.2_esm.js';
+import { register } from '../../lib/openlayers_v7.5.1/proj/proj4.js';
+import { transform } from "../../lib/openlayers_v7.5.1/proj.js";
+
+/**
+ * 공통으로 초기 지도 스펙을 정의
+ */
+const default_spec = await (async function() {
+	let mapSpec = {
+		/** Map 이 생성될 기본 DIV id */
+		target: 'mainMap',
+		projection: 'EPSG:3857', // &lt;---- 배경지도 최적 좌표여야 함
+		center: [14295397.247363398, 4386742.846749862],  //예천군청  
+		zoom: 12,
+		constrainResolution:true,
+	};
+	
+	//EPSG:5181,5186 초기등록
+    proj4.defs("EPSG:5186","+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
+    proj4.defs("EPSG:5181","+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=500000 +ellps=GRS80 +units=m +no_defs");
+    register(proj4);
+	
+	return await mgcInform(mgcCd).then(mgcObj=>{
+//		console.log(mgcObj);
+		// DB 상 좌표들은 'EPSG:5186' 으로 저장되어 있음
+		let center = [(Number(mgcObj.minX)+Number(mgcObj.maxX))/2, (Number(mgcObj.minY)+Number(mgcObj.maxY))/2];
+		if(mapType == 'intra'){
+			mapSpec.projection= 'EPSG:5186';
+			mapSpec.center = transform(center,'EPSG:5181','EPSG:5186');
+		}else if (mapType == 'extra'){
+			mapSpec.projection= 'EPSG:3857';		
+			mapSpec.center = transform(center,'EPSG:5181','EPSG:3857');
+		}else{
+			throw new Error('globals.mapType 지정되지 않음');
+		}
+		return mapSpec;		
+	});
+})();
+
+
+
+/**
+	@typedef {object} MGC_INFO - ManaGement agenCy INFOrmation
+	@property {string} mgcCd 지사 코드
+	@property {string} mgcNm 지사 명
+	@property {('A'|'G'|'J')} areaSeCd 광역지사 코드 (CG006)
+	@property {string} areaSeNm 광역지사 코드명 e.g. "종합","광역","지방"
+	@property {string} distrCd 권역코드
+	@property {string} sgccd SHP 파일 지사코드 e.g. '47900'
+	@property {string} cenX 중심좌표 X ('EPSG:5181')
+	@property {string} cenY 중심좌표 Y ('EPSG:5181')
+	@property {string} minX extent X min ('EPSG:5181')
+	@property {string} minY extent Y min ('EPSG:5181')
+	@property {string} maxX extent X MAX ('EPSG:5181')
+	@property {string} maxY extent Y MAX ('EPSG:5181')
+*/
+
+/**
+ * @callback mgcInfoCallback
+ * @param {MGC_INFO}
+ */
+
+/**
+ * 관리단 상세정보 조회
+ * @param {string} mgcCd 지사 코드 e.g. 'JS000514'
+ */
+async function mgcInform(mgcCd) {
+	const ur = `${ctxPath}/common/ajax/cmMgcSelect`;
+	const url = new URL(ur,location.origin);
+	url.search = new URLSearchParams({"mgcCd":mgcCd});
+	return fetch(url,{
+		headers:{
+			"x-requested-with":'XMLHttpRequest',
+			"content-type":'application/json;cahrset=UTF-8'
+		}})
+	.then(res=>res.json())
+	.then(rr=>rr.cmMgcVO);
+}
+
+
+export default default_spec;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ol_Overlay.html">ol/Overlay</a></li></ul><h3>Classes</h3><ul><li><a href="LayerFactory.html">LayerFactory</a></li><li><a href="LayerFactory.exports.LayerFactory.html">exports.LayerFactory</a></li><li><a href="LayerTree.html">LayerTree</a></li><li><a href="LayerTree_LayerTree.html">LayerTree</a></li><li><a href="LayerTree_new.html">LayerTree_new</a></li><li><a href="LayerTree_new_LayerTree.html">LayerTree</a></li><li><a href="MOFactory.html">MOFactory</a></li><li><a href="MOGISMap.html">MOGISMap</a></li><li><a href="MOGISMap_MOGISMap.html">MOGISMap</a></li><li><a href="MOLegend.html">MOLegend</a></li><li><a href="MOLegend_MOLegend.html">MOLegend</a></li><li><a href="MOMeasure.html">MOMeasure</a></li><li><a href="MOPagin.html">MOPagin</a></li><li><a href="MOPagin_MOPagin.html">MOPagin</a></li><li><a href="MOPublisher.html">MOPublisher</a></li><li><a href="MOSimpleMap.html">MOSimpleMap</a></li><li><a href="MOSourceConfig.html">MOSourceConfig</a></li><li><a href="MOSubscriber.html">MOSubscriber</a></li><li><a href="MapViewKit.html">MapViewKit</a></li><li><a href="SourceFactory.exports.SourceFactory.html">exports.SourceFactory</a></li><li><a href="SourceFactoryIntra.html">SourceFactoryIntra</a></li><li><a href="StyleFactory.html">StyleFactory</a></li><li><a href="TileLoadProgress.html">TileLoadProgress</a></li><li><a href="module-ol_Overlay.MOOverlay.html">MOOverlay</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ADDRESS_SOURCE_LAYER_KEY">ADDRESS_SOURCE_LAYER_KEY</a></li><li><a href="global.html#ARC_LAYER_ID">ARC_LAYER_ID</a></li><li><a href="global.html#CHILD_MARK">CHILD_MARK</a></li><li><a href="global.html#HIGHLIGHT_SOURCE_LAYER_KEY">HIGHLIGHT_SOURCE_LAYER_KEY</a></li><li><a href="global.html#LAYER_ID">LAYER_ID</a></li><li><a href="global.html#LAYER_NAME">LAYER_NAME</a></li><li><a href="global.html#LAYER_PURPOSE_CATEGORY">LAYER_PURPOSE_CATEGORY</a></li><li><a href="global.html#MAP">MAP</a></li><li><a href="global.html#OL_GEOMETRY_OBJ">OL_GEOMETRY_OBJ</a></li><li><a href="global.html#PARENT_ID">PARENT_ID</a></li><li><a href="global.html#POLYGON_SELECT_MARGINAL_RESOLUTION">POLYGON_SELECT_MARGINAL_RESOLUTION</a></li><li><a href="global.html#SOURCE_CATEGORY">SOURCE_CATEGORY</a></li><li><a href="global.html#SOURCE_CLASS">SOURCE_CLASS</a></li><li><a href="global.html#TYPE_NAME">TYPE_NAME</a></li><li><a href="global.html#VIEW">VIEW</a></li><li><a href="global.html#VIRTUAL_SOURCE_LAYER_KEY">VIRTUAL_SOURCE_LAYER_KEY</a></li><li><a href="global.html#base">base</a></li><li><a href="global.html#closeSearchModal">closeSearchModal</a></li><li><a href="global.html#comp">comp</a></li><li><a href="global.html#createStyleFunction">createStyleFunction</a></li><li><a href="global.html#createStyleFunctionForScale">createStyleFunctionForScale</a></li><li><a href="global.html#default">default</a></li><li><a href="global.html#default_spec">default_spec</a></li><li><a href="global.html#depthTabsAddress">depthTabsAddress</a></li><li><a href="global.html#getLayerCode">getLayerCode</a></li><li><a href="global.html#getLayerType">getLayerType</a></li><li><a href="global.html#getStyleFunc_POINT">getStyleFunc_POINT</a></li><li><a href="global.html#getTextStyle">getTextStyle</a></li><li><a href="global.html#getUpdatedLayerCode">getUpdatedLayerCode</a></li><li><a href="global.html#gisSearch">gisSearch</a></li><li><a href="global.html#iconPath">iconPath</a></li><li><a href="global.html#id">id</a></li><li><a href="global.html#isNumeric">isNumeric</a></li><li><a href="global.html#jsonNestor">jsonNestor</a></li><li><a href="global.html#layer">layer</a></li><li><a href="global.html#leak">leak</a></li><li><a href="global.html#manage">manage</a></li><li><a href="global.html#mapModifier">mapModifier</a></li><li><a href="global.html#mergeMaps">mergeMaps</a></li><li><a href="global.html#mgcInform">mgcInform</a></li><li><a href="global.html#pipenet">pipenet</a></li><li><a href="global.html#portable">portable</a></li><li><a href="global.html#projection">projection</a></li><li><a href="global.html#public">public</a></li><li><a href="global.html#realtime">realtime</a></li><li><a href="global.html#risk">risk</a></li><li><a href="global.html#searchFeature">searchFeature</a></li><li><a href="global.html#source">source</a></li><li><a href="global.html#target">target</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Feb 21 2024 20:55:10 GMT+0900 (대한민국 표준시)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

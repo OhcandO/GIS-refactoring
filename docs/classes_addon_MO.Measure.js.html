@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: classes/addon/MO.Measure.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: classes/addon/MO.Measure.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { Draw, Modify } from "../../../lib/openlayers_v7.5.1/interaction.js";
+import { LineString, Point } from "../../../lib/openlayers_v7.5.1/geom.js";
+import VectorSource from "../../../lib/openlayers_v7.5.1/source/Vector.js";
+import VectorLayer from "../../../lib/openlayers_v7.5.1/layer/Vector.js";
+import { getArea, getLength } from "../../../lib/openlayers_v7.5.1/sphere.js";
+import { Circle as CircleStyle, Fill,
+    RegularShape, Stroke,Style,Text, } from "../../../lib/openlayers_v7.5.1/style.js";
+import Map from "../../../lib/openlayers_v7.5.1/Map.js";
+import { MOGISMap } from "../MO.MOGISMap.js";
+
+/**
+ * ol.map 객체와 상호작용하여, 길이/면적 측정 상호작용할 수 있도록 하는 객체
+ * 지도 당 한개 객체
+ *
+ * @export 
+ * @class Measure
+ * 출처 : https://openlayers.org/en/v7.5.2/examples/measure-style.html
+ */
+export class MOMeasure {
+    style = new Style({
+        fill: new Fill({ color: "rgba(255, 255, 255, 0.2)" }),
+        stroke: new Stroke({
+            color: "rgba(0, 0, 0, 0.5)",
+            lineDash: [10, 10],
+            width: 2,
+        }),
+        image: new CircleStyle({
+            radius: 5,
+            stroke: new Stroke({ color: "rgba(0, 0, 0, 0.7)" }),
+            fill: new Fill({ color: "rgba(255, 255, 255, 0.2)" }),
+        }),
+    });
+
+
+    labelStyle= new Style({
+            text: new Text({
+                font: "14px Calibri,sans-serif",
+                fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
+                backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.7)" }),
+                padding: [3, 3, 3, 3],
+                textBaseline: "bottom",
+                offsetY: -15,
+            }),
+            image: new RegularShape({
+                radius: 8,
+                points: 3,
+                angle: Math.PI,
+                displacement: [0, 10],
+                fill: new Fill({ color: "rgba(0, 0, 0, 0.7)" }),
+            }),
+        });
+
+
+    tipStyle= new Style({
+            text: new Text({
+                font: "12px Calibri,sans-serif",
+                fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
+                backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
+                padding: [2, 2, 2, 2],
+                textAlign: "left",
+                offsetX: 15,
+            }),
+        });
+    modifyStyle=new Style({
+        image: new CircleStyle({
+            radius: 5,
+            stroke: new Stroke({ color: "rgba(0, 0, 0, 0.7)" }),
+            fill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
+        }),
+        text: new Text({
+            text: "수정하려면 드래그하세요",
+            font: "12px Calibri,sans-serif",
+            fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
+            backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.7)" }),
+            padding: [2, 2, 2, 2],
+            textAlign: "left",
+            offsetX: 15,
+        }),
+    });
+    segmentStyle= new Style({
+        text: new Text({
+            font: "12px Calibri,sans-serif",
+            fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
+            backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
+            padding: [2, 2, 2, 2],
+            textBaseline: "bottom",
+            offsetY: -12,
+        }),
+        image: new RegularShape({
+            radius: 6,
+            points: 3,
+            angle: Math.PI,
+            displacement: [0, 8],
+            fill: new Fill({ color: "rgba(0, 0, 0, 0.4)" }),
+        }),
+    });
+    segmentStyles;
+
+    source;
+    modify;
+    tipPoint;
+
+    draw;
+
+    #INSTNACE_MOGISMap;
+    #INSTNACE_OL_MAP;
+    #INSTANCE_MEASURE_LAYER;
+
+    /**
+     * Creates an instance of Measure.
+     * @param {Map} ol_map - Openlayers 맵 객체
+     * @param {boolean} [makeBtn=true] - 측정도구 버튼 필드 신규 생성여부
+     * @memberof Measure
+     */
+    constructor(mogisMap, makeBtn=false) {
+        let ol_map
+        if(mogisMap instanceof MOGISMap){
+            this.#INSTNACE_MOGISMap=mogisMap;
+            ol_map = mogisMap.map;
+        }
+        if (ol_map instanceof Map) {
+            this.#INSTNACE_OL_MAP = ol_map;
+            
+            if(makeBtn){
+                this.#createRadio();
+            }
+            this.#activate();
+        }else{
+            console.log(mogisMap);
+            throw new Error(`입력된 객체가 MOGISMap 객체가 아님`);
+        }
+    }
+
+    #createRadio(){
+        let html = `
+        &lt;div class="mogis control flex container" id="measure">
+            &lt;div class="mogis measure option">
+                &lt;label for="pan"> &lt;input type="radio" name="control_measure" id="pan" value="">기본&lt;/label>
+            &lt;/div>
+            &lt;div class="mogis measure option">
+                &lt;label for="measure_line"> &lt;input type="radio" name="control_measure" id="measure_line" value="LineString">길이&lt;/label>
+            &lt;/div>
+            &lt;div class="mogis measure option">
+                &lt;label for="poly">&lt;input type="radio" name="control_measure" id="poly" value="Polygon">면적&lt;/label>
+            &lt;/div>
+        &lt;/div>
+        `;
+        this.#INSTNACE_OL_MAP.getTarget().insertAdjacentHTML(`afterend`,html);
+    }
+    
+    /**
+     * 설정 초기화
+     */    
+    #activate() {
+
+        this.segmentStyles = [this.segmentStyle];
+
+        this.source = new VectorSource();
+
+        this.modify = new Modify({
+            source: this.source,
+            style: this.modifyStyle,
+        });
+
+        // this.enableMeasure();
+    }//#activate
+
+    #formatLength(line) {
+        const length = getLength(line);
+        let output;
+        if (length > 100) {
+            output = Math.round((length / 1000) * 100) / 100 + " km";
+        } else {
+            output = Math.round(length * 100) / 100 + " m";
+        }
+        return output;
+    }
+
+    #formatArea(polygon) {
+        const area = getArea(polygon);
+        let output;
+        if (area > 10000) {
+            output = Math.round((area / 1000000) * 100) / 100 + " km\xB2";
+        } else {
+            output = Math.round(area * 100) / 100 + " m\xB2";
+        }
+        return output;
+    }
+
+    #styleFunction(feature, segments, drawType, tip) {
+        let me = this;
+        const styles = [];
+        const geometry = feature.getGeometry();
+        const type = geometry.getType();
+        let point, label, line;
+        if (!drawType || drawType === type || type === "Point") {
+            styles.push(me.style);
+            if (type === "Polygon") {
+                point = geometry.getInteriorPoint();
+                label = me.#formatArea(geometry);
+                line = new LineString(geometry.getCoordinates()[0]);
+            } else if (type === "LineString") {
+                point = new Point(geometry.getLastCoordinate());
+                label = me.#formatLength(geometry);
+                line = geometry;
+            }
+        }
+        if (segments &amp;&amp; line) {
+            let count = 0;
+            line.forEachSegment(function (a, b) {
+                const segment = new LineString([a, b]);
+                const label = me.#formatLength(segment);
+                if (me.segmentStyles.length - 1 &lt; count) {
+                    me.segmentStyles.push(me.segmentStyle.clone());
+                }
+                const segmentPoint = new Point(segment.getCoordinateAt(0.5));
+                me.segmentStyles[count].setGeometry(segmentPoint);
+                me.segmentStyles[count].getText().setText(label);
+                styles.push(me.segmentStyles[count]);
+                count++;
+            });
+        }
+        if (label) {
+            me.labelStyle.setGeometry(point);
+            me.labelStyle.getText().setText(label);
+            styles.push(me.labelStyle);
+        }
+        if (tip &amp;&amp; type === "Point" &amp;&amp; !me.modify.getOverlay().getSource().getFeatures().length) {
+            me.tipPoint = geometry;
+            me.tipStyle.getText().setText(tip);
+            styles.push(me.tipStyle);
+        }
+        return styles;
+    }
+
+    #enableMeasure() {
+        let me = this;
+
+        this.#INSTANCE_MEASURE_LAYER = new VectorLayer({
+            source: this.source,
+            style: function (feature) {
+                // return me.styleFunction(feature, showSegments.checked);
+                return me.#styleFunction(feature, true);
+            },
+            zIndex: 500
+        });
+
+        if (this.#INSTNACE_OL_MAP instanceof Map) {
+            this.#INSTNACE_OL_MAP.addLayer(this.#INSTANCE_MEASURE_LAYER);
+            this.#INSTNACE_OL_MAP.addInteraction(this.modify);
+        }
+    }
+    #disableMeasure(){
+        if(this.#INSTANCE_MEASURE_LAYER){
+            this.#INSTNACE_OL_MAP.removeLayer(this.#INSTANCE_MEASURE_LAYER);
+            this.#INSTNACE_OL_MAP.removeInteraction(this.draw);
+            this.#INSTNACE_OL_MAP.removeInteraction(this.modify);
+            this.#activate();
+        }
+    }
+    /**
+     * 선택된 geometry type 에 따라 길이, 면적 측정 가능하게 함
+     * 또는, false 입력시 원 상태로 돌아가는 로직 
+     *
+     * @param {(LineString | Polygon | false)} drawType - LineString | Polygon
+     * @memberof Measure
+     */
+    activeMeasure(drawType) {
+        let me = this;
+        if(this.draw){
+            this.#INSTNACE_OL_MAP.removeInteraction(me.draw);
+            this.#disableMeasure();
+        }
+        if(!drawType){
+            console.log('reset');
+            //select 상호작용이 선언되었던 상황이면 재 기용
+            if(mainMap.INSTANCE.INTERACTION.SELECT){
+                this.#INSTNACE_MOGISMap.enableSelect(true);
+            }
+        }else{
+            this.#INSTNACE_MOGISMap.enableSelect(false);
+            this.#enableMeasure();
+            const activeTip = "마우스 클릭으로  " + (drawType === "Polygon" ? "도형" : "선분") + "을 그립니다";
+            const idleTip = "마우스 클릭으로 시작지점 선택합니다";
+            let tip = idleTip;
+            this.draw = new Draw({
+                source: this.source,
+                type: drawType,
+                style: function (feature) {
+                    // return me.styleFunction(feature,showSegments.checked,drawType,tip);
+                    return me.#styleFunction(feature, true,drawType,tip);
+                },
+            });
+            this.draw.on("drawstart", function () {
+                // if (clearPrevious.checked) {
+                if (true) {
+                    me.source.clear();
+                }
+                me.modify.setActive(false);
+                tip = activeTip;
+            });
+            this.draw.on("drawend", function () {
+                me.modifyStyle.setGeometry(me.tipPoint);
+                me.modify.setActive(true);
+                me.#INSTNACE_OL_MAP.once("pointermove", function () {
+                    me.modifyStyle.setGeometry();
+                });
+                tip = idleTip;
+            });
+            me.modify.setActive(true);
+            me.#INSTNACE_OL_MAP.addInteraction(me.draw);
+        }
+    }
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ol_Overlay.html">ol/Overlay</a></li></ul><h3>Classes</h3><ul><li><a href="LayerFactory.html">LayerFactory</a></li><li><a href="LayerFactory.exports.LayerFactory.html">exports.LayerFactory</a></li><li><a href="LayerTree.html">LayerTree</a></li><li><a href="LayerTree_LayerTree.html">LayerTree</a></li><li><a href="LayerTree_new.html">LayerTree_new</a></li><li><a href="LayerTree_new_LayerTree.html">LayerTree</a></li><li><a href="MOFactory.html">MOFactory</a></li><li><a href="MOGISMap.html">MOGISMap</a></li><li><a href="MOGISMap_MOGISMap.html">MOGISMap</a></li><li><a href="MOLegend.html">MOLegend</a></li><li><a href="MOLegend_MOLegend.html">MOLegend</a></li><li><a href="MOMeasure.html">MOMeasure</a></li><li><a href="MOPagin.html">MOPagin</a></li><li><a href="MOPagin_MOPagin.html">MOPagin</a></li><li><a href="MOPublisher.html">MOPublisher</a></li><li><a href="MOSimpleMap.html">MOSimpleMap</a></li><li><a href="MOSourceConfig.html">MOSourceConfig</a></li><li><a href="MOSubscriber.html">MOSubscriber</a></li><li><a href="MapViewKit.html">MapViewKit</a></li><li><a href="SourceFactory.exports.SourceFactory.html">exports.SourceFactory</a></li><li><a href="SourceFactoryIntra.html">SourceFactoryIntra</a></li><li><a href="StyleFactory.html">StyleFactory</a></li><li><a href="TileLoadProgress.html">TileLoadProgress</a></li><li><a href="module-ol_Overlay.MOOverlay.html">MOOverlay</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ADDRESS_SOURCE_LAYER_KEY">ADDRESS_SOURCE_LAYER_KEY</a></li><li><a href="global.html#ARC_LAYER_ID">ARC_LAYER_ID</a></li><li><a href="global.html#CHILD_MARK">CHILD_MARK</a></li><li><a href="global.html#HIGHLIGHT_SOURCE_LAYER_KEY">HIGHLIGHT_SOURCE_LAYER_KEY</a></li><li><a href="global.html#LAYER_ID">LAYER_ID</a></li><li><a href="global.html#LAYER_NAME">LAYER_NAME</a></li><li><a href="global.html#LAYER_PURPOSE_CATEGORY">LAYER_PURPOSE_CATEGORY</a></li><li><a href="global.html#MAP">MAP</a></li><li><a href="global.html#OL_GEOMETRY_OBJ">OL_GEOMETRY_OBJ</a></li><li><a href="global.html#PARENT_ID">PARENT_ID</a></li><li><a href="global.html#POLYGON_SELECT_MARGINAL_RESOLUTION">POLYGON_SELECT_MARGINAL_RESOLUTION</a></li><li><a href="global.html#SOURCE_CATEGORY">SOURCE_CATEGORY</a></li><li><a href="global.html#SOURCE_CLASS">SOURCE_CLASS</a></li><li><a href="global.html#TYPE_NAME">TYPE_NAME</a></li><li><a href="global.html#VIEW">VIEW</a></li><li><a href="global.html#VIRTUAL_SOURCE_LAYER_KEY">VIRTUAL_SOURCE_LAYER_KEY</a></li><li><a href="global.html#base">base</a></li><li><a href="global.html#closeSearchModal">closeSearchModal</a></li><li><a href="global.html#comp">comp</a></li><li><a href="global.html#createStyleFunction">createStyleFunction</a></li><li><a href="global.html#createStyleFunctionForScale">createStyleFunctionForScale</a></li><li><a href="global.html#default">default</a></li><li><a href="global.html#default_spec">default_spec</a></li><li><a href="global.html#depthTabsAddress">depthTabsAddress</a></li><li><a href="global.html#getLayerCode">getLayerCode</a></li><li><a href="global.html#getLayerType">getLayerType</a></li><li><a href="global.html#getStyleFunc_POINT">getStyleFunc_POINT</a></li><li><a href="global.html#getTextStyle">getTextStyle</a></li><li><a href="global.html#getUpdatedLayerCode">getUpdatedLayerCode</a></li><li><a href="global.html#gisSearch">gisSearch</a></li><li><a href="global.html#iconPath">iconPath</a></li><li><a href="global.html#id">id</a></li><li><a href="global.html#isNumeric">isNumeric</a></li><li><a href="global.html#jsonNestor">jsonNestor</a></li><li><a href="global.html#layer">layer</a></li><li><a href="global.html#leak">leak</a></li><li><a href="global.html#manage">manage</a></li><li><a href="global.html#mapModifier">mapModifier</a></li><li><a href="global.html#mergeMaps">mergeMaps</a></li><li><a href="global.html#mgcInform">mgcInform</a></li><li><a href="global.html#pipenet">pipenet</a></li><li><a href="global.html#portable">portable</a></li><li><a href="global.html#projection">projection</a></li><li><a href="global.html#public">public</a></li><li><a href="global.html#realtime">realtime</a></li><li><a href="global.html#risk">risk</a></li><li><a href="global.html#searchFeature">searchFeature</a></li><li><a href="global.html#source">source</a></li><li><a href="global.html#target">target</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Feb 21 2024 20:55:10 GMT+0900 (대한민국 표준시)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
