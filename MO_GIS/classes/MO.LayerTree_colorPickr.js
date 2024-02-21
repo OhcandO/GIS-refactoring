@@ -4,9 +4,9 @@ import { LayerTree } from './MO.LayerTree.js';
 import Pickr from '../../lib/pickr-1.9.0/dist/pickr_1.9.0_esm.js';
 
 /**
- * MOGISMap 을 인자로 받아, 해당 Map 객체의 레이어를 관장하는 
- * JSTree 구조체를 생성함
- * 지도 객체 하나에 여러개의 layerTree 객체 생성될 수 있음
+ * LayerTree 의 기본기능은 계승하면서,
+ * Polygon 및 LineString 벡터 타입 레이어들의 색상을 변경해 LayerCode 에 반영할 수 있는 
+ * 레이어트리 
  * @requires JQuery1.9+ JStree
  * @class LayerTree
  * @author jhoh
@@ -140,7 +140,9 @@ export class LayerTree_colorPickr extends LayerTree {
             } else {
                 html += `<li id="layerid_${id}" data-layerid="${id}" data-type="${type}" class="${type} ${id}">	${name}`;
                 if(type == KEY.OL_GEOMETRY_OBJ.LINE) {
-                    html += `<div class="colorPickr_container" style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;">
+                    html += `<div class="colorPickr_container" 
+                    			style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;
+			                    background-color: #00000091;align-items: center;">
                                 <div>선 색</div>
                                 <div    data-${KEY.LAYER_ID}="${id}"
                                         data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
@@ -158,7 +160,9 @@ export class LayerTree_colorPickr extends LayerTree {
                             </div>`
                 }
                 if(type == KEY.OL_GEOMETRY_OBJ.POLYGON) {
-                    html += `<div class="colorPickr_container" style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;">
+                    html += `<div class="colorPickr_container" 
+			                    style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;
+			                    background-color: #00000091;align-items: center;">
                     		<div>선 색</div>
                             <div    data-${KEY.LAYER_ID}="${id}"
 	                            data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"

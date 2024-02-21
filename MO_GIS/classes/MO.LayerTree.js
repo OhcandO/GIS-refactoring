@@ -18,7 +18,7 @@ import { MOSubscriber } from './abstract/MO.Subscriber.js';
 export class LayerTree extends MOPublisher {
     defaults = {
         contextPath: "",
-        iconPath: "./MO_GIS/images/icons/",
+        iconPath: `${ctxPath}/js-lib/openlayers/ol7/MO_GIS/images/icons/`,
     };
 
     /**트리 객체가 생성될 곳의 DIV id
@@ -158,8 +158,7 @@ export class LayerTree extends MOPublisher {
      * @memberof LayerTree
      */
     #activate() {
-        if (!(this.layerCodeArr?.length > 0)) {
-            console.log(this.INSTANCE_MOGISMAP.layerCodeObject)
+        if (!(this.layerCodeArr?.length > 0)) {            
             try {
                 this.#setLayerCodeArr(this.INSTANCE_MOGISMAP.layerCodeObject[this.layerPurposeCategoryKey]);
             } catch (e) {
@@ -191,7 +190,7 @@ export class LayerTree extends MOPublisher {
                     dots: false, //계층을 점선으로 연결한 요소
                 },
             },
-            plugins: ["checkbox", "wholerow"],
+            plugins: ["checkbox"],
         });
 
         this.INSTANCE_JS_TREE = $(`#${this.TREE_DIV_ID}`).jstree(true);
@@ -227,13 +226,21 @@ export class LayerTree extends MOPublisher {
             let hasChild = false;
 
             if (layerCode[KEY.CHILD_MARK]?.length > 0) hasChild = true;
-            if (level == 1) html += `<ul>`;
-            if (isGroup == "Y") {
-                html += `<li id="${id}">${name}<ul>`;
-            } else {
-                let src = this.makeLegendSrc(layerCode);
-                html += `<li id="layerid_${id}" data-layerid="${id}" data-type="${type}" class="${type} ${id}"><img src="${src}" style="width:16px;"/>&nbsp;&nbsp;${name}</li>`;
+            if (level == 1) html += `<ul class="contlist w165">`;
+            if(isGroup == "Y") {
+                html += `<li id="${id}">${name}<ul class="contlist w165">`;
             }
+            else {
+//                let src = this.makeLegendSrc(layerCode);
+                html += `
+                	<li id="layerid_${id}" data-layerid="${id}" data-type="${type}" class="${type} ${id}">
+                		${name}
+                		<label class="switch">
+							<input type="checkbox" value="on/off" id="layerid_${id}_check">
+							<span class="slider round"></span>
+						</label>
+                	</li>`;
+            } 
             if (hasChild) {
                 level++;
                 html += this.createWrap(layerCode[KEY.CHILD_MARK], level);
@@ -276,11 +283,26 @@ export class LayerTree extends MOPublisher {
         }
     }
 
+	checkCallback=undefined;	// callback 함수 명 담는 변수
+	
+	// layerTree callback 함수 설정
+	registEventCallback(fu){
+		if(fu instanceof Function){
+			this.checkCallback=fu		
+		}	
+	}
+
     /**
      * 체크박스 선택시 이벤트
      */
     checkEventListener() {
-        this.checkEventListener= ()=>{}
+    	this.checkEventListener= ()=>{}
+    	//mainMap.jsp 프로덕션에서 체크버튼 클릭시 메뉴 꺼지지 않게 조치
+        
+        document.getElementById(this.TREE_DIV_ID).addEventListener('click',e1=>{
+			e1.stopPropagation();
+		});
+		
         let me = this;
         let nodeId;
         $(`#${this.TREE_DIV_ID}`).bind("changed.jstree", function (e, data) {
@@ -303,6 +325,8 @@ export class LayerTree extends MOPublisher {
                 //MOSubscriber (Legend 객체와 MOGISMap 객체)에 전달할 내용 구성
                 me.ctrlLayerDataArr=[];
                 let tempArr = layerCode_id_arr.map((id) => {
+                	//mainMap.jsp 버튼 대응
+					document.querySelector(`input#layerid_${id}_check`).checked=visible;
                     let htmlStr = `<span>${makeHtmlStr(id)}</span>`;
                     return {
                         id : id,
@@ -315,11 +339,13 @@ export class LayerTree extends MOPublisher {
                 me.ctrlLayerDataArr = tempArr;
                 me.notify();
             }
+
+			if(me.checkCallback instanceof Function) me.checkCallback();
         });
         function makeHtmlStr(layer_id){
             let layerCode = getLayerCode(layer_id);
             let imgSrc = me.makeLegendSrc(layerCode);
-            return `<img src="${imgSrc}" style="width:16px;"/>&nbsp;&nbsp;${layerCode[KEY.LAYER_NAME]}`
+            return `<img src="${imgSrc}" style="width:16px;" alt="${layerCode[KEY.LAYER_NAME]} 아이콘"/>&nbsp;&nbsp;${layerCode[KEY.LAYER_NAME]}`
         }
         function getLayerCode(layer_id){
             return me.layerCodeArr.find(el=>el[KEY.LAYER_ID]==layer_id);
@@ -459,24 +485,63 @@ export class LayerTree extends MOPublisher {
         else return [];
     }
 
+	/**
+	 * LayerCodeObj 의 PK 인 LayerId 를 이용해 해당 레이어만 활성화한 뒤,
+	 * 정상적으로 지도에 렌더링된 후 Promise chain 을 반환하도록 함
+	 */
+	showLayerWithLayerId(layerId){
+		const default_spinner = {
+            lines: 15, length: 38,width: 12,radius: 38,scale: 1,
+            corners: 1,speed: 1,animation: "spinner-line-fade-more",
+            color: "#ffffff",fadeColor: "transparent",shadow: "grey 3px 4px 8px 1px",
+        };
+
+        const spin = new Spinner(default_spinner);
+        const target_spin = document.querySelector(
+            `#${this.INSTANCE_MOGISMAP.default_mapSpec.target}`
+        );
+        
+        //layerId 에 해당하는 layerCodeObject
+        const theLayerCode = this.layerCodeArr.find(el=>el[KEY.LAYER_ID]==layerId);
+        
+        return new Promise(res => {
+			//1-1. 이미 선택된 상태
+			if(this.INSTANCE_JS_TREE.is_selected(`layerid_${layerId}`)){
+				res();
+				
+			//1-2. 아직 선택 안되었을 때	
+			}else{
+				const layerMinZoom = theLayerCode[KEY.MIN_ZOOM] ?? 9;
+				const theView = this.INSTANCE_MOGISMAP.view; 
+				// 레이어는 minZoom 보다 낮은 줌 상태에서 발행되지 않는다. 
+				if(theView.getZoom() <= layerMinZoom){
+					theView.setZoom(layerMinZoom + 0.2);
+				}
+				
+				this.INSTANCE_MOGISMAP.map.once("rendercomplete", (e) => {
+                    //Spinner 정지
+                    spin.stop();
+                    res();
+                });
+
+                //Spinner 가동
+                spin.spin(target_spin);
+                this.INSTANCE_JS_TREE.select_node(`layerid_${layerId}`);
+			}
+		});
+        
+	}
+	
     /**
-     * 레이어 활성화 안됐을 때 GisApp.LayerCode 에서 레이어 코드 찾아 노드 선택 이벤트 진행
+     * 레이어 활성화 안됐을 때 레이어 코드 찾아 노드 선택 이벤트 진행
      */
     showLayerWithTypeName(typeName) {
         let me = this;
         let minZoom = 16;
         const default_spinner = {
-            lines: 15,
-            length: 38,
-            width: 12,
-            radius: 38,
-            scale: 1,
-            corners: 1,
-            speed: 1,
-            animation: "spinner-line-fade-more",
-            color: "#ffffff",
-            fadeColor: "transparent",
-            shadow: "grey 3px 4px 8px 1px",
+            lines: 15,length: 38,width: 12,radius: 38,scale: 1,
+            corners: 1,speed: 1,animation: "spinner-line-fade-more",
+            color: "#ffffff",fadeColor: "transparent",shadow: "grey 3px 4px 8px 1px",
         };
 
         const spin = new Spinner(default_spinner);
@@ -489,10 +554,7 @@ export class LayerTree extends MOPublisher {
         function findAndSetLayerCodeObjWithTypename(typeName) {
             let codeObjArr = getCodeObjArrFromTypeName(typeName);
             if (codeObjArr.length > 0) {
-                return (tempTreeIdArr = codeObjArr.reduce(
-                    (pre, cur) => (pre.push("layerid_" + cur.id), pre),
-                    []
-                ));
+                return (codeObjArr.reduce((pre, cur) => (pre.push("layerid_" + cur.id), pre),[]));
             } else {
                 console.error(`codeObj 찾을 수 없음 ${typeName}`);
                 throw new Error(`codeObj 없음`);
@@ -512,10 +574,7 @@ export class LayerTree extends MOPublisher {
 
             //layerCode 상 같은 typeName 사용하는 레이어의 줌 레벨 선택
             minZoom = codeObjArr.reduce(
-                (pre, cur) =>
-                    cur[KEY.MIN_ZOOM] > pre ? Number(cur[KEY.MIN_ZOOM]) : pre,
-                10
-            );
+                (pre, cur) =>cur[KEY.MIN_ZOOM] > pre ? Number(cur[KEY.MIN_ZOOM]) : pre,14);
             return codeObjArr;
         }
 
@@ -527,15 +586,10 @@ export class LayerTree extends MOPublisher {
             );
         };
 
-        // 입력된 typeName 을 속성으로 하는 GisApp.LayerCode 의 요소들의 id 를 추출
+        // 입력된 typeName 을 속성으로 하는 LayerCode 의 요소들의 id 를 추출
         let tempTreeIdArr = findAndSetLayerCodeObjWithTypename(typeName);
         if (tempTreeIdArr.length === 0) {
-            return new Promise((_res, rej) => {
-                rej(
-                    "시설물 화면에 맞는 레이어 없음. 시설물 테이블명 : " +
-                        typeName
-                );
-            });
+            return Promise.reject("시설물 화면에 맞는 레이어 없음. 시설물 테이블명 : " +typeName);
         }
         return new Promise((reso, _reje) => {
             //1. 노드가 이미 선택되어 있다면 바로 다음 Prmomise chaining 호출
