@@ -4,7 +4,7 @@
 
 ![ㅏㅐㄱㄷㅁ](https://i.imgur.com/48kH5Fx_d.webp?maxwidth=520&shape=thumb&fidelity=high "ㄹ대")
 
-![wow](./README/MOGISMap_title.jpg)
+![wow](./MOGISMap_title.jpg)
 
 MindOne GIS Openlayers 라이브러리 최적 사용을 위한 JS 모듈화 프로젝트.
 지도가 필요한 화면에 간단하게 적용하여, "미리 설정한 스타일의" 지도 화면과 상호작용을 제공하도록 함.

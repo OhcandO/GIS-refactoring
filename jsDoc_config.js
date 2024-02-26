@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports ={
-    plugins: [],
+    plugins: ['plugins/markdown'],
     recurseDepth: 10,
     source: {
         include: ['./MO_GIS'],
@@ -16,10 +16,16 @@ module.exports ={
     templates: {
         cleverLinks: false,
         monospaceLinks: false,
+        default:{
+            staticFiles:{
+                include:['./README']
+            }
+        }
     },
     opts: {
         encoding: "utf8",
         destination: "./docs/",
         recurse: true,
+        readme: "./README.md"
     },
 };
