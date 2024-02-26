@@ -1,3 +1,7 @@
+/**
+ * @module MO_GIS/classes/MOGISMap
+ */
+
 import * as KEY from '../common/MO.keyMap.js';
 import { MOFactory } from "./abstract/MO.Factory.js";
 import { SourceFactory } from "./MO.SourceFactory.js";

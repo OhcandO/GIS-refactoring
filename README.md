@@ -1,12 +1,13 @@
 # MO_GIS 🌏🗺️🌍🌎
 
-![wow! it's MOGISMap](README/MOGISMap_title.jpg)
-
 ## 내용
+
+![ㅏㅐㄱㄷㅁ](https://i.imgur.com/48kH5Fx_d.webp?maxwidth=520&shape=thumb&fidelity=high "ㄹ대")
+
+![wow](./README/MOGISMap_title.jpg)
 
 MindOne GIS Openlayers 라이브러리 최적 사용을 위한 JS 모듈화 프로젝트.
 지도가 필요한 화면에 간단하게 적용하여, "미리 설정한 스타일의" 지도 화면과 상호작용을 제공하도록 함.
-
 
 ## 요구사항
 
@@ -22,4 +23,6 @@ MindOne GIS Openlayers 라이브러리 최적 사용을 위한 JS 모듈화 프�
 
 ## history
 
+- 2024-02-26 jsDoc 생성
+- 2023-12-31 MOGISMap 모듈 프로토타입, '지능형수도물안전플랫폼'에 적용
 - 2023-08-31 최초 모듈 생성
