@@ -1,0 +1,709 @@
+<!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Source: classes/MO.MOGISMap.js</title><!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="";baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body data-theme="dark"><div class="sidebar-container"><div class="sidebar" id="sidebar"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-modules"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-MO_GIS_classes_MOGISMap.html">MO_GIS/classes/MOGISMap</a></div><div class="sidebar-section-children"><a href="module-ol_Overlay.html">ol/Overlay</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-classes"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="LayerFactory.html">LayerFactory</a></div><div class="sidebar-section-children"><a href="LayerFactory.exports.LayerFactory.html">exports.LayerFactory</a></div><div class="sidebar-section-children"><a href="LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="LayerTree_LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="LayerTree_new.html">LayerTree_new</a></div><div class="sidebar-section-children"><a href="LayerTree_new.html">LayerTree_new</a></div><div class="sidebar-section-children"><a href="LayerTree_new_LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="MOFactory.html">MOFactory</a></div><div class="sidebar-section-children"><a href="MOLegend.html">MOLegend</a></div><div class="sidebar-section-children"><a href="MOLegend_MOLegend.html">MOLegend</a></div><div class="sidebar-section-children"><a href="MOMeasure.html">MOMeasure</a></div><div class="sidebar-section-children"><a href="MOPagin.html">MOPagin</a></div><div class="sidebar-section-children"><a href="MOPagin_MOPagin.html">MOPagin</a></div><div class="sidebar-section-children"><a href="MOPublisher.html">MOPublisher</a></div><div class="sidebar-section-children"><a href="MOSimpleMap.html">MOSimpleMap</a></div><div class="sidebar-section-children"><a href="MOSourceConfig.html">MOSourceConfig</a></div><div class="sidebar-section-children"><a href="MOSubscriber.html">MOSubscriber</a></div><div class="sidebar-section-children"><a href="MapViewKit.html">MapViewKit</a></div><div class="sidebar-section-children"><a href="SourceFactory.exports.SourceFactory.html">exports.SourceFactory</a></div><div class="sidebar-section-children"><a href="SourceFactoryIntra.html">SourceFactoryIntra</a></div><div class="sidebar-section-children"><a href="StyleFactory.html">StyleFactory</a></div><div class="sidebar-section-children"><a href="TileLoadProgress.html">TileLoadProgress</a></div><div class="sidebar-section-children"><a href="module-MO_GIS_classes_MOGISMap.MOGISMap.html">MOGISMap</a></div><div class="sidebar-section-children"><a href="module-ol_Overlay.MOOverlay.html">MOOverlay</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-global"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#ADDRESS_SOURCE_LAYER_KEY">ADDRESS_SOURCE_LAYER_KEY</a></div><div class="sidebar-section-children"><a href="global.html#ARC_LAYER_ID">ARC_LAYER_ID</a></div><div class="sidebar-section-children"><a href="global.html#CHILD_MARK">CHILD_MARK</a></div><div class="sidebar-section-children"><a href="global.html#HIGHLIGHT_SOURCE_LAYER_KEY">HIGHLIGHT_SOURCE_LAYER_KEY</a></div><div class="sidebar-section-children"><a href="global.html#LAYER_ID">LAYER_ID</a></div><div class="sidebar-section-children"><a href="global.html#LAYER_NAME">LAYER_NAME</a></div><div class="sidebar-section-children"><a href="global.html#LAYER_PURPOSE_CATEGORY">LAYER_PURPOSE_CATEGORY</a></div><div class="sidebar-section-children"><a href="global.html#LayerPurpose">LayerPurpose</a></div><div class="sidebar-section-children"><a href="global.html#LayerPurposeAndOrder">LayerPurposeAndOrder</a></div><div class="sidebar-section-children"><a href="global.html#LegendCodeObj">LegendCodeObj</a></div><div class="sidebar-section-children"><a href="global.html#MAP">MAP</a></div><div class="sidebar-section-children"><a href="global.html#MGC_INFO">MGC_INFO</a></div><div class="sidebar-section-children"><a href="global.html#MOGIS_param">MOGIS_param</a></div><div class="sidebar-section-children"><a href="global.html#OL_GEOMETRY_OBJ">OL_GEOMETRY_OBJ</a></div><div class="sidebar-section-children"><a href="global.html#OPENLAYERS_GEOMETRY_TYPE">OPENLAYERS_GEOMETRY_TYPE</a></div><div class="sidebar-section-children"><a href="global.html#PARENT_ID">PARENT_ID</a></div><div class="sidebar-section-children"><a href="global.html#POLYGON_SELECT_MARGINAL_RESOLUTION">POLYGON_SELECT_MARGINAL_RESOLUTION</a></div><div class="sidebar-section-children"><a href="global.html#SOURCE_CATEGORY">SOURCE_CATEGORY</a></div><div class="sidebar-section-children"><a href="global.html#SOURCE_CLASS">SOURCE_CLASS</a></div><div class="sidebar-section-children"><a href="global.html#TYPE_NAME">TYPE_NAME</a></div><div class="sidebar-section-children"><a href="global.html#VIEW">VIEW</a></div><div class="sidebar-section-children"><a href="global.html#VIRTUAL_SOURCE_LAYER_KEY">VIRTUAL_SOURCE_LAYER_KEY</a></div><div class="sidebar-section-children"><a href="global.html#arrayFilterMapFunc">arrayFilterMapFunc</a></div><div class="sidebar-section-children"><a href="global.html#closeSearchModal">closeSearchModal</a></div><div class="sidebar-section-children"><a href="global.html#createStyleFunction">createStyleFunction</a></div><div class="sidebar-section-children"><a href="global.html#createStyleFunctionForScale">createStyleFunctionForScale</a></div><div class="sidebar-section-children"><a href="global.html#decorateAResult_func">decorateAResult_func</a></div><div class="sidebar-section-children"><a href="global.html#default">default</a></div><div class="sidebar-section-children"><a href="global.html#default_spec">default_spec</a></div><div class="sidebar-section-children"><a href="global.html#default_style">default_style</a></div><div class="sidebar-section-children"><a href="global.html#defaultss">defaultss</a></div><div class="sidebar-section-children"><a href="global.html#depthTabsAddress">depthTabsAddress</a></div><div class="sidebar-section-children"><a href="global.html#getLayerCode">getLayerCode</a></div><div class="sidebar-section-children"><a href="global.html#getLayerType">getLayerType</a></div><div class="sidebar-section-children"><a href="global.html#getStyleFunc_POINT">getStyleFunc_POINT</a></div><div class="sidebar-section-children"><a href="global.html#getTextStyle">getTextStyle</a></div><div class="sidebar-section-children"><a href="global.html#getUpdatedLayerCode">getUpdatedLayerCode</a></div><div class="sidebar-section-children"><a href="global.html#gisSearch">gisSearch</a></div><div class="sidebar-section-children"><a href="global.html#iconPath">iconPath</a></div><div class="sidebar-section-children"><a href="global.html#iconPath">iconPath</a></div><div class="sidebar-section-children"><a href="global.html#id">id</a></div><div class="sidebar-section-children"><a href="global.html#isNumeric">isNumeric</a></div><div class="sidebar-section-children"><a href="global.html#jsonNestor">jsonNestor</a></div><div class="sidebar-section-children"><a href="global.html#layer">layer</a></div><div class="sidebar-section-children"><a href="global.html#layerCodeObj">layerCodeObj</a></div><div class="sidebar-section-children"><a href="global.html#layer_param">layer_param</a></div><div class="sidebar-section-children"><a href="global.html#mapModifier">mapModifier</a></div><div class="sidebar-section-children"><a href="global.html#mergeMaps">mergeMaps</a></div><div class="sidebar-section-children"><a href="global.html#mgcInfoCallback">mgcInfoCallback</a></div><div class="sidebar-section-children"><a href="global.html#mgcInform">mgcInform</a></div><div class="sidebar-section-children"><a href="global.html#searchFeature">searchFeature</a></div><div class="sidebar-section-children"><a href="global.html#source">source</a></div><div class="sidebar-section-children"><a href="global.html#source_param">source_param</a></div><div class="sidebar-section-children"><a href="global.html#target">target</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">classes_MO.MOGISMap.js</h1></header><article><pre class="prettyprint source lang-js"><code>/**
+ * @module MO_GIS/classes/MOGISMap
+ */
+
+import * as KEY from '../common/MO.keyMap.js';
+import { MOFactory } from "./abstract/MO.Factory.js";
+import { SourceFactory } from "./MO.SourceFactory.js";
+import { LayerFactory } from "./MO.LayerFactory.js";
+import { createStyleFunction } from './MO.StyleFunctionFactory.js';
+import olMap from '../../lib/openlayers_v7.5.1/Map.js';
+import View from '../../lib/openlayers_v7.5.1/View.js'
+import Select from '../../lib/openlayers_v7.5.1/interaction/Select.js';
+import Feature from '../../lib/openlayers_v7.5.1/Feature.js';
+import Layer from '../../lib/openlayers_v7.5.1/layer/Layer.js';
+import { LayerTree } from './MO.LayerTree.js';
+import { Point } from '../../lib/openlayers_v7.5.1/geom.js';
+import { transform } from '../../lib/openlayers_v7.5.1/proj.js';
+import { Style } from '../../lib/openlayers_v7.5.1/style.js';
+import VectorSource from '../../lib/openlayers_v7.5.1/source/Vector.js';
+import { MOSimpleMap } from './abstract/MO.MOSimpleMap.js';
+import { MOOverlay } from './addon/MO.overlay.js';
+import Overlay from '../../lib/openlayers_v7.5.1/Overlay.js';
+
+/**
+ * ol.Map 확장하고 지도와 레이어 생성을 관장하는 Controller 역할수행
+ *
+ * @export
+ * @author jhoh
+ */
+export class MOGISMap extends MOSimpleMap{
+    default_viewSpec = {
+        /**
+         * Openlayers 뷰 포트 객체가 표현하는 좌표계.
+         * 배경지도의 원본 좌표계를 설정해 이미지가 열화 없이 표출되도록 함
+         * @default 'EPSG:3857' vworld 배경지도 좌표계
+         */
+        projection: `EPSG:3857`, //google map projected Pseudo-Mercator coordinate system. Also Vworld basemap coordinate
+        center: [14142459.590502, 4506517.583030],
+        enableRotation: false,
+        zoom:12,
+        constrainResolution:true,
+        resolutions:undefined,
+    };
+
+    /** ol.Map 객체의 기본 정보*/
+    default_mapSpec = {
+        /** Map 이 생성될 기본 DIV id */
+        target: "map",
+    };
+
+    default_select = {
+        hitTolerance : 10,
+        multi: false,
+    }
+
+    Factory = {
+        /**@type {SourceFactory} */
+        source: new SourceFactory(),
+        /**@type {LayerFactory} */
+        layer: new LayerFactory(),
+    };
+
+    INSTANCE={
+        /** @type {olMap|undefined} */
+        MAP:undefined,
+        /**@type {View|undefined} */
+        VIEW:undefined,
+        LAYER:{
+            /** 목적설정 안된 레이어들
+             * @type {Map&lt;string,Layer>}*/
+            default: new Map(),
+            /** 주소검색한 곳들을 feature로 하는 레이어
+             * @type {Layer|undefined}*/
+            address:undefined,
+            /** 강조표시할 feature로 구성된 레이어. GeometryType 에 따라 구분함
+             */
+            highlight:{
+                /** @type {Layer|undefined} */
+                Point:undefined,
+                LineString:undefined,
+                Polygon:undefined,
+            },
+            /** (지능수도플) 리스크맵
+             * @type {Map&lt;string,Layer>}*/
+            risk: new Map(),
+            /** (지능수도플) 누수예상지점
+             * @type {Map&lt;string,Layer>}*/
+            leak: new Map(), 
+            /** (지능수도플) 공공서비스
+             * @type {Map&lt;string,Layer>}*/
+            public: new Map(), 
+            /** (지능수도플) 관망해석결과
+             * @type {Map&lt;string,Layer>}*/
+            pipenet: new Map(), 
+            /** 기본 GIS 시설물 e.g. 관로, 계측기, 블록 등
+             * @type {Map&lt;string,Layer>}*/
+            base: new Map(), 
+            /** 중점 관리지역
+             * @type {Map&lt;string,Layer>}*/
+            manage: new Map(), 
+            /** (지능수도플) 상습민원지역
+             * @type {Map&lt;string,Layer>}*/
+            comp: new Map(), 
+            /** (지능수도플) 실시간 상황감지
+             * @type {Map&lt;string,Layer>}*/
+            realtime: new Map(), 
+            /** (지능수도플) 이동형 누수센서
+             * @type {Map&lt;string,Layer>}*/
+            portable: new Map(), 
+        },
+        INTERACTION:{
+            /** @type {Select|undefined} */
+            SELECT:undefined,
+            /** @type {featureCallback|undefined} */
+            SELECT_CALLBACK:(feature,layer)=>{
+                if(feature){console.log(feature.getProperties())}
+                if(layer){console.log(layer.getProperties());}
+            },
+            /** @type {Function|undefined} */
+            POINTER:undefined,
+            
+            
+            MODIFY:undefined,
+            SNAP:[],
+        },
+        OVERLAY:{
+            /**@type {Map&lt;string,Array&lt;MOOverlay>>} */
+            default:new Map(),
+           /** 중점 관리지역
+             * @type {Map&lt;string,Array&lt;MOOverlay>>}*/
+           manage: new Map(), 
+           /** (지능수도플) 상습민원지역
+            * @type {Map&lt;string,Array&lt;MOOverlay>>}*/
+           comp: new Map(), 
+           /** (지능수도플) 실시간 상황감지
+            * @type {Map&lt;string,Array&lt;MOOverlay>>}*/
+           realtime: new Map(), 
+        }
+    }
+
+    /**목적 별
+     * 소스+레이어 정보 코드 리스트
+     */
+    layerCodeObject = {
+        /** @type {Array&lt;KEY.layerCodeObj>} */
+        default:[],
+        /** (지능수도플) 리스크맵 
+         * @type {Array&lt;KEY.layerCodeObj>} */
+        risk:[], 
+        /** (지능수도플) 누수예상지점 
+         * @type {Array&lt;KEY.layerCodeObj>} */
+        leak:[], 
+        /** (지능수도플) 공공서비스 
+         * @type {Array&lt;KEY.layerCodeObj>} */
+        public:[], 
+        /** (지능수도플) 관망해석결과 
+         * @type {Array&lt;KEY.layerCodeObj>} */
+        pipenet:[], 
+        /** 본 GIS 시설물 e.g. 관로, 계측기, 블록 등 
+         * @type {Array&lt;KEY.layerCodeObj>} */
+        base:[], //
+        /** 중점 관리지역 
+         * @type {Array&lt;KEY.layerCodeObj>} */
+        manage:[], //
+        /** (지능수도플) 상습민원지역 
+         * @type {Array&lt;KEY.layerCodeObj>} */
+        comp:[], 
+        /** (지능수도플) 실시간 상황감지 
+         * @type {Array&lt;KEY.layerCodeObj>} */
+        realtime:[], 
+        /** (지능수도플) 이동형 누수센서 
+         * @type {Array&lt;KEY.layerCodeObj>} */
+        portable:[], 
+    };
+
+    /**
+     * 기본 배경지도의 소스(API키 포함)+레이어 정보 코드 리스트
+     * @type {JSON}
+     */
+    layerCode_Background;
+    /**
+     * 입력한 변수들을 Map 또는 View 객체 생성을 위한 변수로 할당
+     * @param {MOGIS_param} mapConfigSpec 
+     */
+    constructor(mapConfigSpec,NAME='MOGISMap') {
+        super(mapConfigSpec,NAME='MOGISMap');
+		if (mapConfigSpec instanceof Object &amp;&amp; mapConfigSpec.target) {
+		    Object.entries(mapConfigSpec).forEach(([key, val]) => {
+		        if (Object.keys(this.default_mapSpec).includes(key)) this.default_mapSpec[key] = val;
+		        if (Object.keys(this.default_viewSpec).includes(key)) this.default_viewSpec[key] = val;
+		        if (Object.keys(this.default_select).includes(key)) this.default_select[key] = val;
+		    });
+		}else{
+		    throw new Error(`지도객체 위치할 'target'(=DIV html Element) 의 ID 값을 정의해야 합니다.`)
+		}
+    }
+
+    //🔻⬜⬜⬜⬜⬜LayerCode 관련⬜⬜⬜⬜
+
+    //🔺⬜⬜⬜LayerCode 관련 끝⬜⬜⬜
+
+    //🔻🔵🔵🔵Factory 관련🔵🔵🔵🔵
+    /**
+     * MOFactory subClass 를 등록 (레이어 Factory, 소스 Factory);
+     *
+     * @param {MOFactory} factory
+     * @memberof MOGISMap
+     */
+    setFactory(factory) {
+        if (factory instanceof MOFactory) {
+            if (factory instanceof SourceFactory) {
+                this.Factory.source = factory;
+            } else if (factory instanceof LayerFactory) {
+                this.Factory.layer = factory;
+            } 
+            // else if (factory instanceof StyleFactory) {
+            //     this.#Factory.style = factory;
+            // }
+        } else {
+            console.log(factory);
+            throw new Error(`입력된 Factory가 적합한 인스턴스 아님`);
+        }
+    }
+
+    
+
+    //🔺🔵🔵🔵Factory 관련🔵🔵🔵🔵
+
+    /* ===================================
+    =======레이어 생성 관련 ============= 
+    =====================================*/
+   
+
+    //🟨🟨🟨MOSubscriber 함수등록🟨🟨🟨🟨🟨🟨🟨🟨🟨
+    /**
+     * 
+     * @param {Symbol} publisherID 
+     */
+    update(publisherID){
+        let publisher = this.getPublisher(publisherID);
+        if(!publisher) throw new Error(`등록되지 않은 Publisher 호출`);
+        if(publisher instanceof LayerTree){
+            let dataArr = publisher.PublisherData;
+            if(dataArr?.length>0){
+                dataArr.forEach(ctrlObj=>{
+                    this.ctrlLayer(ctrlObj[KEY.LAYER_ID], ctrlObj[KEY.BOOL_VISIBLE], ctrlObj[KEY.LAYER_PURPOSE_CATEGORY_KEY]);
+                    this.ctrlOverlay(ctrlObj[KEY.LAYER_PURPOSE_CATEGORY_KEY],ctrlObj[KEY.BOOL_VISIBLE],ctrlObj[KEY.LAYER_ID]);
+                });
+            }
+        }
+    }
+
+    //🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨
+
+
+    /* 🔷SELECT Interaction 관련🔷 */
+
+    /**
+     * MOGISMap 객체의 Vector Source Layer 에 대해, Layer 가 선택 가능한 상태라면,
+     * 레이어를 구성하는 feature 들과 상호작용할 수 있도록 켜거나 끔
+     * @param {boolean} [bool=true] 
+     */
+    enableSelect(bool=true){
+        if(bool){
+            //이미 interaction 생성되어 있다면 재기용
+            if(this.INSTANCE.INTERACTION.SELECT instanceof Select){
+                this.INSTANCE.MAP.addInteraction(this.INSTANCE.INTERACTION.SELECT);
+                this.INSTANCE.MAP.on('pointermove',this.INSTANCE.INTERACTION.POINTER);
+            }else{
+            //아니면 생성
+                this.#createSelectInteraction();
+            }
+        }else{
+            if(this.INSTANCE.INTERACTION.SELECT){
+            	this.INSTANCE.MAP.removeInteraction(this.INSTANCE.INTERACTION.SELECT);
+            }
+            if(this.INSTANCE.INTERACTION.POINTER){
+            	this.INSTANCE.MAP.un('pointermove',this.INSTANCE.INTERACTION.POINTER);
+            }
+        }
+    }
+
+    /** interaction.select 관련 동작을 완전 제거 */
+    #destoryEntireSelectInteraction(){
+        this.INSTANCE.MAP.removeInteraction(this.INSTANCE.INTERACTION.SELECT);
+        this.INSTANCE.INTERACTION.SELECT = undefined;
+        this.INSTANCE.MAP.un('pointermove',this.INSTANCE.INTERACTION.POINTER);
+        this.INSTANCE.INTERACTION.POINTER = undefined;
+    }
+    #createSelectInteraction(){
+		let me =this;
+        let selectInteraction;
+        
+        /** 마우스포인터 변경 및 selectInteraction 에 공통으로 사용되는 필터링 내용 */
+        const filterFunction = (feature,layer)=>{
+					let featureType = feature.getGeometry().getType();
+					let boolFeature = true;
+					if(featureType == KEY.OL_GEOMETRY_OBJ.POLYGON){
+						boolFeature = me.view.getResolution() >= KEY.POLYGON_SELECT_MARGINAL_RESOLUTION;
+					}
+					let boolLayer = layer.get(KEY.BOOL_SELECTABLE)?.toUpperCase() ==='Y';
+					return boolFeature &amp;&amp; boolLayer;
+				};
+        
+        try{
+            selectInteraction = new Select({
+                hitTolerance : this.default_select.hitTolerance,
+                multi : this.default_select.multi,
+                style : createStyleFunction(KEY.HIGHLIGHT_SOURCE_LAYER_KEY),
+                filter: filterFunction,
+            });
+        }catch(e){
+            console.error(e);
+        }
+        
+        if(selectInteraction instanceof Select) {
+            this.INSTANCE.INTERACTION.SELECT = selectInteraction;
+            this.INSTANCE.MAP.addInteraction(selectInteraction);
+        }
+
+        //선택 가능한 레이어 위에서 포인터 변경
+        this.INSTANCE.INTERACTION.POINTER = (e)=>{
+            if(!e.dragging){
+                let bool = e.map.forEachFeatureAtPixel(e.pixel,filterFunction
+                ,{hitTolerance:this.default_select.hitTolerance})
+        
+                if(bool) e.map.getTargetElement().style.cursor='pointer';
+                else     e.map.getTargetElement().style.cursor='';                
+            }
+        };
+        
+        this.INSTANCE.MAP.on('pointermove',this.INSTANCE.INTERACTION.POINTER);
+    }
+    
+    /**
+     * openlayers 피쳐와 레이어를 파라미터로 하는 callback 함수 사용자 정의
+     * @callback featureCallback
+     * @param {Feature} feature 첫번째로 선택된, zIndex 가장 큰 feature
+     * @param {Layer} layer feature가 포함된 ol.Layer 객체
+     */
+    /**
+     * 선택가능한 레이어의 피쳐 클릭시 발생할 이벤트 사용자 지정
+     * @param {featureCallback} callback 피쳐, 레이어를 인자로 하는 콜백
+     */
+    setSelectCallback(callback){
+        //선택될 때 동작(selectCallback)을 객체에 등록
+        if(callback instanceof Function){
+            //기존 interaction.select 를 아예 지움
+            this.#destoryEntireSelectInteraction();
+            //새로운 callbakc 을 내부에 저장
+            this.INSTANCE.INTERACTION.SELECT_CALLBACK = callback;
+
+            this.enableSelect(true);
+        }else{
+            throw new Error (`selectCallback 은 함수형태로 등록되어야 함`)
+        }
+
+        this.#attatchSelectCallbackToSelectInteraction();
+    }
+
+    /**
+     * 기 등록된 selectCallback 을 ol.interaction.select 에 붙임
+     */
+    #attatchSelectCallbackToSelectInteraction(){
+        if(!(this.INSTANCE.INTERACTION.SELECT_CALLBACK instanceof Function)) {
+            throw new Error (`selectCallback 등록되지 않음. MOGISMap::setSelectCallback (callback) 등록 필요`);
+        }
+
+        //선택가능한 feature 선택때 selectCallback 을 호출하도록 등록
+        if(this.INSTANCE.INTERACTION.SELECT instanceof Select){
+            let me = this;
+            this.INSTANCE.INTERACTION.SELECT.on('select',function(e){
+                if(!e.auto){
+                    let feature = me.INSTANCE.INTERACTION.SELECT.getFeatures()?.getArray()[0];
+                    let layer = feature? me.INSTANCE.INTERACTION.SELECT.getLayer(feature): undefined;
+                    me.INSTANCE.INTERACTION.SELECT_CALLBACK(feature,layer);
+                }
+            });
+        }
+    }
+
+
+    /* 🌐🌐주소검색 관련.. 🌐🌐*/
+
+    /**
+     * 주어진 x,y 좌표를 주소검색용 레이어에 발행하는 함수
+     * @param {number} point_x - x 좌표 숫자 int or float
+     * @param {number} point_y - y 좌표 숫자 int or float
+     * @param {string} label - 주소에 표현할 라벨
+     * @param {string} crs - 좌표계 e.g. "EPSG:5186"
+     */
+    addAddressLayer(point_x,point_y,label,crs){
+        let digit_x = Number(point_x);
+        let digit_y = Number(point_y);
+        let bool_isLayerOnMap = false;
+        if(isNumber(digit_x) &amp;&amp; isNumber(digit_y)){
+            
+            let coord = [digit_x, digit_y];
+            if(crs){
+                coord = transform(coord,crs,this.default_viewSpec.projection);
+            }
+
+        //1. 기 발행 주소 레이어 있는지 체크
+            let addressLayer = this.INSTANCE.LAYER[KEY.ADDRESS_SOURCE_LAYER_KEY];
+        //1-1. 없으면 소스, 레이어 생성 | 있으면 레이어와 소스 접근자 생성
+            if(!(addressLayer instanceof Layer)){
+                addressLayer = this.Factory.layer.getSimpleVectorLayer();
+                addressLayer.setZIndex(30);
+                addressLayer.setSource(this.Factory.source.getSimpleVectorSource());
+            }else{
+                bool_isLayerOnMap = true;
+            }
+            let addressSource = addressLayer.getSource();
+        //2. 주어진 좌표로 Feature 객체 생성
+            let addressFeature;
+            try{
+                addressFeature= new Feature({geometry: new Point(coord)});
+            }catch(e){
+                console.log(`feature 생성오류 : ${coord}`);
+                console.error(e)
+            }
+        //3. Feature 객체에 스타일 입히기
+            let tempStyle = createStyleFunction('address');
+            if(tempStyle instanceof Style){
+                if(label) tempStyle.getText().setText(label);
+            }else{
+                throw new Error(`스타일 생성 에러`);
+            }
+            addressFeature.setStyle(tempStyle);
+        //4. 소스에 추가
+            if(addressSource instanceof VectorSource) {
+                addressSource.addFeature(addressFeature);
+            }else{
+                throw new Error (`소스 구성 안됨`);
+            }
+
+        //4-1. 레이어 없는 상태였다면 ol.Map 에 추가
+            if(!bool_isLayerOnMap){
+                this.map.addLayer(addressLayer);
+            }
+        //5. 방금 추가한 feature 로 이동
+            this.view.fit(addressFeature.getGeometry(),{duration:300, maxZoom:15});
+
+            this.INSTANCE.LAYER[KEY.ADDRESS_SOURCE_LAYER_KEY] = addressLayer;
+        }else{
+            console.log(`입력좌표 : ${point_x}, ${point_y}`)
+            throw new Error(`주어진 좌표가 적합한 숫자 (또는 문자) 가 아님`)
+        }
+        
+        function isNumber(n) { return !isNaN(parseFloat(n)) &amp;&amp; !isNaN(n - 0) }
+    }
+
+    /**
+	 * 피쳐 객체들로 구성된 VectorImage 레이어 구성하고
+	 * Highlight 화 함
+	 * @param {Array&lt;Feature>} features - openlayers feature 객체 배열 
+	 */
+    addFeaturesToHighlightLayer(features){
+		let bool_isLayerOnMap = false;
+		if(features?.length >0 &amp;&amp; features[0] instanceof Feature){
+			let geometryType = features[0].getGeometry().getType();
+            let highlightLayer ;
+            
+		//1. 기 발행 주소 레이어 있는지 체크
+			if(geometryType == 'Point'){
+            	highlightLayer = this.INSTANCE.LAYER[KEY.HIGHLIGHT_SOURCE_LAYER_KEY].Point;
+			} else if (geometryType == 'LineString'){
+            	highlightLayer = this.INSTANCE.LAYER[KEY.HIGHLIGHT_SOURCE_LAYER_KEY].LineString;
+			} else if (geometryType == 'Polygon' || geometryType == 'MultiPolygon'){
+            	highlightLayer = this.INSTANCE.LAYER[KEY.HIGHLIGHT_SOURCE_LAYER_KEY].Polygon;
+			} else{
+				throw new Error(`geometry 타입은 Point, LineString, Polygon, MultiPolygon만 가능`)
+			}
+		
+        	//1-1. 없으면 소스, 레이어 생성 | 있으면 레이어와 소스 접근자 생성
+            if(!(highlightLayer instanceof Layer)){
+                highlightLayer = this.Factory.layer.getSimpleVectorLayer();
+                highlightLayer.setSource(this.Factory.source.getSimpleVectorSource());
+            }else{
+				bool_isLayerOnMap = true;
+			}
+            let highlightSource = highlightLayer.getSource();
+            
+        //2. 입력된 feature들을 source 에 추가
+        	if(highlightSource instanceof VectorSource){
+				highlightSource.addFeatures(features);
+			}else{
+				throw new Error ('적합한 벡터 소스가 아님')
+			}
+            
+        //3. 레이어에 스타일 입히기
+            let tempStyle = createStyleFunction(KEY.HIGHLIGHT_SOURCE_LAYER_KEY);
+            highlightLayer.setStyle(tempStyle);
+        
+        //4. 레이어 없는 상태였다면 ol.Map 에 추가
+            if(!bool_isLayerOnMap){
+                this.map.addLayer(highlightLayer);
+            }else{
+				//소스에 features 추가한 상태라면 리프레시
+				highlightSource.refresh();
+			}
+            this.INSTANCE.LAYER[KEY.HIGHLIGHT_SOURCE_LAYER_KEY][geometryType] = highlightLayer;
+			
+			
+		}
+	}
+
+
+    //🟠🟠Overlay 관련 🟠🟠🟠🟠
+
+    /**
+     *  Overlay 확장인 MOverlay 를 객체에 등록함
+     * @param {MOOverlay} moverlay 
+     * @param {KEY.LayerPurpose} la_pu_cate_key 
+     * @param {string} [layer_id='default'] 
+     */
+    addMOverlay(moverlay,la_pu_cate_key, layer_id='default'){
+
+        if(moverlay instanceof Overlay){
+            //1. la_pu_cate_key 있음
+            let targetMap;
+            if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
+                targetMap = this.INSTANCE.OVERLAY[la_pu_cate_key];
+            }else{
+                targetMap = this.INSTANCE.OVERLAY.default;
+            }
+
+            //2. layer_id 있음
+            if(layer_id){
+                let overlayArr = targetMap.get(layer_id);
+                if(overlayArr instanceof Array){
+                    overlayArr.push(moverlay);
+                }else{
+                    overlayArr = [moverlay];
+                    targetMap.set(layer_id,overlayArr);
+                }
+            }
+            
+
+        }else{
+            throw new Error(`overlay 가 MOOverlay 객체가 아님`);
+        }
+    }
+
+    /**
+     * 발행되거나 보관중인 MOVerlay 인스턴스를 삭제
+     * @param {KEY.LayerPurpose} la_pu_cate_key 
+     * @param {number} layer_id 
+     * @param {string} [mOverlay_id ]
+     */
+    discardMOverlay (la_pu_cate_key, layer_id, mOverlay_id){
+        let moverlayGroupMap;
+        if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
+            moverlayGroupMap = this.INSTANCE.OVERLAY[la_pu_cate_key];
+        }else{
+            moverlayGroupMap = this.INSTANCE.OVERLAY.default;
+        }
+
+        if(moverlayGroupMap instanceof Map){
+            //1. 특정 레이어에 속하는 오버레이만 제거
+            if(layer_id){
+				if(moverlayGroupMap.size==0) return;
+                moverlayGroupMap.get(layer_id).forEach(mOverlay=>{
+                    this.map.removeOverlay(mOverlay);
+                });
+                moverlayGroupMap.clear();
+            }else{
+                throw new Error (`오버레이가 속한 레이어의 아이디가 필요함 : ${layer_id}`)
+            }
+        }else{
+            throw new Error (`overlay group 이 적합하지 않음`);
+        }
+    }
+
+    /**
+     * 개별 MOVerlay 또는 그룹을 켜고 끄는 컨트롤 메서드
+     * @param {KEY.LayerPurpose} la_pu_cate_key 
+     * @param {boolean} visible 
+     * @param {string} [layer_id] 
+     */
+    ctrlOverlay(la_pu_cate_key,visible,layer_id='default'){
+        let overlayGroup;
+        if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
+            overlayGroup = this.INSTANCE.OVERLAY[la_pu_cate_key];
+        }else{
+            overlayGroup = this.INSTANCE.OVERLAY.default;
+        }
+		
+        if(overlayGroup instanceof Map &amp;&amp; overlayGroup.size>0){
+
+            if(layer_id){
+                let moverlayArr = overlayGroup.get(layer_id);
+                if(moverlayArr instanceof Array){
+                    if(visible) {
+						moverlayArr.forEach(moverlay=>{
+							this.map.addOverlay(moverlay);
+						});
+					}else moverlayArr.forEach(moverlay=>this.map.removeOverlay(moverlay));
+                }
+            }else{
+                throw new Error(`layer_id 명시되어야 합니다 기본 : 'default'`)
+            }
+        }
+    }
+    
+    
+    
+    //META_PS 스타일 불러오기
+    getStyleFunc_HIGHTLIGHT(){
+        createStyleFunction(KEY.HIGHLIGHT_SOURCE_LAYER_KEY);
+    }
+    
+    /* 🌐🌐의사결정지원 팝업 관련 🌐🌐*/
+
+    /**
+     * 주어진 x,y 좌표를 주소검색용 레이어에 발행하는 함수
+     * @param {number} point_x - x 좌표 숫자 int or float
+     * @param {number} point_y - y 좌표 숫자 int or float
+     * @param {string} label - 주소에 표현할 라벨
+     * @param {string} crs - 좌표계 e.g. "EPSG:5186"
+     * @param {OBJECT} txt - 민원 건수 텍스트 데이터
+     * @param {string} checkClass - 분류 갯수에 따른 크기 조절
+     * @param {string} offset - 팝업 위치 조절
+     */
+    addDecisionLayer(point_x,point_y,label,crs,txt,checkClass,offset){
+        let digit_x = Number(point_x);
+        let digit_y = Number(point_y);
+        
+        let bool_isLayerOnMap = false;
+        
+        if(isNumber(digit_x) &amp;&amp; isNumber(digit_y)){
+            
+            let coord = [digit_x, digit_y];
+            if(crs){
+                coord = transform(coord,crs,this.default_viewSpec.projection);
+            }
+            
+            this.map.removeLayer(mainMap.INSTANCE.MAP.getLayerGroup().values_.layers.array_[6]);
+            
+            //1. 기 발행 주소 레이어 있는지 체크
+            let defaultLayer = this.INSTANCE.LAYER['default'];
+            defaultLayer = '';
+            //1-1. 없으면 소스, 레이어 생성 | 있으면 레이어와 소스 접근자 생성
+            if(!(defaultLayer instanceof Layer)){
+                defaultLayer = this.Factory.layer.getSimpleVectorLayer();
+                defaultLayer.setSource(this.Factory.source.getSimpleVectorSource());
+            }else{
+                bool_isLayerOnMap = true;
+            }
+            let defaultSource = defaultLayer.getSource();
+            
+            //2. 주어진 좌표로 Feature 객체 생성
+            let defaultFeature;
+            
+            try{
+                defaultFeature= new Feature({
+                            geometry: new Point(coord)
+                        });
+            }catch(e){
+                console.log(`feature 생성오류 : ${coord}`);
+                console.error(e)
+            }
+            
+            //4. 소스에 추가
+            if(defaultSource instanceof VectorSource) {
+                defaultSource.addFeature(defaultFeature);
+            }else{
+                throw new Error (`소스 구성 안됨`);
+            }
+
+
+            //4-1. 레이어 없는 상태였다면 ol.Map 에 추가
+            if(!bool_isLayerOnMap){
+                this.map.addLayer(defaultLayer);
+            }
+
+            //5. 팝업창 만들기
+            let element = document.createElement('div');
+            element.classList.add(checkClass);
+            element.innerHTML = txt;
+            document.body.appendChild(element);
+    
+            let popup = new ol.Overlay({
+                element: element,
+                positioning: 'bottom-center',
+                stopEvent: false,
+                offset: offset
+            });
+          
+            this.map.addOverlay(popup);
+            
+            let coordinates = defaultFeature.getGeometry().getCoordinates();
+              
+            popup.setPosition(coordinates);
+          
+            this.INSTANCE.LAYER['default'] = defaultLayer;
+            
+        }else{
+            console.log(`입력좌표 : ${point_x}, ${point_y}`)
+            throw new Error(`주어진 좌표가 적합한 숫자 (또는 문자) 가 아님`)
+        }
+        
+        function isNumber(n) { return !isNaN(parseFloat(n)) &amp;&amp; !isNaN(n - 0) }
+    }
+
+}
+</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-modules"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-MO_GIS_classes_MOGISMap.html">MO_GIS/classes/MOGISMap</a></div><div class="sidebar-section-children"><a href="module-ol_Overlay.html">ol/Overlay</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-classes"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="LayerFactory.html">LayerFactory</a></div><div class="sidebar-section-children"><a href="LayerFactory.exports.LayerFactory.html">exports.LayerFactory</a></div><div class="sidebar-section-children"><a href="LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="LayerTree_LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="LayerTree_new.html">LayerTree_new</a></div><div class="sidebar-section-children"><a href="LayerTree_new.html">LayerTree_new</a></div><div class="sidebar-section-children"><a href="LayerTree_new_LayerTree.html">LayerTree</a></div><div class="sidebar-section-children"><a href="MOFactory.html">MOFactory</a></div><div class="sidebar-section-children"><a href="MOLegend.html">MOLegend</a></div><div class="sidebar-section-children"><a href="MOLegend_MOLegend.html">MOLegend</a></div><div class="sidebar-section-children"><a href="MOMeasure.html">MOMeasure</a></div><div class="sidebar-section-children"><a href="MOPagin.html">MOPagin</a></div><div class="sidebar-section-children"><a href="MOPagin_MOPagin.html">MOPagin</a></div><div class="sidebar-section-children"><a href="MOPublisher.html">MOPublisher</a></div><div class="sidebar-section-children"><a href="MOSimpleMap.html">MOSimpleMap</a></div><div class="sidebar-section-children"><a href="MOSourceConfig.html">MOSourceConfig</a></div><div class="sidebar-section-children"><a href="MOSubscriber.html">MOSubscriber</a></div><div class="sidebar-section-children"><a href="MapViewKit.html">MapViewKit</a></div><div class="sidebar-section-children"><a href="SourceFactory.exports.SourceFactory.html">exports.SourceFactory</a></div><div class="sidebar-section-children"><a href="SourceFactoryIntra.html">SourceFactoryIntra</a></div><div class="sidebar-section-children"><a href="StyleFactory.html">StyleFactory</a></div><div class="sidebar-section-children"><a href="TileLoadProgress.html">TileLoadProgress</a></div><div class="sidebar-section-children"><a href="module-MO_GIS_classes_MOGISMap.MOGISMap.html">MOGISMap</a></div><div class="sidebar-section-children"><a href="module-ol_Overlay.MOOverlay.html">MOOverlay</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-global"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#ADDRESS_SOURCE_LAYER_KEY">ADDRESS_SOURCE_LAYER_KEY</a></div><div class="sidebar-section-children"><a href="global.html#ARC_LAYER_ID">ARC_LAYER_ID</a></div><div class="sidebar-section-children"><a href="global.html#CHILD_MARK">CHILD_MARK</a></div><div class="sidebar-section-children"><a href="global.html#HIGHLIGHT_SOURCE_LAYER_KEY">HIGHLIGHT_SOURCE_LAYER_KEY</a></div><div class="sidebar-section-children"><a href="global.html#LAYER_ID">LAYER_ID</a></div><div class="sidebar-section-children"><a href="global.html#LAYER_NAME">LAYER_NAME</a></div><div class="sidebar-section-children"><a href="global.html#LAYER_PURPOSE_CATEGORY">LAYER_PURPOSE_CATEGORY</a></div><div class="sidebar-section-children"><a href="global.html#LayerPurpose">LayerPurpose</a></div><div class="sidebar-section-children"><a href="global.html#LayerPurposeAndOrder">LayerPurposeAndOrder</a></div><div class="sidebar-section-children"><a href="global.html#LegendCodeObj">LegendCodeObj</a></div><div class="sidebar-section-children"><a href="global.html#MAP">MAP</a></div><div class="sidebar-section-children"><a href="global.html#MGC_INFO">MGC_INFO</a></div><div class="sidebar-section-children"><a href="global.html#MOGIS_param">MOGIS_param</a></div><div class="sidebar-section-children"><a href="global.html#OL_GEOMETRY_OBJ">OL_GEOMETRY_OBJ</a></div><div class="sidebar-section-children"><a href="global.html#OPENLAYERS_GEOMETRY_TYPE">OPENLAYERS_GEOMETRY_TYPE</a></div><div class="sidebar-section-children"><a href="global.html#PARENT_ID">PARENT_ID</a></div><div class="sidebar-section-children"><a href="global.html#POLYGON_SELECT_MARGINAL_RESOLUTION">POLYGON_SELECT_MARGINAL_RESOLUTION</a></div><div class="sidebar-section-children"><a href="global.html#SOURCE_CATEGORY">SOURCE_CATEGORY</a></div><div class="sidebar-section-children"><a href="global.html#SOURCE_CLASS">SOURCE_CLASS</a></div><div class="sidebar-section-children"><a href="global.html#TYPE_NAME">TYPE_NAME</a></div><div class="sidebar-section-children"><a href="global.html#VIEW">VIEW</a></div><div class="sidebar-section-children"><a href="global.html#VIRTUAL_SOURCE_LAYER_KEY">VIRTUAL_SOURCE_LAYER_KEY</a></div><div class="sidebar-section-children"><a href="global.html#arrayFilterMapFunc">arrayFilterMapFunc</a></div><div class="sidebar-section-children"><a href="global.html#closeSearchModal">closeSearchModal</a></div><div class="sidebar-section-children"><a href="global.html#createStyleFunction">createStyleFunction</a></div><div class="sidebar-section-children"><a href="global.html#createStyleFunctionForScale">createStyleFunctionForScale</a></div><div class="sidebar-section-children"><a href="global.html#decorateAResult_func">decorateAResult_func</a></div><div class="sidebar-section-children"><a href="global.html#default">default</a></div><div class="sidebar-section-children"><a href="global.html#default_spec">default_spec</a></div><div class="sidebar-section-children"><a href="global.html#default_style">default_style</a></div><div class="sidebar-section-children"><a href="global.html#defaultss">defaultss</a></div><div class="sidebar-section-children"><a href="global.html#depthTabsAddress">depthTabsAddress</a></div><div class="sidebar-section-children"><a href="global.html#getLayerCode">getLayerCode</a></div><div class="sidebar-section-children"><a href="global.html#getLayerType">getLayerType</a></div><div class="sidebar-section-children"><a href="global.html#getStyleFunc_POINT">getStyleFunc_POINT</a></div><div class="sidebar-section-children"><a href="global.html#getTextStyle">getTextStyle</a></div><div class="sidebar-section-children"><a href="global.html#getUpdatedLayerCode">getUpdatedLayerCode</a></div><div class="sidebar-section-children"><a href="global.html#gisSearch">gisSearch</a></div><div class="sidebar-section-children"><a href="global.html#iconPath">iconPath</a></div><div class="sidebar-section-children"><a href="global.html#iconPath">iconPath</a></div><div class="sidebar-section-children"><a href="global.html#id">id</a></div><div class="sidebar-section-children"><a href="global.html#isNumeric">isNumeric</a></div><div class="sidebar-section-children"><a href="global.html#jsonNestor">jsonNestor</a></div><div class="sidebar-section-children"><a href="global.html#layer">layer</a></div><div class="sidebar-section-children"><a href="global.html#layerCodeObj">layerCodeObj</a></div><div class="sidebar-section-children"><a href="global.html#layer_param">layer_param</a></div><div class="sidebar-section-children"><a href="global.html#mapModifier">mapModifier</a></div><div class="sidebar-section-children"><a href="global.html#mergeMaps">mergeMaps</a></div><div class="sidebar-section-children"><a href="global.html#mgcInfoCallback">mgcInfoCallback</a></div><div class="sidebar-section-children"><a href="global.html#mgcInform">mgcInform</a></div><div class="sidebar-section-children"><a href="global.html#searchFeature">searchFeature</a></div><div class="sidebar-section-children"><a href="global.html#source">source</a></div><div class="sidebar-section-children"><a href="global.html#source_param">source_param</a></div><div class="sidebar-section-children"><a href="global.html#target">target</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>
