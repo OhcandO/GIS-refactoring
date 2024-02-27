@@ -20,12 +20,14 @@ module.exports ={
             staticFiles:{
                 include:['./README']
             }
-        }
+        },
+
     },
     opts: {
         encoding: "utf8",
         destination: "./docs/",
         recurse: true,
-        readme: "./README.md"
+        readme: "./README.md",
+        template: "node_modules/clean-jsdoc-theme",
     },
 };
