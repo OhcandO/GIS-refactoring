@@ -1,6 +1,3 @@
-/**
- * @module ol/Overlay
-*/
 import Overlay from '../../../lib/openlayers_v7.5.1/Overlay.js';
 
 /**
@@ -16,7 +13,7 @@ export class MOOverlay extends Overlay {
     endPixel;
     overId;
     /**
-	 * @param {object} obj ffff
+	 * @param {import('../../../lib/openlayers_v7.5.1/Overlay.js').Options} obj 
 	 */
     constructor(obj) {
         super(obj);
@@ -101,5 +98,59 @@ export class MOOverlay extends Overlay {
             this.#removeArrival(e);
         });
     }
+    
+    /**
+	 * overlay.js 의 위치 조정 메서드를 오버라이딩 해 오류 해결
+	 * @override 
+   */
+  updateRenderedPosition(pixel, mapSize) {
+//    const style = this.element.style;
+    const offset = this.getOffset();
+
+    const positioning = this.getPositioning();
+
+    this.setVisible(true);
+
+    const x = Math.round(pixel[0] + offset[0]) + 'px';
+    const y = Math.round(pixel[1] + offset[1]) + 'px';
+    let posX = '0%';
+    let posY = '0%';
+    if (
+      positioning == 'bottom-right' ||
+      positioning == 'center-right' ||
+      positioning == 'top-right'
+    ) {
+      posX = '-100%';
+    } else if (
+      positioning == 'bottom-center' ||
+      positioning == 'center-center' ||
+      positioning == 'top-center'
+    ) {
+      posX = '-50%';
+    }
+    if (
+      positioning == 'bottom-left' ||
+      positioning == 'bottom-center' ||
+      positioning == 'bottom-right'
+    ) {
+      posY = '-100%';
+    } else if (
+      positioning == 'center-left' ||
+      positioning == 'center-center' ||
+      positioning == 'center-right'
+    ) {
+      posY = '-50%';
+    }
+    const transform = `translate(${posX}, ${posY}) translate(${x}, ${y})`;
+    const transform_parnt = `translate(${x}, ${y})`;
+    const transform_child = `translate(${posX}, ${posY})`;
+	let parentEle = this.element;
+	let childEle = parentEle.children[0];
+    if (this.rendered.transform_ != transform) {
+      this.rendered.transform_ = transform;
+		parentEle.style.transform = transform_parnt;
+		childEle.style.transform = transform_child;
+    }
+  }
     
 }
