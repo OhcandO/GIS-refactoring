@@ -16,13 +16,13 @@ const default_style={
         opacity: 1, //투명도 0~1
         rotateWithView: false,
         declutterMode: undefined, // ['declutter', 'obstacle', 'none']
-        height:20,
-        width:20,
+        height:30,
+        width:30,
     },
 
     text : {
         font: `12px Malgun Gothic`,
-        offsetX: 10, // 양수로 지정시 우측이동
+        offsetX: 15, // 양수로 지정시 우측이동
         offsetY: 0, // 양수로 지정시 하방이동
         placement: "point", // 'line' : 선분 따라 글자 표현
         //textAlign, justify 예시 https://openlayers.org/en/v7.5.2/examples/vector-labels-justify-text.html
@@ -188,21 +188,27 @@ function getUpdatedLayerCode(layerCode) {
 /**
  * feature 에서 '라벨'로 할당된 value 를 표현하는 Text 스타일을 반환
  * @param {Feature} feature
+ * @param {KEY.layerCodeObj} layerCode 
  * @returns {Text}
  */
 function getTextStyle(feature, layerCode, tempStyleOption,resolution) {
-    let textOption = tempStyleOption.text;
-    let tempStroke = new Stroke(tempStyleOption.text_stroke);
-    tempStroke.setWidth(1);
-    textOption["stroke"] = tempStroke; 
-    textOption["fill"] = new Fill(tempStyleOption.text_fill);
-    textOption["text"] = feature.get(layerCode[KEY.LABEL_COLUMN]) ?? "";
-    
-    let textStyle = new Text(textOption);
-    let resolScale = resolution < 9 ? (resolution < 3 ? 3 : 9/resolution) : 1;  
-    textStyle.setScale(resolScale);
-    
-    return textStyle;
+	if((resolution < 20) || (layerCode.geomType === KEY.OL_GEOMETRY_OBJ.POLYGON)){
+	    let textOption = tempStyleOption.text;
+	    let tempStroke = new Stroke(tempStyleOption.text_stroke);
+	    tempStroke.setWidth(1);
+	    textOption["stroke"] = tempStroke; 
+	    textOption["fill"] = new Fill(tempStyleOption.text_fill);
+	    textOption["text"] = feature.get(layerCode[KEY.LABEL_COLUMN]) ?? "";
+	    
+	    let textStyle = new Text(textOption);
+	    let resolScale = resolution < 4 ? (resolution < 2 ? 2 : 4/resolution) : 1;  
+	    textStyle.setScale(resolScale);
+	    textStyle.setOffsetX(textStyle.getOffsetX()*resolScale)
+	    
+	    return textStyle;
+	}else{
+		return;
+	}
 }
 
 /**
@@ -272,10 +278,11 @@ function getStyleFunc_POLYGON(layerCode, tempStyleOption) {
         //2. layerCode에 텍스트 컬럼 지정되었으면
         if (layerCode[KEY.LABEL_COLUMN]) {
                 let textStyle = getTextStyle(feature, layerCode, tempStyleOption,resolution);
-                textStyle.setOffsetX(0);
-                textStyle.setOffsetY(0); 
-                style.setText(textStyle);
-                
+                if(textStyle){
+	                textStyle.setOffsetX(0);
+	                textStyle.setOffsetY(0); 
+	                style.setText(textStyle);
+				}
         }
 
         //3. 아이콘이 있을 때 폴리곤 스타일과 중심좌표 아이콘 둘 다 반환한다
@@ -295,7 +302,11 @@ function getStyleFunc_POLYGON(layerCode, tempStyleOption) {
             }
             let style2 = new Style();
             let icon = new Icon(tempStyleOption.icon);
-            if (icon) style2.setImage(icon);
+            if (icon) {
+				let resolScale = resolution < 4 ? (resolution < 2 ? 2 : 4/resolution) : 1;
+				icon.setScale(resolScale);  
+				style2.setImage(icon);
+			}
             style2.setGeometry(targetGeom);
 
             styleArr.push(style2);

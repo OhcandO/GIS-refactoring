@@ -216,7 +216,7 @@ export class MOLegend extends MOSubscriber {
     legendBody_close=()=> `</ul></div>`;
     /** 범례 닫기 버튼 
      * @returns {string}*/
-    legend_close = ()=> `<a class="pop_leg_close" href="javascript:pop_close('${this.#target_id}');"><img src="${ctxPath}/bootstrap-template/gentelella/production/images/button/pop_close.png" alt="창닫기"></a>`;
+    legend_close = ()=> `<a class="pop_leg_close" href="javascript:pop_close_visibility('${this.#target_id}');"><img src="${ctxPath}/bootstrap-template/gentelella/production/images/button/pop_close.png" alt="창닫기"></a>`;
 }   
 
 /* 전형적인 범례 div 형태

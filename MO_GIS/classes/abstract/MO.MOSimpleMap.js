@@ -154,57 +154,45 @@ export class MOSimpleMap extends MOSubscriber{
     /**
      * 레이어 소스 + 스타일 JSON 등록
      * @param {Array | object} layerCDArr 레이어코드 json 배열
-     * @param {string} [categoryKey] 레이어코드 구분자
+     * @param {string} [categoryKey] 레이어코드 구분자. 각종 openlayers 인스턴스의 그룹명이 된다
      * @memberof MOGISMap
      */
     setLayerCode(layerCDArr,categoryKey) {
         if (layerCDArr instanceof Array) {
             if(categoryKey){
-                if(this.isValid_layerPurposeCategoryKey(categoryKey)){
                     
-                    //카테고리 키도 입력
-                    layerCDArr.forEach(layerCode=>{
-						layerCode[KEY.LAYER_PURPOSE_CATEGORY_KEY] = categoryKey;
-					});
-                    //PK 검사(레이어 아이디)해 같으면 덮어씌우면서 병합
-                    this.layerCodeObject[categoryKey] = layerCDArr.reduce((pre,cur)=>{
-						const tempArr = pre.filter(a=>a[KEY.LAYER_ID]!=cur[KEY.LAYER_ID]);
-						tempArr.push(cur);
-						return tempArr;
-					},this.layerCodeObject[categoryKey]);
+                //카테고리 키도 입력
+                layerCDArr.forEach(layerCode=>{
+					layerCode[KEY.LAYER_PURPOSE_CATEGORY_KEY] = categoryKey;
+				});
+                //PK 검사(레이어 아이디)해 같으면 덮어씌우면서 병합
+                this.layerCodeObject[categoryKey] = layerCDArr.reduce((pre,cur)=>{
+					const tempArr = pre.filter(a=>a[KEY.LAYER_ID]!=cur[KEY.LAYER_ID]);
+					tempArr.push(cur);
+					return tempArr;
+				},this.layerCodeObject[categoryKey]);
                     
-                }else{
-                    console.error(`레이어 카테고리 키가 적합하지 않음: ${categoryKey}`);
-                    console.error(`default 카테고리로 임시 지정`);
-                    this.layerCodeObject['default'] = layerCDArr;    
-                }
             }else{
                 this.layerCodeObject['default'] = layerCDArr;
             }
         } else if (layerCDArr[KEY.LAYER_ID]){
 			if(categoryKey){
-                if(this.isValid_layerPurposeCategoryKey(categoryKey)){
                     
-                    //카테고리 키도 입력
-                    layerCDArr[KEY.LAYER_PURPOSE_CATEGORY_KEY] = categoryKey;
+                //카테고리 키도 입력
+                layerCDArr[KEY.LAYER_PURPOSE_CATEGORY_KEY] = categoryKey;
+                
+                //PK 검사
+                //같은게 있으면 덮어씌우기, 없으면 그냥 push
+                if(this.layerCodeObject[categoryKey].some(obj=>obj[KEY.LAYER_ID]==layerCDArr[KEY.LAYER_ID])){
+					console.group(`새로운 layerCodeObj 로 기존 내용 덮어씁니다`);
+					console.log(`기 등록 layerCodeObj`,this.layerCodeObject[categoryKey].find(el=>el[KEY.LAYER_ID]==layerCDArr[KEY.LAYER_ID]));
+					console.log(`현재 layerCodeObj`,layerCDArr);
+					console.groupEnd();
+					const temparr = this.layerCodeObject[categoryKey].filter(el=>el[KEY.LAYER_ID]==layerCDArr[KEY.LAYER_ID]);
+					temparr.push(layerCDArr);
+					this.layerCodeObject[categoryKey]=temparr;
+				}else this.layerCodeObject[categoryKey].push(layerCDArr);
                     
-                    //PK 검사
-                    //같은게 있으면 덮어씌우기, 없으면 그냥 push
-                    if(this.layerCodeObject[categoryKey].some(obj=>obj[KEY.LAYER_ID]==layerCDArr[KEY.LAYER_ID])){
-						console.group(`새로운 layerCodeObj 로 기존 내용 덮어씁니다`);
-						console.log(`기 등록 layerCodeObj`,this.layerCodeObject[categoryKey].find(el=>el[KEY.LAYER_ID]==layerCDArr[KEY.LAYER_ID]));
-						console.log(`현재 layerCodeObj`,layerCDArr);
-						console.groupEnd();
-						const temparr = this.layerCodeObject[categoryKey].filter(el=>el[KEY.LAYER_ID]==layerCDArr[KEY.LAYER_ID]);
-						temparr.push(layerCDArr);
-						this.layerCodeObject[categoryKey]=temparr;
-					}else this.layerCodeObject[categoryKey].push(layerCDArr);
-                    
-                }else{
-                    console.error(`레이어 카테고리 키가 적합하지 않음: ${categoryKey}`);
-                    console.error(`default 카테고리로 임시 지정`);
-                    this.layerCodeObject['default'] = layerCDArr;    
-                }
             }else{
                 this.layerCodeObject['default'] = layerCDArr;
             }

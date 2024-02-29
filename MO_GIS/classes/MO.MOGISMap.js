@@ -1,7 +1,3 @@
-/**
- * @module MO_GIS/classes/MOGISMap
- */
-
 import * as KEY from '../common/MO.keyMap.js';
 import { MOFactory } from "./abstract/MO.Factory.js";
 import { SourceFactory } from "./MO.SourceFactory.js";
@@ -25,6 +21,7 @@ import Overlay from '../../lib/openlayers_v7.5.1/Overlay.js';
  * ol.Map 확장하고 지도와 레이어 생성을 관장하는 Controller 역할수행
  *
  * @export
+ * @class MOGISMap
  * @author jhoh
  */
 export class MOGISMap extends MOSimpleMap{
