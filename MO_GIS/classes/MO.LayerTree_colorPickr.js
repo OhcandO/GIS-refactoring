@@ -8,7 +8,7 @@ import Pickr from '../../lib/pickr-1.9.0/dist/pickr_1.9.0_esm.js';
  * Polygon 및 LineString 벡터 타입 레이어들의 색상을 변경해 LayerCode 에 반영할 수 있는 
  * 레이어트리 
  * @requires JQuery1.9+ JStree
- * @class LayerTree
+ * @class LayerTree_colorPickr
  * @author jhoh
  */
 export class LayerTree_colorPickr extends LayerTree {
@@ -72,7 +72,7 @@ export class LayerTree_colorPickr extends LayerTree {
                 
                 let tnode = this.INSTANCE_JS_TREE.get_node("layerid_" + param.id);
 
-                if (tnode?.state.selected == true) {
+                if (tnode&&tnode.state.selected == true) {
                     this.INSTANCE_JS_TREE.uncheck_node(tnode);
                 }
 
@@ -81,31 +81,32 @@ export class LayerTree_colorPickr extends LayerTree {
                 // this.INSTANCE_MOGISMAP.ctrlLayer(Number(param.id),true,this.layerPurposeCategoryKey)
                 
                 
-                if (tnode?.state.selected == false) {
+                if (tnode&&tnode.state.selected == false) {
                     this.INSTANCE_JS_TREE.check_node(tnode);
                 }
             });
         });
         
-        document.querySelectorAll(`button.linePickr`).forEach(node=>{
+        document.querySelectorAll(`button.submitter`).forEach(node=>{
 		    node.addEventListener('click',(e)=>{
 		        let id = e.target.dataset.id;
 		        let key = e.target.dataset.layerpurposecategory;
-		        let input = document.querySelector(`input[name='lineWidth'][data-id='${id}'][data-layerpurposecategory='${key}']`);
-		        let width = input.value;
+		        let target = e.target.dataset.targ;
+		        let input = document.querySelector(`input[name='${target}'][data-id='${id}'][data-layerpurposecategory='${key}']`);
+		        let valu = input.value;
 		
-		        this.INSTANCE_MOGISMAP.layerCodeObject[key].map(el=>(el.id==id ? el.lineWidth=Number(width) : el));
+		        this.INSTANCE_MOGISMAP.layerCodeObject[key].map(el=>(el.id==id ? el[`${target}`]=valu : el));
 		        
 		        let tnode = this.INSTANCE_JS_TREE.get_node("layerid_" + id);
 
-                if (tnode?.state.selected == true) {
+                if (tnode&&tnode.state.selected == true) {
                     this.INSTANCE_JS_TREE.uncheck_node(tnode);
                 }
 
                 //2. 기 발행 레이어 파기
                 this.INSTANCE_MOGISMAP.discardLayer(Number(id), key);
                 
-                if (tnode?.state.selected == false) {
+                if (tnode&&tnode.state.selected == false) {
                     this.INSTANCE_JS_TREE.check_node(tnode);
                 }
 		        
@@ -133,12 +134,46 @@ export class LayerTree_colorPickr extends LayerTree {
             const isGroup = layerCode[KEY.BOOL_IS_GROUP] || "N";
             let hasChild = false;
 
-            if (layerCode[KEY.CHILD_MARK]?.length > 0) hasChild = true;
+            if (layerCode[KEY.CHILD_MARK]&&layerCode[KEY.CHILD_MARK].length > 0) hasChild = true;
             if (level == 1) html += `<ul class="contlist w165">`;
             if (isGroup == "Y") {
                 html += `<li id="${id}">${name}<ul class="contlist w165">`;
             } else {
                 html += `<li id="layerid_${id}" data-layerid="${id}" data-type="${type}" class="${type} ${id}">	${name}`;
+                
+                let fontStyler='';
+                if(layerCode[KEY.FONT_STYLE]){
+					fontStyler=`
+						<div>폰트스타일</div>
+						<div>
+							<input type='text' name='${KEY.FONT_STYLE}' required style="font-size: x-small;"
+								data-${KEY.LAYER_ID}="${id}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}" 
+								value='${layerCode[KEY.FONT_STYLE]}'>
+							<button class="submitter" data-${KEY.LAYER_ID}="${id}" data-targ="${KEY.FONT_STYLE}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
+						</div>
+						<div>폰트 line색</div>
+						<div data-${KEY.LAYER_ID}="${id}"
+                             data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
+                             data-key="${KEY.FONT_OUTLINE}">
+                            <div class="colorPickr" data-rgba="${layerCode[KEY.FONT_OUTLINE]}"></div>
+                        </div>
+						<div>폰트 line두께</div>
+						<div>
+							<input type="number" name="${KEY.FONT_WIDTH}" required  style="width: 34px; font-size: x-small;"
+	                        	min="0.1" max="10" value="${layerCode[KEY.FONT_WIDTH]}" step="0.1"
+	                        	data-${KEY.LAYER_ID}="${id}"
+	                            data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"/>
+                        	<button class="submitter" data-${KEY.LAYER_ID}="${id}" data-targ="${KEY.FONT_WIDTH}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
+						</div>
+						<div>폰트 fill색</div>
+						<div data-${KEY.LAYER_ID}="${id}"
+                             data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
+                             data-key="${KEY.FONT_FILL}">
+                            <div class="colorPickr" data-rgba="${layerCode[KEY.FONT_FILL]}"></div>
+                        </div>
+					`;
+				}
+                
                 if(type == KEY.OL_GEOMETRY_OBJ.LINE) {
                     html += `<div class="colorPickr_container" 
                     			style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;
@@ -151,15 +186,17 @@ export class LayerTree_colorPickr extends LayerTree {
                                 </div> 
                                 <div>선두께</div>                               
                                 <div>
-                                	<input type="number" name="lineWidth" required 
+                                	<input type="number" name="lineWidth" required  style="width: 34px; font-size: x-small;"
                                 	min="0.1" max="10" value="${layerCode[KEY.LINE_WIDTH]}" step="0.1"
                                 	data-${KEY.LAYER_ID}="${id}"
                                         data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
-                                	 /><button class="linePickr" data-${KEY.LAYER_ID}="${id}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
-                                </div>                               
+                                	 />
+                                	 <button class="submitter" data-${KEY.LAYER_ID}="${id}" data-targ="${KEY.LINE_WIDTH}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
+                                </div>
+                                ${fontStyler}
                             </div>`
                 }
-                if(type == KEY.OL_GEOMETRY_OBJ.POLYGON) {
+                else if(type == KEY.OL_GEOMETRY_OBJ.POLYGON) {
                     html += `<div class="colorPickr_container" 
 			                    style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;
 			                    background-color: #00000091;align-items: center;">
@@ -171,11 +208,12 @@ export class LayerTree_colorPickr extends LayerTree {
                              </div>
                              <div>선두께</div>                               
                                 <div>
-                                	<input type="number" name="lineWidth" required 
+                                	<input type="number" name="lineWidth" required  style="width: 34px; font-size: x-small;"
                                 	min="0.1" max="10" value="${layerCode[KEY.LINE_WIDTH]}" step="0.1"
                                 	data-${KEY.LAYER_ID}="${id}"
                                         data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
-                                	 /><button class="linePickr" data-${KEY.LAYER_ID}="${id}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
+                                	 />
+                                	 <button class="submitter" data-${KEY.LAYER_ID}="${id}" data-targ="${KEY.LINE_WIDTH}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
                                 </div>
                              <div>면 색</div>
                              <div    data-${KEY.LAYER_ID}="${id}"
@@ -183,8 +221,20 @@ export class LayerTree_colorPickr extends LayerTree {
                                         data-key="${KEY.COLOR_FILL}">
                                	 <div class="colorPickr" data-rgba="${layerCode[KEY.COLOR_FILL]}"></div>
                               </div>  
+                              ${fontStyler}
                              </div>`
-                }
+                }else{
+					if(fontStyler){
+						
+						html +=`
+						<div class="colorPickr_container" 
+			                    style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;
+			                    background-color: #00000091;align-items: center;">
+						${fontStyler}
+						</div>
+						`
+					}
+				}
                 html +=`<label class="switch">
 						<input type="checkbox" value="on/off" id="layerid_${id}_check">
 						<span class="slider round"></span>

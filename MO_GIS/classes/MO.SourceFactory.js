@@ -24,8 +24,9 @@ export class SourceFactory extends MOFactory{
         // strategy : LoadingStrategy,//loading strategy. out of : all, bbox, tile
         crossOrigin : 'anonymous', //XYZ 
         minZoom : 19, //XYZ
-        viewSrid:'EPSG:3857', 
+        viewSrid:KEY.SRID_TILE_VWORLD, 
     };
+    
     
     INSTANCE_ol_Source; //생성자에 입력된 내용이 default 와 합쳐져 등록됨
     
@@ -42,7 +43,7 @@ export class SourceFactory extends MOFactory{
      * @memberof SourceFactory
      */
     constructor(par){
-        super();
+        super();        
         Object.assign(this.#default_sourceSpec, par);
 
         //EPSG:5181,5186 초기등록
@@ -72,10 +73,12 @@ export class SourceFactory extends MOFactory{
 
     /**
      * 동적으로 feature 를 추가하기위해 vector Source 를 발행함 (주소검색용)
+	 * @param {source_param} param 
      * @returns {VectorSource}
      */
-    getSimpleVectorSource(){
-        return new VectorSource(this.#default_sourceSpec);
+    getSimpleVectorSource(param){
+		let tempSpec = Object.assign({},this.#default_sourceSpec,param);
+        return new VectorSource(tempSpec);
     }
     
     

@@ -14,6 +14,7 @@ import TileArcGISRest from '../../lib/openlayers_v7.5.1/source/TileArcGISRest.js
  * MOSourceConfig 인스턴스로 Openlayers Layer 객체를 생산하는 객체
  *
  * @class LayerFactory
+ * @extends MOFactory
  * @author jhoh
  */
 export class LayerFactory extends MOFactory{
@@ -36,8 +37,8 @@ export class LayerFactory extends MOFactory{
 
 
 
-    #INSTANCE_ol_Source;
-    #INSTANCE_olLayer;
+    INSTANCE_ol_Source;
+    INSTANCE_olLayer;
 
 	/**
 	 * @typedef {object} layer_param 레이어팩토리 옵션 
@@ -62,14 +63,14 @@ export class LayerFactory extends MOFactory{
 
     resetFactory(){
         super.resetFactory();
-        this.#INSTANCE_ol_Source = undefined;
-        this.#INSTANCE_olLayer = undefined;
+        this.INSTANCE_ol_Source = undefined;
+        this.INSTANCE_olLayer = undefined;
     }
 
     setSource(sourceInstance){
-        if(this.#isValid_ol_Source(sourceInstance)){
+        if(this.isValid_ol_Source(sourceInstance)){
 //			this.resetFactory();
-            this.#INSTANCE_ol_Source = sourceInstance;
+            this.INSTANCE_ol_Source = sourceInstance;
         }else{
             console.error(`입력된 레이어 소스설정 인스턴스가 적합하지 않음`)
             console.log(sourceInstance)
@@ -78,12 +79,12 @@ export class LayerFactory extends MOFactory{
     }
 
     getLayer(){
-        if(!this.#INSTANCE_olLayer) this.#INSTANCE_olLayer = this.#layerBuilder();
-        if(this.#INSTANCE_olLayer instanceof Layer){
-            return this.#INSTANCE_olLayer;
+        if(!this.INSTANCE_olLayer) this.INSTANCE_olLayer = this.layerBuilder();
+        if(this.INSTANCE_olLayer instanceof Layer){
+            return this.INSTANCE_olLayer;
         }else{
             console.groupCollapsed(`해당 layer 객체는 openlayers Layer 인스턴스 아님`);
-            console.log(this.#INSTANCE_olLayer);
+            console.log(this.INSTANCE_olLayer);
             console.groupEnd();
             throw new Error(`해당 layer 객체는 openlayers Layer 인스턴스 아님`);
         }
@@ -96,11 +97,16 @@ export class LayerFactory extends MOFactory{
      * @returns {VectorImageLayer}
      */
     getSimpleVectorLayer=(paramm) =>{
-		let tempSpec = Object.assign({},this.#default_leyerSpec,paramm)
+		let tempSpec;
+		if(paramm){
+			tempSpec= this.#getUpatedLayerCode(paramm);
+		} else{
+			tempSpec = Object.assign({},this.#default_leyerSpec)
+		}
 		return new VectorImageLayer(tempSpec);
 	};
 
-    #isValid_ol_Source(sourceInstance){
+    isValid_ol_Source(sourceInstance){
         let bool = false;
         if(sourceInstance instanceof Source){
             bool = true;
@@ -113,8 +119,8 @@ export class LayerFactory extends MOFactory{
     /** default Object에 source Object 를 합치되,
      *  nullish 들은 제외시킴
      *   */ 
-    #getUpatedLayerCode(){
-        let src = this.getSpec();
+    #getUpatedLayerCode(layerCodeObj){
+        let src = layerCodeObj??this.getSpec();
         let returnLayerCode = structuredClone(this.#default_leyerSpec);
 
         returnLayerCode.zIndex = src[KEY.Z_INDEX] ?? this.#default_leyerSpec.zIndex;
@@ -122,7 +128,7 @@ export class LayerFactory extends MOFactory{
         returnLayerCode.declutter = src[KEY.BOOL_DECLUTTER] ?? this.#default_leyerSpec.declutter;
         // returnLayerCode.properties.id = src[KEY.LAYER_ID] ?? this.#default_leyerSpec.properties.id;
         // returnLayerCode.properties.typeName = src[KEY.TYPE_NAME] ?? this.#default_leyerSpec.properties.typeName;
-        // returnLayerCode.properties.isBase = src[KEY.LAYER_GEOMETRY_TYPE]?.toUpperCase()==='BASE' ? true:false;
+        // returnLayerCode.properties.isBase = src[KEY.LAYER_GEOMETRY_TYPE].toUpperCase()==='BASE' ? true:false;
         returnLayerCode.properties = src;
         return this.filterNullishVals(returnLayerCode);
     }
@@ -132,10 +138,10 @@ export class LayerFactory extends MOFactory{
      * default layer 특성에 layerCode 의 내용을 합쳐 생성 parameter로 삼음
      * @returns {Layer}
      */
-    #layerBuilder(){
+    layerBuilder(){
         let updatedOption = this.#getUpatedLayerCode();
-        if(this.#INSTANCE_ol_Source instanceof Source){
-            updatedOption['source']=this.#INSTANCE_ol_Source;
+        if(this.INSTANCE_ol_Source instanceof Source){
+            updatedOption['source']=this.INSTANCE_ol_Source;
         }else{
             throw new Error(`layerBuilder 직전 Source 가 적합하지 않음`)
         }
@@ -147,7 +153,7 @@ export class LayerFactory extends MOFactory{
             }
     
             //3. VectorImage 레이어용
-            if (this.#INSTANCE_ol_Source instanceof VectorSource){
+            if (this.INSTANCE_ol_Source instanceof VectorSource){
                 returnlayer = new VectorImageLayer(updatedOption);
             }
         } catch(e){
@@ -158,39 +164,39 @@ export class LayerFactory extends MOFactory{
     }
 
     getBaseLayer(){
-        if(!this.#INSTANCE_olLayer) this.#INSTANCE_olLayer = this.#baseLayerBuilder();
-        if(this.#INSTANCE_olLayer instanceof Layer){
-            return this.#INSTANCE_olLayer;
+        if(!this.INSTANCE_olLayer) this.INSTANCE_olLayer = this.baseLayerBuilder();
+        if(this.INSTANCE_olLayer instanceof Layer){
+            return this.INSTANCE_olLayer;
         }else{
             console.groupCollapsed(`해당 layer 객체는 openlayers Layer 인스턴스 아님`);
-            console.log(this.#INSTANCE_olLayer);
+            console.log(this.INSTANCE_olLayer);
             console.groupEnd();
             throw new Error(`해당 layer 객체는 openlayers Layer 인스턴스 아님`);
         }
     }
 
-    #baseLayerBuilder(){
+    baseLayerBuilder(){
         let updatedOption = this.#getUpatedLayerCode();
-        updatedOption.visible = this.getSpec()[KEY.BOOL_SHOW_INITIAL]?.toUpperCase()==='Y' ? true:false;
-        if(this.#INSTANCE_ol_Source instanceof Source){
-            updatedOption['source']=this.#INSTANCE_ol_Source;
+        updatedOption.visible = this.getSpec()[KEY.BOOL_SHOW_INITIAL].toUpperCase()==='Y' ? true:false;
+        if(this.INSTANCE_ol_Source instanceof Source){
+            updatedOption['source']=this.INSTANCE_ol_Source;
         }else{
             throw new Error(`layerBuilder 직전 Source 가 적합하지 않음`)
         }
         let returnlayer;
         try{
             //1. 배경지도용 WMTS 소스
-            if(this.#INSTANCE_ol_Source instanceof WMTS){
+            if(this.INSTANCE_ol_Source instanceof WMTS){
                 returnlayer = new TileLayer(updatedOption);
             }
     
             //2. 배경지도용 XYZ 소스
-            else if (this.#INSTANCE_ol_Source instanceof XYZ){
+            else if (this.INSTANCE_ol_Source instanceof XYZ){
                 returnlayer = new TileLayer(updatedOption)
             }
             
             //3. 내부망용 arcGis Tile REST 소스
-            else if (this.#INSTANCE_ol_Source instanceof TileArcGISRest){
+            else if (this.INSTANCE_ol_Source instanceof TileArcGISRest){
 				returnlayer = new TileLayer(updatedOption);
 			}
         } catch(e){

@@ -1,6 +1,7 @@
 import proj4 from '../../lib/proj4js-2.9.2/proj4j-2.9.2_esm.js';
 import { register } from '../../lib/openlayers_v7.5.1/proj/proj4.js';
 import { transform } from "../../lib/openlayers_v7.5.1/proj.js";
+import * as KEY from "./MO.keyMap.js";
 
 /**
  * 공통으로 초기 지도 스펙을 정의
@@ -15,21 +16,29 @@ const default_spec = await (async function() {
 		constrainResolution:true,
 	};
 	
-	//EPSG:5181,5186 초기등록
+	//WTL_ 등 GIS 데이터가 입력된 좌표계
     proj4.defs("EPSG:5186","+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
+    
+	//CM_MGC 지사의 bbox 좌표 기입된 좌표계
     proj4.defs("EPSG:5181","+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=500000 +ellps=GRS80 +units=m +no_defs");
+    
+    //바로e맵 view 전용 좌표계
+    proj4.defs("EPSG:5179","+proj=tmerc +lat_0=38 +lon_0=127.5 +k=0.9996 +x_0=1000000 +y_0=2000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
+    
+    //Vworld 는 EPSG:3857 사용하는데, 이는 기본으로 장착되어 있음
+    
     register(proj4);
 	
 	return await mgcInform(mgcCd).then(mgcObj=>{
 //		console.log(mgcObj);
-		// DB 상 좌표들은 'EPSG:5186' 으로 저장되어 있음
+		// DB 상 좌표들은 'EPSG:5181' 으로 저장되어 있음
 		let center = [(Number(mgcObj.minX)+Number(mgcObj.maxX))/2, (Number(mgcObj.minY)+Number(mgcObj.maxY))/2];
 		if(mapType == 'intra'){
-			mapSpec.projection= 'EPSG:5186';
-			mapSpec.center = transform(center,'EPSG:5181','EPSG:5186');
+			mapSpec.projection= KEY.SRID_TILE_EMAP;
+			mapSpec.center = transform(center,KEY.SRID_MGC_CRS,KEY.SRID_TILE_EMAP);
 		}else if (mapType == 'extra'){
-			mapSpec.projection= 'EPSG:3857';		
-			mapSpec.center = transform(center,'EPSG:5181','EPSG:3857');
+			mapSpec.projection= KEY.SRID_TILE_VWORLD;		
+			mapSpec.center = transform(center,KEY.SRID_MGC_CRS,KEY.SRID_TILE_VWORLD);
 		}else{
 			throw new Error('globals.mapType 지정되지 않음');
 		}
@@ -63,6 +72,7 @@ const default_spec = await (async function() {
 /**
  * 관리단 상세정보 조회
  * @param {string} mgcCd 지사 코드 e.g. 'JS000514'
+ * @returns {MGC_INFO}
  */
 async function mgcInform(mgcCd) {
 	const ur = `${ctxPath}/common/ajax/cmMgcSelect`;

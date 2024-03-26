@@ -108,7 +108,7 @@ export class MOLegend extends MOSubscriber {
         //1. 범례 요소가 '보이기' 처리인 경우
         if(legendObj[KEY.BOOL_VISIBLE] == true){
             this.contentArray.push(legendObj)
-        }else if (typeof legendObj[KEY.BOOL_VISIBLE] =='string' &&legendObj[KEY.BOOL_VISIBLE]?.toUpperCase()=='Y'){
+        }else if (typeof legendObj[KEY.BOOL_VISIBLE] =='string' &&legendObj[KEY.BOOL_VISIBLE].toUpperCase()=='Y'){
             this.contentArray.push(legendObj)
         }
         //2. 범례 요소가 '감추기' 처리인 경우
@@ -161,7 +161,7 @@ export class MOLegend extends MOSubscriber {
 			}else{
 			//그 밖의 일반 레이어들
 	            htmlStr += this.legendBody_open();
-	            if(legendObjArr?.length>0){
+	            if(legendObjArr.length>0){
 	                legendObjArr.forEach(legendObj=>{
 	                    htmlStr += this.legendList(legendObj[KEY.LEGEND_HTML_STRING])
 	                })

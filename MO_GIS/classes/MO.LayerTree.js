@@ -18,7 +18,7 @@ import { MOSubscriber } from './abstract/MO.Subscriber.js';
 export class LayerTree extends MOPublisher {
     defaults = {
         contextPath: "",
-        iconPath: `${ctxPath}/js-lib/openlayers/ol7/MO_GIS/images/icons/`,
+        iconPath: `${ctxPath}${KEY.ICON_PATH}`,
     };
 
     /**트리 객체가 생성될 곳의 DIV id
@@ -158,7 +158,7 @@ export class LayerTree extends MOPublisher {
      * @memberof LayerTree
      */
     #activate() {
-        if (!(this.layerCodeArr?.length > 0)) {            
+        if (!(this.layerCodeArr&&this.layerCodeArr.length > 0)) {            
             try {
                 this.#setLayerCodeArr(this.INSTANCE_MOGISMAP.layerCodeObject[this.layerPurposeCategoryKey]);
             } catch (e) {
@@ -225,7 +225,7 @@ export class LayerTree extends MOPublisher {
             const isGroup = layerCode[KEY.BOOL_IS_GROUP] || "N";
             let hasChild = false;
 
-            if (layerCode[KEY.CHILD_MARK]?.length > 0) hasChild = true;
+            if (layerCode[KEY.CHILD_MARK]&&layerCode[KEY.CHILD_MARK].length > 0) hasChild = true;
             if (level == 1) html += `<ul class="contlist w165">`;
             if(isGroup == "Y") {
                 html += `<li id="${id}">${name}<ul class="contlist w165">`;
@@ -282,16 +282,22 @@ export class LayerTree extends MOPublisher {
             }
         }
     }
-
-	checkCallback=undefined;	// callback 함수 명 담는 변수
+	
+	/** layerTree 체크 이벤트에 추가할 사용자 콜백
+	 * @type {Function|undefined}
+	 */
+	customCallback=undefined;	// callback 함수 명 담는 변수
 	
 	// layerTree callback 함수 설정
 	registEventCallback(fu){
 		if(fu instanceof Function){
-			this.checkCallback=fu		
+			this.customCallback=fu		
 		}	
 	}
-
+	/** customCallback 을 작동할지 여부
+	 * @type {boolean}
+	 */
+	callbackTraffic = true;
     /**
      * 체크박스 선택시 이벤트
      */
@@ -340,7 +346,7 @@ export class LayerTree extends MOPublisher {
                 me.notify();
             }
 
-			if(me.checkCallback instanceof Function) me.checkCallback();
+			if(me.customCallback instanceof Function && me.callbackTraffic) me.customCallback();
         });
         function makeHtmlStr(layer_id){
             let layerCode = getLayerCode(layer_id);
@@ -478,7 +484,7 @@ export class LayerTree extends MOPublisher {
                     layCD[KEY.BOOL_IS_GROUP] !== "Y"
             )
         );
-        if (codeObjArr?.length > 0)
+        if (codeObjArr&&codeObjArr.length > 0)
             return codeObjArr.map(
                 (codeObj) => "layerid_" + codeObj[KEY.LAYER_ID]
             );
@@ -611,4 +617,13 @@ export class LayerTree extends MOPublisher {
             }
         });
     }
+    
+    
+    /**
+	 * 모든 체크된 항목들을 언체크 해서 
+	 * 레이어가 사라지고, 체크버튼도 off 되게 함 <br/>
+	 * jstree.js 의 deselectAll 메서드가 오류나서 오버라이드한 함수 */
+    deselectAll(bool){
+		this.INSTANCE_JS_TREE.get_selected().forEach(id=>this.INSTANCE_JS_TREE.deselect_node(id,bool));
+	}
 }

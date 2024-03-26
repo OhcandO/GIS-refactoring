@@ -2,7 +2,7 @@ import * as KEY from '../common/MO.keyMap.js';
 import { MOFactory } from "./abstract/MO.Factory.js";
 import { SourceFactory } from "./MO.SourceFactory.js";
 import { LayerFactory } from "./MO.LayerFactory.js";
-import { createStyleFunction } from './MO.StyleFunctionFactory.js';
+import { createMOStyleFunction } from './MO.StyleFunctionFactory.js';
 import olMap from '../../lib/openlayers_v7.5.1/Map.js';
 import View from '../../lib/openlayers_v7.5.1/View.js'
 import Select from '../../lib/openlayers_v7.5.1/interaction/Select.js';
@@ -238,7 +238,7 @@ export class MOGISMap extends MOSimpleMap{
         if(!publisher) throw new Error(`등록되지 않은 Publisher 호출`);
         if(publisher instanceof LayerTree){
             let dataArr = publisher.PublisherData;
-            if(dataArr?.length>0){
+            if(dataArr&&dataArr.length>0){
                 dataArr.forEach(ctrlObj=>{
                     this.ctrlLayer(ctrlObj[KEY.LAYER_ID], ctrlObj[KEY.BOOL_VISIBLE], ctrlObj[KEY.LAYER_PURPOSE_CATEGORY_KEY]);
                     this.ctrlOverlay(ctrlObj[KEY.LAYER_PURPOSE_CATEGORY_KEY],ctrlObj[KEY.BOOL_VISIBLE],ctrlObj[KEY.LAYER_ID]);
@@ -290,12 +290,8 @@ export class MOGISMap extends MOSimpleMap{
         
         /** 마우스포인터 변경 및 selectInteraction 에 공통으로 사용되는 필터링 내용 */
         const filterFunction = (feature,layer)=>{
-					let featureType = feature.getGeometry().getType();
 					let boolFeature = true;
-					if(featureType == KEY.OL_GEOMETRY_OBJ.POLYGON){
-						boolFeature = me.view.getResolution() >= KEY.POLYGON_SELECT_MARGINAL_RESOLUTION;
-					}
-					let boolLayer = layer.get(KEY.BOOL_SELECTABLE)?.toUpperCase() ==='Y';
+					let boolLayer = layer.get(KEY.BOOL_SELECTABLE)&&layer.get(KEY.BOOL_SELECTABLE).toUpperCase() ==='Y';
 					return boolFeature && boolLayer;
 				};
         
@@ -303,7 +299,7 @@ export class MOGISMap extends MOSimpleMap{
             selectInteraction = new Select({
                 hitTolerance : this.default_select.hitTolerance,
                 multi : this.default_select.multi,
-                style : createStyleFunction(KEY.HIGHLIGHT_SOURCE_LAYER_KEY),
+                style : createMOStyleFunction(`${KEY.HIGHLIGHT_SOURCE_LAYER_KEY}_mainMap`),
                 filter: filterFunction,
             });
         }catch(e){
@@ -368,7 +364,7 @@ export class MOGISMap extends MOSimpleMap{
             let me = this;
             this.INSTANCE.INTERACTION.SELECT.on('select',function(e){
                 if(!e.auto){
-                    let feature = me.INSTANCE.INTERACTION.SELECT.getFeatures()?.getArray()[0];
+                    let feature = me.INSTANCE.INTERACTION.SELECT.getFeatures().item(0);
                     let layer = feature? me.INSTANCE.INTERACTION.SELECT.getLayer(feature): undefined;
                     me.INSTANCE.INTERACTION.SELECT_CALLBACK(feature,layer);
                 }
@@ -417,7 +413,7 @@ export class MOGISMap extends MOSimpleMap{
                 console.error(e)
             }
         //3. Feature 객체에 스타일 입히기
-            let tempStyle = createStyleFunction('address');
+            let tempStyle = createMOStyleFunction('address');
             if(tempStyle instanceof Style){
                 if(label) tempStyle.getText().setText(label);
             }else{
@@ -454,7 +450,7 @@ export class MOGISMap extends MOSimpleMap{
 	 */
     addFeaturesToHighlightLayer(features){
 		let bool_isLayerOnMap = false;
-		if(features?.length >0 && features[0] instanceof Feature){
+		if(features && features.length >0 && features[0] instanceof Feature){
 			let geometryType = features[0].getGeometry().getType();
             let highlightLayer ;
             
@@ -486,7 +482,7 @@ export class MOGISMap extends MOSimpleMap{
 			}
             
         //3. 레이어에 스타일 입히기
-            let tempStyle = createStyleFunction(KEY.HIGHLIGHT_SOURCE_LAYER_KEY);
+            let tempStyle = createMOStyleFunction(KEY.HIGHLIGHT_SOURCE_LAYER_KEY);
             highlightLayer.setStyle(tempStyle);
         
         //4. 레이어 없는 상태였다면 ol.Map 에 추가
@@ -545,7 +541,7 @@ export class MOGISMap extends MOSimpleMap{
      * @param {number} layer_id 
      * @param {string} [mOverlay_id ]
      */
-    discardMOverlay (la_pu_cate_key, layer_id, mOverlay_id){
+    discardMOverlay (la_pu_cate_key, layer_id='default', mOverlay_id){
         let moverlayGroupMap;
         if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
             moverlayGroupMap = this.INSTANCE.OVERLAY[la_pu_cate_key];
@@ -592,6 +588,7 @@ export class MOGISMap extends MOSimpleMap{
 						moverlayArr.forEach(moverlay=>{
 							this.map.addOverlay(moverlay);
 						});
+						this.view.dispatchEvent('change:resolution');
 					}else moverlayArr.forEach(moverlay=>this.map.removeOverlay(moverlay));
                 }
             }else{
@@ -600,4 +597,104 @@ export class MOGISMap extends MOSimpleMap{
         }
     }
     
+    
+    
+    //META_PS 스타일 불러오기
+    getStyleFunc_HIGHTLIGHT(){
+        createMOStyleFunction(KEY.HIGHLIGHT_SOURCE_LAYER_KEY);
+    }
+    
+    /* 🌐🌐의사결정지원 팝업 관련 🌐🌐*/
+
+    /**
+     * 주어진 x,y 좌표를 주소검색용 레이어에 발행하는 함수
+     * @param {number} point_x - x 좌표 숫자 int or float
+     * @param {number} point_y - y 좌표 숫자 int or float
+     * @param {string} label - 주소에 표현할 라벨
+     * @param {string} crs - 좌표계 e.g. "EPSG:5186"
+     * @param {OBJECT} txt - 민원 건수 텍스트 데이터
+     * @param {string} checkClass - 분류 갯수에 따른 크기 조절
+     * @param {string} offset - 팝업 위치 조절
+     */
+    addDecisionLayer(point_x,point_y,label,crs,txt,checkClass,offset){
+        let digit_x = Number(point_x);
+        let digit_y = Number(point_y);
+        
+        let bool_isLayerOnMap = false;
+        
+        if(isNumber(digit_x) && isNumber(digit_y)){
+            
+            let coord = [digit_x, digit_y];
+            if(crs){
+                coord = transform(coord,crs,this.default_viewSpec.projection);
+            }
+            
+            this.map.removeLayer(mainMap.INSTANCE.MAP.getLayerGroup().values_.layers.array_[6]);
+            
+            //1. 기 발행 주소 레이어 있는지 체크
+            let defaultLayer = this.INSTANCE.LAYER['default'];
+            defaultLayer = '';
+            //1-1. 없으면 소스, 레이어 생성 | 있으면 레이어와 소스 접근자 생성
+            if(!(defaultLayer instanceof Layer)){
+                defaultLayer = this.Factory.layer.getSimpleVectorLayer();
+                defaultLayer.setSource(this.Factory.source.getSimpleVectorSource());
+            }else{
+                bool_isLayerOnMap = true;
+            }
+            let defaultSource = defaultLayer.getSource();
+            
+            //2. 주어진 좌표로 Feature 객체 생성
+            let defaultFeature;
+            
+            try{
+                defaultFeature= new Feature({
+                            geometry: new Point(coord)
+                        });
+            }catch(e){
+                console.log(`feature 생성오류 : ${coord}`);
+                console.error(e)
+            }
+            
+            //4. 소스에 추가
+            if(defaultSource instanceof VectorSource) {
+                defaultSource.addFeature(defaultFeature);
+            }else{
+                throw new Error (`소스 구성 안됨`);
+            }
+
+
+            //4-1. 레이어 없는 상태였다면 ol.Map 에 추가
+            if(!bool_isLayerOnMap){
+                this.map.addLayer(defaultLayer);
+            }
+
+            //5. 팝업창 만들기
+            let element = document.createElement('div');
+            element.classList.add(checkClass);
+            element.innerHTML = txt;
+            document.body.appendChild(element);
+    
+            let popup = new ol.Overlay({
+                element: element,
+                positioning: 'bottom-center',
+                stopEvent: false,
+                offset: offset
+            });
+          
+            this.map.addOverlay(popup);
+            
+            let coordinates = defaultFeature.getGeometry().getCoordinates();
+              
+            popup.setPosition(coordinates);
+          
+            this.INSTANCE.LAYER['default'] = defaultLayer;
+            
+        }else{
+            console.log(`입력좌표 : ${point_x}, ${point_y}`)
+            throw new Error(`주어진 좌표가 적합한 숫자 (또는 문자) 가 아님`)
+        }
+        
+        function isNumber(n) { return !isNaN(parseFloat(n)) && !isNaN(n - 0) }
+    }
+
 }

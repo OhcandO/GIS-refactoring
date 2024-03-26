@@ -23,7 +23,7 @@ export class LayerTree_uew extends LayerTree {
             const isGroup = layerCode[KEY.BOOL_IS_GROUP] || "N";
             let hasChild = false;
 
-            if (layerCode[KEY.CHILD_MARK]?.length > 0) hasChild = true;
+            if (layerCode[KEY.CHILD_MARK]&&layerCode[KEY.CHILD_MARK].length > 0) hasChild = true;
             if (level == 1) html += `<ul>`;
             if (isGroup == "Y") {
                 html += `<li id="${id}">${name}<ul>`;

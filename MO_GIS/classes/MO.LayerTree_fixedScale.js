@@ -7,7 +7,7 @@ import { LayerTree } from './MO.LayerTree.js';
  * JSTree 구조체를 생성함
  * 지도 객체 하나에 여러개의 layerTree 객체 생성될 수 있음
  * @requires JQuery1.9+ JStree
- * @class LayerTree
+ * @class LayerTree_fixedSclale
  * @author jhoh
  */
 export class LayerTree_fixedScale extends LayerTree {
@@ -170,6 +170,7 @@ export class LayerTree_fixedScale extends LayerTree {
      */
     checkEventListener() {
     	this.checkEventListener= ()=>{}
+    	
     	//mainMap.jsp 프로덕션에서 체크버튼 클릭시 메뉴 꺼지지 않게 조치
         document.getElementById(this.TREE_DIV_ID).addEventListener('click',e1=>{
 			e1.stopPropagation();
@@ -177,22 +178,25 @@ export class LayerTree_fixedScale extends LayerTree {
 		
         let me = this;
         let nodeId;
+        
+        
         $(`#${this.TREE_DIV_ID}`).bind("changed.jstree", function (e, data) {
+			if(me.customCallback instanceof Function && me.callbackTraffic) {
+				me.customCallback(e, data);
+			}
             if (data.action === "ready") return;
             
-//			let negativeArr = me.INSTANCE_JS_TREE.get_json().filter(el=>el.id!=data.node.id).map(e=>e.data.layerid);
-			
             let visible = false;
             if (data.action === "select_node") visible = true;
 
             let layerCode_id_arr = [];
-            if (data.node?.children.length > 0) {
+            if (data.node&&data.node.children.length > 0) {
                 for (let id in data.node.children_d) {
                     nodeId = data.node.children_d[id];
                     pushLayerList(nodeId, layerCode_id_arr);
                 }
             } else {
-                nodeId = data.node?.id;
+                nodeId = data.node.id;
                 if(nodeId) pushLayerList(nodeId, layerCode_id_arr);
             }
             if (layerCode_id_arr.length > 0) {
@@ -216,6 +220,8 @@ export class LayerTree_fixedScale extends LayerTree {
                 me.ctrlLayerDataArr = tempArr;
                 me.notify();
             }
+            
+            
         });
         
         function getLayerCode(layer_id){

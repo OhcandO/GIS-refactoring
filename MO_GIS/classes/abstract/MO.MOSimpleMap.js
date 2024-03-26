@@ -1,7 +1,7 @@
 import * as KEY from '../../common/MO.keyMap.js';
 import { SourceFactory } from "../MO.SourceFactory.js";
 import { LayerFactory } from "../MO.LayerFactory.js";
-import { createStyleFunction } from '../MO.StyleFunctionFactory.js';
+import { createMOStyleFunction } from '../MO.StyleFunctionFactory.js';
 import olMap from '../../../lib/openlayers_v7.5.1/Map.js';
 import View from '../../../lib/openlayers_v7.5.1/View.js'
 import OSM from '../../../lib/openlayers_v7.5.1/source/OSM.js'
@@ -93,9 +93,9 @@ export class MOSimpleMap extends MOSubscriber{
 
     /**
      * 기본 배경지도의 소스(API키 포함)+레이어 정보 코드 리스트
-     * @type {JSON}
+     * @type {Array}
      */
-    layerCode_Background;
+    layerCode_Background =[];
     /**
      * 입력한 변수들을 Map 또는 View 객체 생성을 위한 변수로 할당
      * @param {MOGIS_param} mapConfigSpec 
@@ -215,14 +215,6 @@ export class MOSimpleMap extends MOSubscriber{
             throw new Error(`layerCode JSON 객체가 적합하지 않음`);
         }
     }
-    get example_BaseLayerCodeArr(){
-        const arr = [{  sourceClass: "wmts", category: "vworld", srid: "EPSG:3857", origin: "https://api.vworld.kr",sourcePathname: "/req/wmts/1.0.0/{key}/{layer}/{tileMatrix}/{tileRow}/{tileCol}.{tileType}",id: 1, layerTitle: "vworld_base", typeName: "Base", boolShowInit: "Y", apiKey: "B58E48FE-683E-3E7E-B91C-2F912512FE60",  layerType: "BASE", }];
-        console.log(arr);
-    }
-    get example_LayerCodeArr(){
-        const arr = [{"names":"YC 전체","ordr":1,"sourceClass":"vector","category":"geoserver","srid":"EPSG:5186","origin":"http:\/\/118.42.103.144:9090","sourcePathname":"\/geoserver\/wfs","apiKey":null,"id":24,"pid":8,"minZoom":9,"layerTitle":"YC 전체","typeName":"swap:wtl_blsm_as_yc","cqlfilter":null,"iconName":null,"label":"BLCK_NM","zIndex":6,"lineWidth":"2","lineStyle":"[3,5,1,4]","layerType":"POLYGON","colorFill":"rgba(88, 187, 78, 0.66)","colorLine":"rgba(21, 80, 0, 0.7)","font":"25px Malgun Gothic","colorFontLine":"rgba(0, 0, 0, 1)","colorFontFill":"rgba(184, 106, 0, 1)","boolUseYn":"Y","boolIsgroup":null,"boolSelectable":null,"boolEditable":null,"boolShowInit":"Y","boolDownload":null}];
-        console.log(arr);
-    }
 
     getLayerCodeArr(la_pu_cate_key){
         if(this.isValid_layerPurposeCategoryKey(la_pu_cate_key)){
@@ -267,7 +259,7 @@ export class MOSimpleMap extends MOSubscriber{
     setBaseLayer() {
 		if(!(this.INSTANCE.MAP instanceof Map)) this.#createMapObj();
 		
-        if (this.layerCode_Background?.length > 0 && this.isValid_factories()) {
+        if ((this.layerCode_Background && this.layerCode_Background.length) > 0 && this.isValid_factories()) {
             let baseLayers = [];
             baseLayers = this.layerCode_Background.map(baseConfig=>{
                 this.#assignLayerCodeToFactories(baseConfig);
@@ -312,7 +304,7 @@ export class MOSimpleMap extends MOSubscriber{
         if(!publisher) throw new Error(`등록되지 않은 Publisher 호출`);
         if(publisher instanceof LayerTree){
             let dataArr = publisher.PublisherData;
-            if(dataArr?.length>0){
+            if(dataArr && dataArr.length>0){
                 dataArr.forEach(ctrlObj=>{
                     this.ctrlLayer(ctrlObj[KEY.LAYER_ID], ctrlObj[KEY.BOOL_VISIBLE], ctrlObj[KEY.LAYER_PURPOSE_CATEGORY_KEY])
                 })
@@ -447,7 +439,7 @@ export class MOSimpleMap extends MOSubscriber{
 
         if(layerCode[KEY.SOURCE_CLASS]=='vector'){
             try{
-                layer.setStyle (createStyleFunction(layerCode))
+                layer.setStyle (createMOStyleFunction(layerCode))
             }catch(e){
                 console.error(e);
             }
