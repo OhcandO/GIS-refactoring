@@ -18,11 +18,12 @@ import { MOOverlay } from './addon/MO.overlay.js';
 import Overlay from '../../lib/openlayers_v7.5.1/Overlay.js';
 
 /**
- * ol.Map 확장하고 지도와 레이어 생성을 관장하는 Controller 역할수행
- *
+ * A controller class that extends `ol.Map` to manage map and layer creation.
+ * @summary Manages the creation of maps and layers.
  * @export
  * @class MOGISMap
  * @author jhoh
+ * @fires MOGISMap#select
  */
 export class MOGISMap extends MOSimpleMap{
     default_viewSpec = {
@@ -176,8 +177,24 @@ export class MOGISMap extends MOSimpleMap{
      */
     layerCode_Background;
     /**
-     * 입력한 변수들을 Map 또는 View 객체 생성을 위한 변수로 할당
-     * @param {MOGIS_param} mapConfigSpec 
+     * The initial specification for the background map's source and layer.
+     * @type {JSON}
+     */
+    layerCode_Background;
+    /**
+     * Creates an instance of MOGISMap.
+     * @param {object} mapConfigSpec - The configuration object for the map.
+     * @param {string} mapConfigSpec.target - The ID of the HTML element that will contain the map.
+     * @param {string} [mapConfigSpec.projection='EPSG:3857'] - The projection of the map.
+     * @param {number[]} [mapConfigSpec.center=[14142459.590502, 4506517.583030]] - The initial center of the map.
+     * @param {number} [mapConfigSpec.zoom=12] - The initial zoom level of the map.
+     * @param {boolean} [mapConfigSpec.enableRotation=false] - Whether rotation is enabled.
+     * @param {boolean} [mapConfigSpec.constrainResolution=true] - Whether to constrain the resolution.
+     * @param {number[]} [mapConfigSpec.resolutions] - The resolutions for the map.
+     * @param {number} [mapConfigSpec.hitTolerance=10] - The hit tolerance for the select interaction.
+     * @param {boolean} [mapConfigSpec.multi=false] - Whether to allow multiple features to be selected.
+     * @param {string} [NAME='MOGISMap'] - The name of the MOGISMap instance.
+     * @throws {Error} If the 'target' property is not defined in mapConfigSpec.
      */
     constructor(mapConfigSpec,NAME='MOGISMap') {
         super(mapConfigSpec,NAME='MOGISMap');
@@ -198,10 +215,10 @@ export class MOGISMap extends MOSimpleMap{
 
     //🔻🔵🔵🔵Factory 관련🔵🔵🔵🔵
     /**
-     * MOFactory subClass 를 등록 (레이어 Factory, 소스 Factory);
-     *
-     * @param {MOFactory} factory
+     * Registers a subclass of `MOFactory` (e.g., `LayerFactory`, `SourceFactory`).
+     * @param {MOFactory} factory - The factory to register.
      * @memberof MOGISMap
+     * @throws {Error} If the provided factory is not a valid instance of `MOFactory`.
      */
     setFactory(factory) {
         if (factory instanceof MOFactory) {
@@ -230,8 +247,9 @@ export class MOGISMap extends MOSimpleMap{
 
     //🟨🟨🟨MOSubscriber 함수등록🟨🟨🟨🟨🟨🟨🟨🟨🟨
     /**
-     * 
-     * @param {Symbol} publisherID 
+     * Updates the map based on the data from a registered publisher.
+     * @param {Symbol} publisherID - The ID of the publisher to update from.
+     * @throws {Error} If the publisher is not registered.
      */
     update(publisherID){
         let publisher = this.getPublisher(publisherID);
@@ -253,9 +271,9 @@ export class MOGISMap extends MOSimpleMap{
     /* 🔷SELECT Interaction 관련🔷 */
 
     /**
-     * MOGISMap 객체의 Vector Source Layer 에 대해, Layer 가 선택 가능한 상태라면,
-     * 레이어를 구성하는 feature 들과 상호작용할 수 있도록 켜거나 끔
-     * @param {boolean} [bool=true] 
+     * Enables or disables the select interaction on the map.
+     * @param {boolean} [bool=true] - Whether to enable or disable the interaction.
+     * @fires MOGISMap#select
      */
     enableSelect(bool=true){
         if(bool){
@@ -326,14 +344,15 @@ export class MOGISMap extends MOSimpleMap{
     }
     
     /**
-     * openlayers 피쳐와 레이어를 파라미터로 하는 callback 함수 사용자 정의
+     * A callback function for the select interaction.
      * @callback featureCallback
-     * @param {Feature} feature 첫번째로 선택된, zIndex 가장 큰 feature
-     * @param {Layer} layer feature가 포함된 ol.Layer 객체
+     * @param {Feature} feature - The selected feature.
+     * @param {Layer} layer - The layer containing the selected feature.
      */
     /**
-     * 선택가능한 레이어의 피쳐 클릭시 발생할 이벤트 사용자 지정
-     * @param {featureCallback} callback 피쳐, 레이어를 인자로 하는 콜백
+     * Sets the callback function for the select interaction.
+     * @param {featureCallback} callback - The callback function to execute when a feature is selected.
+     * @throws {Error} If the callback is not a function.
      */
     setSelectCallback(callback){
         //선택될 때 동작(selectCallback)을 객체에 등록
@@ -376,11 +395,12 @@ export class MOGISMap extends MOSimpleMap{
     /* 🌐🌐주소검색 관련.. 🌐🌐*/
 
     /**
-     * 주어진 x,y 좌표를 주소검색용 레이어에 발행하는 함수
-     * @param {number} point_x - x 좌표 숫자 int or float
-     * @param {number} point_y - y 좌표 숫자 int or float
-     * @param {string} label - 주소에 표현할 라벨
-     * @param {string} crs - 좌표계 e.g. "EPSG:5186"
+     * Adds a new layer to the map for displaying addresses.
+     * @param {number} point_x - The x-coordinate of the address.
+     * @param {number} point_y - The y-coordinate of the address.
+     * @param {string} label - The label to display for the address.
+     * @param {string} crs - The coordinate reference system of the provided coordinates.
+     * @throws {Error} If the provided coordinates are not valid numbers.
      */
     addAddressLayer(point_x,point_y,label,crs){
         let digit_x = Number(point_x);
@@ -444,9 +464,9 @@ export class MOGISMap extends MOSimpleMap{
     }
 
     /**
-	 * 피쳐 객체들로 구성된 VectorImage 레이어 구성하고
-	 * Highlight 화 함
-	 * @param {Array<Feature>} features - openlayers feature 객체 배열 
+	 * Adds an array of features to the highlight layer.
+	 * @param {Array<Feature>} features - An array of `ol.Feature` objects to add to the highlight layer.
+	 * @throws {Error} If the geometry type of the features is not supported.
 	 */
     addFeaturesToHighlightLayer(features){
 		let bool_isLayerOnMap = false;
@@ -502,10 +522,11 @@ export class MOGISMap extends MOSimpleMap{
     //🟠🟠Overlay 관련 🟠🟠🟠🟠
 
     /**
-     *  Overlay 확장인 MOverlay 를 객체에 등록함
-     * @param {MOOverlay} moverlay 
-     * @param {KEY.LayerPurpose} la_pu_cate_key 
-     * @param {string} [layer_id='default'] 
+     * Adds a `MOOverlay` instance to the map.
+     * @param {MOOverlay} moverlay - The `MOOverlay` instance to add.
+     * @param {KEY.LayerPurpose} la_pu_cate_key - The layer purpose category key.
+     * @param {string} [layer_id='default'] - The ID of the layer to associate the overlay with.
+     * @throws {Error} If the provided overlay is not a valid `MOOverlay` instance.
      */
     addMOverlay(moverlay,la_pu_cate_key, layer_id='default'){
 
@@ -536,10 +557,11 @@ export class MOGISMap extends MOSimpleMap{
     }
 
     /**
-     * 발행되거나 보관중인 MOVerlay 인스턴스를 삭제
-     * @param {KEY.LayerPurpose} la_pu_cate_key 
-     * @param {number} layer_id 
-     * @param {string} [mOverlay_id ]
+     * Discards a `MOOverlay` instance from the map.
+     * @param {KEY.LayerPurpose} la_pu_cate_key - The layer purpose category key.
+     * @param {string} [layer_id='default'] - The ID of the layer to remove the overlay from.
+     * @param {string} [mOverlay_id] - The ID of the `MOOverlay` instance to remove.
+     * @throws {Error} If the overlay group is not valid.
      */
     discardMOverlay (la_pu_cate_key, layer_id='default', mOverlay_id){
         let moverlayGroupMap;
@@ -566,10 +588,11 @@ export class MOGISMap extends MOSimpleMap{
     }
 
     /**
-     * 개별 MOVerlay 또는 그룹을 켜고 끄는 컨트롤 메서드
-     * @param {KEY.LayerPurpose} la_pu_cate_key 
-     * @param {boolean} visible 
-     * @param {string} [layer_id] 
+     * Controls the visibility of a `MOOverlay` instance or a group of overlays.
+     * @param {KEY.LayerPurpose} la_pu_cate_key - The layer purpose category key.
+     * @param {boolean} visible - Whether to show or hide the overlay(s).
+     * @param {string} [layer_id='default'] - The ID of the layer to control the overlays for.
+     * @throws {Error} If the `layer_id` is not specified.
      */
     ctrlOverlay(la_pu_cate_key,visible,layer_id='default'){
         let overlayGroup;
@@ -599,7 +622,10 @@ export class MOGISMap extends MOSimpleMap{
     
     
     
-    //META_PS 스타일 불러오기
+    /**
+     * Gets the style function for the highlight layer.
+     * @returns {Function} The style function for the highlight layer.
+     */
     getStyleFunc_HIGHTLIGHT(){
         createMOStyleFunction(KEY.HIGHLIGHT_SOURCE_LAYER_KEY);
     }
@@ -607,14 +633,15 @@ export class MOGISMap extends MOSimpleMap{
     /* 🌐🌐의사결정지원 팝업 관련 🌐🌐*/
 
     /**
-     * 주어진 x,y 좌표를 주소검색용 레이어에 발행하는 함수
-     * @param {number} point_x - x 좌표 숫자 int or float
-     * @param {number} point_y - y 좌표 숫자 int or float
-     * @param {string} label - 주소에 표현할 라벨
-     * @param {string} crs - 좌표계 e.g. "EPSG:5186"
-     * @param {OBJECT} txt - 민원 건수 텍스트 데이터
-     * @param {string} checkClass - 분류 갯수에 따른 크기 조절
-     * @param {string} offset - 팝업 위치 조절
+     * Adds a new layer to the map for displaying decision support popups.
+     * @param {number} point_x - The x-coordinate of the popup.
+     * @param {number} point_y - The y-coordinate of the popup.
+     * @param {string} label - The label to display for the popup.
+     * @param {string} crs - The coordinate reference system of the provided coordinates.
+     * @param {string} txt - The text content of the popup.
+     * @param {string} checkClass - The CSS class to apply to the popup.
+     * @param {number[]} offset - The offset of the popup in pixels.
+     * @throws {Error} If the provided coordinates are not valid numbers.
      */
     addDecisionLayer(point_x,point_y,label,crs,txt,checkClass,offset){
         let digit_x = Number(point_x);

@@ -51,7 +51,7 @@ const default_style={
 /**
  * layerCodeObject 에 조건을 부여할 수 있는 필터객체
  * @typedef {object} conditionObject
- * @property {keyof KEY.layerCodeObj} condition
+ * @property {string} condition
  * @property {string} value
  */
 
