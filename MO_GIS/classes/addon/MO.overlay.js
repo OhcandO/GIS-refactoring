@@ -13,7 +13,7 @@ export class MOOverlay extends Overlay {
     endPixel;
     overId;
     /**
-	 * @param {import('../../../lib/openlayers_v7.5.1/Overlay.js').Options} obj 
+	 * @param {object} obj
 	 */
     constructor(obj) {
         super(obj);

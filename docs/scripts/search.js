@@ -106,7 +106,7 @@ function onClickSearchItem(event) {
 function buildSearchResult(result) {
   let output = '';
   const removeHTMLTagsRegExp = /(<([^>]+)>)/ig;
-  
+
   for (const res of result) {
     const { title = '', description = '' } = res.item;
 
