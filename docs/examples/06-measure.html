@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>거리/면적 측정 - MOGISMap Example</title>
+  <link rel="stylesheet" href="css/example.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.5.1/ol.css">
+  <style>
+    .btn-active {
+      background: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="back-link">예제 목록</a>
+    <span class="title">거리/면적 측정</span>
+    <a href="../classes/MOMeasure.html" class="api-link">API 문서</a>
+  </header>
+
+  <div class="container">
+    <div class="description">
+      <p>지도 위에 선이나 면을 그려 거리와 면적을 실시간으로 측정합니다.</p>
+    </div>
+
+    <div class="controls">
+      <button id="btn-distance" class="btn">거리 측정</button>
+      <button id="btn-area" class="btn">면적 측정</button>
+      <button id="btn-reset" class="btn btn-secondary">초기화</button>
+    </div>
+
+    <div id="map"></div>
+
+    <button class="code-toggle">코드 보기</button>
+    <div class="code-view">
+      <pre><code>import { createBaseMap, initCodeToggle } from './js/common.js';
+import { MOMeasure } from './js/mogismap.js';
+
+const mogisMap = createBaseMap('map');
+window.mainMap = mogisMap; // MOMeasure 내부에서 mainMap 전역 참조
+
+const measure = new MOMeasure(mogisMap, false);
+
+document.getElementById('btn-distance').addEventListener('click', () =&gt; {
+  measure.activeMeasure('LineString');
+  setActiveBtn('btn-distance');
+});
+document.getElementById('btn-area').addEventListener('click', () =&gt; {
+  measure.activeMeasure('Polygon');
+  setActiveBtn('btn-area');
+});
+document.getElementById('btn-reset').addEventListener('click', () =&gt; {
+  measure.activeMeasure(false);
+  setActiveBtn(null);
+});
+
+function setActiveBtn(id) {
+  ['btn-distance', 'btn-area', 'btn-reset'].forEach(btnId =&gt; {
+    document.getElementById(btnId).classList.toggle('btn-active', btnId === id);
+  });
+}
+
+initCodeToggle();</code></pre>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createBaseMap, initCodeToggle } from './js/common.js';
+    import { MOMeasure } from './js/mogismap.js';
+
+    const mogisMap = createBaseMap('map');
+    window.mainMap = mogisMap; // MOMeasure 내부에서 mainMap 전역 참조
+
+    const measure = new MOMeasure(mogisMap, false);
+
+    document.getElementById('btn-distance').addEventListener('click', () => {
+      measure.activeMeasure('LineString');
+      setActiveBtn('btn-distance');
+    });
+    document.getElementById('btn-area').addEventListener('click', () => {
+      measure.activeMeasure('Polygon');
+      setActiveBtn('btn-area');
+    });
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      measure.activeMeasure(false);
+      setActiveBtn(null);
+    });
+
+    function setActiveBtn(id) {
+      ['btn-distance', 'btn-area', 'btn-reset'].forEach(btnId => {
+        document.getElementById(btnId).classList.toggle('btn-active', btnId === id);
+      });
+    }
+
+    initCodeToggle();
+  </script>
+</body>
+</html>

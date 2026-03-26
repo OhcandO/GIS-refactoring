@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>실시간 스타일 편집 - MOGISMap Example</title>
+  <link rel="stylesheet" href="css/example.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.5.1/ol.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="back-link">예제 목록</a>
+    <span class="title">실시간 스타일 편집</span>
+    <a href="../classes/LayerTreeColorPickr.html" class="api-link">API 문서</a>
+  </header>
+
+  <div class="container">
+    <div class="description">
+      <p>
+        <code>LayerTreeColorPickr</code>를 사용하여 벡터 레이어의 색상을 실시간으로 변경합니다.
+        트리 노드 옆의 색상 칩을 클릭하면 ColorPickr 팝업이 열리며,
+        <code>theme</code>, <code>defaultRepresentation</code> 등의 Pickr 옵션을 주입할 수 있습니다.
+      </p>
+    </div>
+
+    <div class="map-container">
+      <div class="panel">
+        <h3>레이어 트리</h3>
+        <div id="tree-container"></div>
+      </div>
+      <div class="map-wrap">
+        <div id="map"></div>
+      </div>
+    </div>
+
+    <button class="code-toggle">코드 보기</button>
+    <div class="code-view">
+      <pre><code>import { createBaseMap, initCodeToggle } from './js/common.js';
+import { LayerTreeColorPickr, KEY } from './js/mogismap.js';
+
+window.ctxPath = '';
+const mogisMap = createBaseMap('map');
+
+const layerCodes = [
+  { id: 100, pid: null, layerTitle: '벡터 레이어', ordr: 1, boolIsgroup: 'Y', boolUseYn: 'Y', geomType: null },
+  { id: 101, pid: 100, layerTitle: '상수관로', ordr: 1, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'LineString', typeName: 'pipe',
+    colorLine: 'rgba(52,152,219,0.8)', lineWidth: 3, lineStyle: 'solid',
+    boolSelectable: 'Y', boolShowInit: 'N', layerPurposeCategory: 'base' },
+  { id: 102, pid: 100, layerTitle: '급수블록', ordr: 2, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'Polygon', typeName: 'block',
+    colorLine: 'rgba(46,204,113,0.8)', colorFill: 'rgba(46,204,113,0.2)', lineWidth: 2,
+    boolSelectable: 'Y', boolShowInit: 'N', layerPurposeCategory: 'base' },
+];
+
+mogisMap.setLayerCode(layerCodes, 'base');
+
+const colorPickrTree = new LayerTreeColorPickr('tree-container', {
+  theme: 'monolith',
+  defaultRepresentation: 'RGBA',
+});
+colorPickrTree.regist(mogisMap, 'base');
+
+initCodeToggle();</code></pre>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createBaseMap, initCodeToggle } from './js/common.js';
+    import { LayerTreeColorPickr, KEY } from './js/mogismap.js';
+
+    window.ctxPath = '';
+    const mogisMap = createBaseMap('map');
+
+    const layerCodes = [
+      { id: 100, pid: null, layerTitle: '벡터 레이어', ordr: 1, boolIsgroup: 'Y', boolUseYn: 'Y', geomType: null },
+      { id: 101, pid: 100, layerTitle: '상수관로', ordr: 1, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'LineString', typeName: 'pipe',
+        colorLine: 'rgba(52,152,219,0.8)', lineWidth: 3, lineStyle: 'solid',
+        boolSelectable: 'Y', boolShowInit: 'N', layerPurposeCategory: 'base' },
+      { id: 102, pid: 100, layerTitle: '급수블록', ordr: 2, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'Polygon', typeName: 'block',
+        colorLine: 'rgba(46,204,113,0.8)', colorFill: 'rgba(46,204,113,0.2)', lineWidth: 2,
+        boolSelectable: 'Y', boolShowInit: 'N', layerPurposeCategory: 'base' },
+    ];
+
+    mogisMap.setLayerCode(layerCodes, 'base');
+
+    const colorPickrTree = new LayerTreeColorPickr('tree-container', {
+      theme: 'monolith',
+      defaultRepresentation: 'RGBA',
+    });
+    colorPickrTree.regist(mogisMap, 'base');
+
+    initCodeToggle();
+  </script>
+</body>
+</html>

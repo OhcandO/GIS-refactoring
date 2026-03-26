@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오버레이 (팝업) - MOGISMap 예제</title>
+  <link rel="stylesheet" href="css/example.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.5.1/ol.css">
+  <style>
+    .popup {
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      padding: 0;
+      min-width: 180px;
+      font-size: 13px;
+      pointer-events: auto;
+    }
+    .popup-header {
+      background: #2c3e50;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px 6px 0 0;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: move;
+    }
+    .popup-content {
+      padding: 10px 12px;
+      color: #555;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="back-link">예제 목록</a>
+    <span class="title">오버레이 (팝업)</span>
+    <a href="../classes/MOOverlay.html" class="api-link">API 문서</a>
+  </header>
+  <div class="container">
+    <div class="description">
+      <p>지도 위에 드래그 가능한 오버레이 팝업을 표시합니다.
+        MOOverlay는 OpenLayers Overlay를 확장하여 드래그 기능을 내장합니다.
+        지도를 클릭하면 해당 위치에 팝업이 생성됩니다.</p>
+    </div>
+    <div class="controls">
+      <button id="toggle-overlays" class="btn">팝업 숨기기</button>
+      <button id="clear-overlays" class="btn btn-danger">전체 제거</button>
+    </div>
+    <div class="map-container">
+      <div id="map"></div>
+    </div>
+    <button class="code-toggle">코드 보기</button>
+    <div class="code-view" style="display:none">
+      <pre><code>import { createBaseMap, initCodeToggle } from './js/common.js';
+import { MOOverlay } from './js/mogismap.js';
+
+const mogisMap = createBaseMap('map');
+let overlayCount = 0;
+
+// 맵 클릭 시 팝업 생성
+mogisMap.map.on('singleclick', (evt) =&gt; {
+  overlayCount++;
+
+  const el = document.createElement('div');
+  el.className = 'popup';
+  el.innerHTML = `
+    &lt;div class="popup-header"&gt;팝업 #${overlayCount}&lt;/div&gt;
+    &lt;div class="popup-content"&gt;
+      좌표: ${evt.coordinate[0].toFixed(0)}, ${evt.coordinate[1].toFixed(0)}&lt;br&gt;
+      드래그하여 이동할 수 있습니다.
+    &lt;/div&gt;
+  `;
+  document.body.appendChild(el);
+
+  const overlay = new MOOverlay({
+    element: el,
+    position: evt.coordinate,
+    positioning: 'bottom-center',
+    offset: [0, -10],
+    id: `popup-${overlayCount}`,
+  });
+
+  mogisMap.addMOverlay(overlay);
+});
+
+// 오버레이 전체 보이기/숨기기
+let visible = true;
+document.getElementById('toggle-overlays').addEventListener('click', () =&gt; {
+  visible = !visible;
+  mogisMap.ctrlOverlay(undefined, visible);
+  document.getElementById('toggle-overlays').textContent = visible ? '팝업 숨기기' : '팝업 보이기';
+});
+
+// 오버레이 전체 제거
+document.getElementById('clear-overlays').addEventListener('click', () =&gt; {
+  mogisMap.discardMOverlay();
+  overlayCount = 0;
+});</code></pre>
+    </div>
+  </div>
+  <script type="module">
+    import { createBaseMap, initCodeToggle } from './js/common.js';
+    import { MOOverlay } from './js/mogismap.js';
+
+    const mogisMap = createBaseMap('map');
+    let overlayCount = 0;
+
+    // 맵 클릭 시 팝업 생성
+    mogisMap.map.on('singleclick', (evt) => {
+      overlayCount++;
+
+      const el = document.createElement('div');
+      el.className = 'popup';
+      el.innerHTML = `
+        <div class="popup-header">팝업 #${overlayCount}</div>
+        <div class="popup-content">
+          좌표: ${evt.coordinate[0].toFixed(0)}, ${evt.coordinate[1].toFixed(0)}<br>
+          드래그하여 이동할 수 있습니다.
+        </div>
+      `;
+      document.body.appendChild(el);
+
+      const overlay = new MOOverlay({
+        element: el,
+        position: evt.coordinate,
+        positioning: 'bottom-center',
+        offset: [0, -10],
+        id: `popup-${overlayCount}`,
+      });
+
+      mogisMap.addMOverlay(overlay);
+    });
+
+    // 오버레이 전체 보이기/숨기기
+    let visible = true;
+    document.getElementById('toggle-overlays').addEventListener('click', () => {
+      visible = !visible;
+      mogisMap.ctrlOverlay(undefined, visible);
+      document.getElementById('toggle-overlays').textContent = visible ? '팝업 숨기기' : '팝업 보이기';
+    });
+
+    // 오버레이 전체 제거
+    document.getElementById('clear-overlays').addEventListener('click', () => {
+      mogisMap.discardMOverlay();
+      overlayCount = 0;
+    });
+
+    initCodeToggle();
+  </script>
+</body>
+</html>

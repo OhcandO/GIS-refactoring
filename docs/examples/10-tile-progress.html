@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>타일 로딩 프로그레스 - MOGISMap Example</title>
+  <link rel="stylesheet" href="css/example.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.5.1/ol.css">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="back-link">예제 목록</a>
+    <span class="title">타일 로딩 프로그레스</span>
+    <a href="../classes/TileLoadProgress.html" class="api-link">API 문서</a>
+  </header>
+
+  <div class="container">
+    <div class="description">
+      <p>배경지도 타일이 로딩될 때 진행률 바를 표시합니다. 아래 버튼을 눌러 지도를 이동시키면 타일 로딩이 발생하면서 프로그레스 바가 동작합니다.</p>
+    </div>
+
+    <div class="controls">
+      <button id="btn-move" class="btn">지도 이동</button>
+    </div>
+
+    <div id="map"></div>
+    <div id="progress" style="width:100%; height:4px; background:#eee; position:relative;"></div>
+
+    <button class="code-toggle">코드 보기</button>
+    <div class="code-view">
+      <pre><code>import { createBaseMap, initCodeToggle } from './js/common.js';
+import { TileLoadProgress } from './js/mogismap.js';
+
+const mogisMap = createBaseMap('map');
+const progressEl = document.getElementById('progress');
+const progress = new TileLoadProgress(progressEl);
+
+// 배경지도 타일 소스에 이벤트 연결
+const layers = mogisMap.map.getLayers().getArray();
+layers.forEach(layer =&gt; {
+  const source = layer.getSource();
+  if (source &amp;&amp; source.on) {
+    source.on('tileloadstart', () =&gt; progress.addLoading());
+    source.on('tileloadend', () =&gt; progress.addLoaded());
+    source.on('tileloaderror', () =&gt; progress.addLoaded());
+  }
+});
+
+// 지도 이동 버튼 (타일 로드 트리거)
+document.getElementById('btn-move').addEventListener('click', () =&gt; {
+  const view = mogisMap.view;
+  const center = view.getCenter();
+  view.animate({ center: [center[0] + 50000, center[1]], duration: 500 }, () =&gt; {
+    view.animate({ center: center, duration: 500 });
+  });
+});
+
+initCodeToggle();</code></pre>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createBaseMap, initCodeToggle } from './js/common.js';
+    import { TileLoadProgress } from './js/mogismap.js';
+
+    const mogisMap = createBaseMap('map');
+    const progressEl = document.getElementById('progress');
+    const progress = new TileLoadProgress(progressEl);
+
+    // 배경지도 타일 소스에 이벤트 연결
+    const layers = mogisMap.map.getLayers().getArray();
+    layers.forEach(layer => {
+      const source = layer.getSource();
+      if (source && source.on) {
+        source.on('tileloadstart', () => progress.addLoading());
+        source.on('tileloadend', () => progress.addLoaded());
+        source.on('tileloaderror', () => progress.addLoaded());
+      }
+    });
+
+    // 지도 이동 버튼 (타일 로드 트리거)
+    document.getElementById('btn-move').addEventListener('click', () => {
+      const view = mogisMap.view;
+      const center = view.getCenter();
+      view.animate({ center: [center[0] + 50000, center[1]], duration: 500 }, () => {
+        view.animate({ center: center, duration: 500 });
+      });
+    });
+
+    initCodeToggle();
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "FTR_IDN": "B001", "NAME": "급수블록_001", "AREA_KM2": 1.2 }, "geometry": { "type": "Polygon", "coordinates": [[[126.955, 37.555], [126.970, 37.555], [126.970, 37.570], [126.955, 37.570], [126.955, 37.555]]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "B002", "NAME": "급수블록_002", "AREA_KM2": 1.1 }, "geometry": { "type": "Polygon", "coordinates": [[[126.970, 37.555], [126.985, 37.555], [126.985, 37.570], [126.970, 37.570], [126.970, 37.555]]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "B003", "NAME": "급수블록_003", "AREA_KM2": 0.9 }, "geometry": { "type": "Polygon", "coordinates": [[[126.985, 37.555], [126.995, 37.555], [126.995, 37.570], [126.985, 37.570], [126.985, 37.555]]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "B004", "NAME": "급수블록_004", "AREA_KM2": 1.3 }, "geometry": { "type": "Polygon", "coordinates": [[[126.955, 37.540], [126.970, 37.540], [126.970, 37.555], [126.955, 37.555], [126.955, 37.540]]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "B005", "NAME": "급수블록_005", "AREA_KM2": 1.0 }, "geometry": { "type": "Polygon", "coordinates": [[[126.970, 37.540], [126.985, 37.540], [126.985, 37.555], [126.970, 37.555], [126.970, 37.540]]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "B006", "NAME": "급수블록_006", "AREA_KM2": 0.8 }, "geometry": { "type": "Polygon", "coordinates": [[[126.985, 37.540], [126.995, 37.540], [126.995, 37.555], [126.985, 37.555], [126.985, 37.540]]] } }
+  ]
+}

@@ -11,7 +11,8 @@
   "categorizeByGroup": true,
   "sort": ["source-order"],
   "navigationLinks": {
-    "GitHub": "https://github.com/OhcandO/GIS-refactoring"
+    "GitHub": "https://github.com/OhcandO/GIS-refactoring",
+    "예제": "examples/index.html"
   },
   "tsconfig": "tsconfig.json"
 }

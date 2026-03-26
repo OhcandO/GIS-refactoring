@@ -6,8 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --progress",
+    "build:examples": "webpack --progress && node -e \"require('fs').cpSync('dist/main.js','docs/examples/js/mogismap.js')\"",
     "typecheck": "tsc --noEmit",
-    "docs": "typedoc src/index.ts"
+    "docs": "typedoc src/index.ts",
+    "build:all": "npm run build:examples && npm run docs"
   },
   "keywords": [],
   "author": "",

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>레이어 트리 - MOGISMap 예제</title>
+  <link rel="stylesheet" href="css/example.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.5.1/ol.css">
+  <style>
+    /* LayerTree 체크박스 트리 기본 스타일 */
+    #tree-container ul {
+      list-style: none;
+      padding-left: 18px;
+      margin: 0;
+    }
+    #tree-container > ul {
+      padding-left: 0;
+    }
+    #tree-container li {
+      padding: 3px 0;
+    }
+    #tree-container label {
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    #tree-container input[type="checkbox"] {
+      margin: 0;
+    }
+    .note {
+      margin-top: 16px;
+      padding: 10px 14px;
+      background: #fef9e7;
+      border: 1px solid #f0e6b2;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #7d6608;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="back-link">예제 목록</a>
+    <span class="title">레이어 트리</span>
+    <a href="../classes/LayerTree.html" class="api-link">API 문서</a>
+  </header>
+  <div class="container">
+    <div class="description">
+      <p>LayerTree를 사용하여 계층형 체크박스 UI로 레이어를 관리합니다.
+        Publisher/Subscriber 패턴으로 트리와 지도가 연동됩니다.</p>
+    </div>
+    <div class="map-container">
+      <div class="panel">
+        <h3>레이어 트리</h3>
+        <div id="tree-container"></div>
+        <div class="note">
+          이 예제에서는 GeoServer 없이 레이어 코드만 등록하여 트리 UI를 구성합니다.
+          실제 운영 환경에서는 <code>ctrlLayer</code>가 SourceFactory를 통해 레이어를 자동 생성합니다.
+        </div>
+      </div>
+      <div class="map-wrap">
+        <div id="map"></div>
+      </div>
+    </div>
+    <button class="code-toggle">코드 보기</button>
+    <div class="code-view" style="display:none">
+      <pre><code>import { createBaseMap, initCodeToggle } from './js/common.js';
+import { LayerTree, KEY } from './js/mogismap.js';
+
+const mogisMap = createBaseMap('map');
+
+// 계층형 레이어 코드 정의
+const layerCodes = [
+  { id: 100, pid: null, layerTitle: '상수도 시설', ordr: 1, boolIsgroup: 'Y', boolUseYn: 'Y', geomType: null },
+  { id: 101, pid: 100, layerTitle: '제수밸브', ordr: 1, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'Point', typeName: 'valve', boolSelectable: 'Y', boolShowInit: 'N' },
+  { id: 102, pid: 100, layerTitle: '상수관로', ordr: 2, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'LineString', typeName: 'pipe', boolSelectable: 'Y', boolShowInit: 'N' },
+  { id: 200, pid: null, layerTitle: '관리 구역', ordr: 2, boolIsgroup: 'Y', boolUseYn: 'Y', geomType: null },
+  { id: 201, pid: 200, layerTitle: '급수블록', ordr: 1, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'Polygon', typeName: 'block', boolSelectable: 'Y', boolShowInit: 'N' },
+];
+
+mogisMap.setLayerCode(layerCodes, 'base');
+
+// LayerTree 생성 및 등록
+const layerTree = new LayerTree('tree-container');
+layerTree.regist(mogisMap, 'base');</code></pre>
+    </div>
+  </div>
+  <script type="module">
+    import { createBaseMap, initCodeToggle } from './js/common.js';
+    import { LayerTree, KEY } from './js/mogismap.js';
+
+    const mogisMap = createBaseMap('map');
+
+    // 계층형 레이어 코드 정의
+    const layerCodes = [
+      { id: 100, pid: null, layerTitle: '상수도 시설', ordr: 1, boolIsgroup: 'Y', boolUseYn: 'Y', geomType: null },
+      { id: 101, pid: 100, layerTitle: '제수밸브', ordr: 1, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'Point', typeName: 'valve', boolSelectable: 'Y', boolShowInit: 'N' },
+      { id: 102, pid: 100, layerTitle: '상수관로', ordr: 2, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'LineString', typeName: 'pipe', boolSelectable: 'Y', boolShowInit: 'N' },
+      { id: 200, pid: null, layerTitle: '관리 구역', ordr: 2, boolIsgroup: 'Y', boolUseYn: 'Y', geomType: null },
+      { id: 201, pid: 200, layerTitle: '급수블록', ordr: 1, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'Polygon', typeName: 'block', boolSelectable: 'Y', boolShowInit: 'N' },
+    ];
+
+    mogisMap.setLayerCode(layerCodes, 'base');
+
+    // LayerTree 생성 및 등록
+    // regist() 는 내부적으로 mogisMap 의 layerCodeObject 를 읽어 트리 UI를 렌더링하고,
+    // Publisher/Subscriber 패턴으로 체크 상태 변경 시 mogisMap.ctrlLayer() 를 호출합니다.
+    const layerTree = new LayerTree('tree-container');
+    layerTree.regist(mogisMap, 'base');
+
+    initCodeToggle();
+  </script>
+</body>
+</html>

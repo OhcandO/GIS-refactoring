@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>레이어 등록 및 토글 - MOGISMap 예제</title>
+  <link rel="stylesheet" href="css/example.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.5.1/ol.css">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="back-link">예제 목록</a>
+    <span class="title">레이어 등록 및 토글</span>
+    <a href="../classes/MOSimpleMap.html" class="api-link">API 문서</a>
+  </header>
+  <div class="container">
+    <div class="description">
+      <p>벡터 레이어를 등록하고 가시성을 제어하는 방법을 보여줍니다.</p>
+    </div>
+    <div class="map-container">
+      <div class="panel">
+        <h3>레이어 제어</h3>
+        <label><input type="checkbox" id="toggle-points" checked> 포인트 레이어</label><br>
+        <label><input type="checkbox" id="toggle-lines" checked> 라인 레이어</label><br>
+        <label><input type="checkbox" id="toggle-polygons" checked> 폴리곤 레이어</label>
+      </div>
+      <div class="map-wrap">
+        <div id="map"></div>
+      </div>
+    </div>
+    <button class="code-toggle">코드 보기</button>
+    <div class="code-view" style="display:none">
+      <pre><code>import { createBaseMap, loadGeoJSON, initCodeToggle, VectorImageLayer, Style, Stroke, Fill, CircleStyle } from './js/common.js';
+
+const mogisMap = createBaseMap('map');
+
+// GeoJSON 로드 후 레이어 생성
+async function addVectorLayers() {
+  const pointSrc = await loadGeoJSON('./data/sample-points.geojson');
+  const lineSrc = await loadGeoJSON('./data/sample-lines.geojson');
+  const polySrc = await loadGeoJSON('./data/sample-polygons.geojson');
+
+  const pointLayer = new VectorImageLayer({
+    source: pointSrc,
+    style: new Style({
+      image: new CircleStyle({ radius: 6, fill: new Fill({ color: '#e74c3c' }), stroke: new Stroke({ color: '#fff', width: 2 }) })
+    }),
+    zIndex: 30,
+    properties: { name: 'points' },
+  });
+
+  const lineLayer = new VectorImageLayer({
+    source: lineSrc,
+    style: new Style({
+      stroke: new Stroke({ color: '#3498db', width: 3 })
+    }),
+    zIndex: 20,
+    properties: { name: 'lines' },
+  });
+
+  const polyLayer = new VectorImageLayer({
+    source: polySrc,
+    style: new Style({
+      stroke: new Stroke({ color: '#2ecc71', width: 2 }),
+      fill: new Fill({ color: 'rgba(46, 204, 113, 0.2)' })
+    }),
+    zIndex: 10,
+    properties: { name: 'polygons' },
+  });
+
+  mogisMap.map.addLayer(polyLayer);
+  mogisMap.map.addLayer(lineLayer);
+  mogisMap.map.addLayer(pointLayer);
+
+  // 토글 이벤트
+  document.getElementById('toggle-points').addEventListener('change', (e) =&gt; {
+    pointLayer.setVisible(e.target.checked);
+  });
+  document.getElementById('toggle-lines').addEventListener('change', (e) =&gt; {
+    lineLayer.setVisible(e.target.checked);
+  });
+  document.getElementById('toggle-polygons').addEventListener('change', (e) =&gt; {
+    polyLayer.setVisible(e.target.checked);
+  });
+}
+
+addVectorLayers();</code></pre>
+    </div>
+  </div>
+  <script type="module">
+    import { createBaseMap, loadGeoJSON, initCodeToggle, VectorImageLayer, Style, Stroke, Fill, CircleStyle } from './js/common.js';
+
+    const mogisMap = createBaseMap('map');
+
+    // GeoJSON 로드 후 레이어 생성
+    async function addVectorLayers() {
+      const pointSrc = await loadGeoJSON('./data/sample-points.geojson');
+      const lineSrc = await loadGeoJSON('./data/sample-lines.geojson');
+      const polySrc = await loadGeoJSON('./data/sample-polygons.geojson');
+
+      const pointLayer = new VectorImageLayer({
+        source: pointSrc,
+        style: new Style({
+          image: new CircleStyle({ radius: 6, fill: new Fill({ color: '#e74c3c' }), stroke: new Stroke({ color: '#fff', width: 2 }) })
+        }),
+        zIndex: 30,
+        properties: { name: 'points' },
+      });
+
+      const lineLayer = new VectorImageLayer({
+        source: lineSrc,
+        style: new Style({
+          stroke: new Stroke({ color: '#3498db', width: 3 })
+        }),
+        zIndex: 20,
+        properties: { name: 'lines' },
+      });
+
+      const polyLayer = new VectorImageLayer({
+        source: polySrc,
+        style: new Style({
+          stroke: new Stroke({ color: '#2ecc71', width: 2 }),
+          fill: new Fill({ color: 'rgba(46, 204, 113, 0.2)' })
+        }),
+        zIndex: 10,
+        properties: { name: 'polygons' },
+      });
+
+      mogisMap.map.addLayer(polyLayer);
+      mogisMap.map.addLayer(lineLayer);
+      mogisMap.map.addLayer(pointLayer);
+
+      // 토글 이벤트
+      document.getElementById('toggle-points').addEventListener('change', (e) => {
+        pointLayer.setVisible(e.target.checked);
+      });
+      document.getElementById('toggle-lines').addEventListener('change', (e) => {
+        lineLayer.setVisible(e.target.checked);
+      });
+      document.getElementById('toggle-polygons').addEventListener('change', (e) => {
+        polyLayer.setVisible(e.target.checked);
+      });
+    }
+
+    addVectorLayers();
+    initCodeToggle();
+  </script>
+</body>
+</html>

@@ -63,5 +63,18 @@ export { LayerTreeUEW } from './tree/LayerTreeUEW';
 // 팩토리 보조 타입
 export type { MOOverlayOptions } from './addon/MOOverlay';
 
+// OpenLayers 유틸 re-export (예시 및 외부 사용)
+export { default as OlMap } from 'ol/Map';
+export { default as View } from 'ol/View';
+export { default as Feature } from 'ol/Feature';
+export { default as GeoJSON } from 'ol/format/GeoJSON';
+export { default as VectorSource } from 'ol/source/Vector';
+export { default as VectorImageLayer } from 'ol/layer/VectorImage';
+export { default as VectorLayer } from 'ol/layer/Vector';
+export { default as OSM } from 'ol/source/OSM';
+export { default as TileLayer } from 'ol/layer/Tile';
+export { default as OlOverlay } from 'ol/Overlay';
+export { Style, Stroke, Fill, Circle as CircleStyle, Icon, Text } from 'ol/style';
+
 // 유틸리티
 export * as KEY from './common/keyMap';

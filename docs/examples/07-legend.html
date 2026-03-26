@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>범례 연동 - MOGISMap Example</title>
+  <link rel="stylesheet" href="css/example.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.5.1/ol.css">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="back-link">예제 목록</a>
+    <span class="title">범례 연동</span>
+    <a href="../classes/MOLegend.html" class="api-link">API 문서</a>
+  </header>
+
+  <div class="container">
+    <div class="description">
+      <p>레이어 트리와 범례가 Publisher/Subscriber 패턴으로 연동됩니다. 레이어를 켜고 끄면 범례가 자동으로 갱신됩니다.</p>
+    </div>
+
+    <div class="map-container">
+      <div class="panel" style="width:280px; min-width:280px;">
+        <h3>레이어 트리</h3>
+        <div id="tree-container"></div>
+      </div>
+      <div class="map-wrap">
+        <div id="map"></div>
+      </div>
+      <div class="panel" style="width:250px; min-width:250px;">
+        <h3>범례</h3>
+        <div id="legend-container"></div>
+      </div>
+    </div>
+
+    <button class="code-toggle">코드 보기</button>
+    <div class="code-view">
+      <pre><code>import { createBaseMap, initCodeToggle, loadGeoJSON, VectorImageLayer, Style, Stroke, Fill, CircleStyle } from './js/common.js';
+import { MOLegend, LayerTree, KEY } from './js/mogismap.js';
+
+window.ctxPath = '';
+// MOLegend 내부에서 참조하는 함수
+window.pop_close_visibility = function(el) {
+  if (el) el.style.display = 'none';
+};
+
+const mogisMap = createBaseMap('map');
+
+// 레이어 코드
+const layerCodes = [
+  { id: 100, pid: null, layerTitle: '상수도 시설', ordr: 1, boolIsgroup: 'Y', boolUseYn: 'Y', geomType: null },
+  { id: 101, pid: 100, layerTitle: '제수밸브', ordr: 1, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'Point', typeName: 'valve', boolSelectable: 'Y', boolShowInit: 'N', legendHtmlString: '&lt;span style="color:#e74c3c"&gt;●&lt;/span&gt; 제수밸브', layerPurposeCategory: 'base' },
+  { id: 102, pid: 100, layerTitle: '상수관로', ordr: 2, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'LineString', typeName: 'pipe', boolSelectable: 'Y', boolShowInit: 'N', legendHtmlString: '&lt;span style="color:#3498db"&gt;━&lt;/span&gt; 상수관로', layerPurposeCategory: 'base' },
+  { id: 200, pid: null, layerTitle: '관리 구역', ordr: 2, boolIsgroup: 'Y', boolUseYn: 'Y', geomType: null },
+  { id: 201, pid: 200, layerTitle: '급수블록', ordr: 1, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'Polygon', typeName: 'block', boolSelectable: 'Y', boolShowInit: 'N', legendHtmlString: '&lt;span style="color:#2ecc71"&gt;■&lt;/span&gt; 급수블록', layerPurposeCategory: 'base' },
+];
+
+mogisMap.setLayerCode(layerCodes, 'base');
+
+// 범례
+const legend = new MOLegend('legend-container');
+
+// 트리
+const layerTree = new LayerTree('tree-container');
+layerTree.regist(mogisMap, 'base');
+layerTree.regist(legend);
+
+initCodeToggle();</code></pre>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createBaseMap, initCodeToggle, loadGeoJSON, VectorImageLayer, Style, Stroke, Fill, CircleStyle } from './js/common.js';
+    import { MOLegend, LayerTree, KEY } from './js/mogismap.js';
+
+    window.ctxPath = '';
+    // MOLegend 내부에서 참조하는 함수
+    window.pop_close_visibility = function(el) {
+      if (el) el.style.display = 'none';
+    };
+
+    const mogisMap = createBaseMap('map');
+
+    // 레이어 코드
+    const layerCodes = [
+      { id: 100, pid: null, layerTitle: '상수도 시설', ordr: 1, boolIsgroup: 'Y', boolUseYn: 'Y', geomType: null },
+      { id: 101, pid: 100, layerTitle: '제수밸브', ordr: 1, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'Point', typeName: 'valve', boolSelectable: 'Y', boolShowInit: 'N', legendHtmlString: '<span style="color:#e74c3c">●</span> 제수밸브', layerPurposeCategory: 'base' },
+      { id: 102, pid: 100, layerTitle: '상수관로', ordr: 2, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'LineString', typeName: 'pipe', boolSelectable: 'Y', boolShowInit: 'N', legendHtmlString: '<span style="color:#3498db">━</span> 상수관로', layerPurposeCategory: 'base' },
+      { id: 200, pid: null, layerTitle: '관리 구역', ordr: 2, boolIsgroup: 'Y', boolUseYn: 'Y', geomType: null },
+      { id: 201, pid: 200, layerTitle: '급수블록', ordr: 1, boolIsgroup: 'N', boolUseYn: 'Y', geomType: 'Polygon', typeName: 'block', boolSelectable: 'Y', boolShowInit: 'N', legendHtmlString: '<span style="color:#2ecc71">■</span> 급수블록', layerPurposeCategory: 'base' },
+    ];
+
+    mogisMap.setLayerCode(layerCodes, 'base');
+
+    // 범례
+    const legend = new MOLegend('legend-container');
+
+    // 트리
+    const layerTree = new LayerTree('tree-container');
+    layerTree.regist(mogisMap, 'base');
+    layerTree.regist(legend);
+
+    initCodeToggle();
+  </script>
+</body>
+</html>

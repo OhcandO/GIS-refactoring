@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스타일 함수 커스터마이징 - MOGISMap Example</title>
+  <link rel="stylesheet" href="css/example.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.5.1/ol.css">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="back-link">예제 목록</a>
+    <span class="title">스타일 함수 커스터마이징</span>
+    <a href="../functions/createMOStyleFunction.html" class="api-link">API 문서</a>
+  </header>
+
+  <div class="container">
+    <div class="description">
+      <p><code>createMOStyleFunction</code>으로 레이어코드 기반 스타일을 생성하고, 줌 레벨에 따른 스타일 분기를 설정합니다.</p>
+    </div>
+
+    <div class="controls">
+      <button id="toggle-style" class="btn">커스텀 스타일로</button>
+    </div>
+
+    <div id="map"></div>
+
+    <button class="code-toggle">코드 보기</button>
+    <div class="code-view">
+      <pre><code>import { createBaseMap, loadGeoJSON, initCodeToggle, VectorImageLayer, Style, Stroke, Fill, CircleStyle } from './js/common.js';
+import { createMOStyleFunction, KEY } from './js/mogismap.js';
+
+const mogisMap = createBaseMap('map');
+
+async function init() {
+  const polySrc = await loadGeoJSON('./data/sample-polygons.geojson');
+  const lineSrc = await loadGeoJSON('./data/sample-lines.geojson');
+
+  // 레이어코드 기반 스타일 생성
+  const polyLayerCode = {
+    geomType: 'Polygon',
+    colorLine: 'rgba(231, 76, 60, 0.8)',
+    colorFill: 'rgba(231, 76, 60, 0.15)',
+    lineWidth: 2,
+    label: 'NAME',
+    font: 'bold 12px Malgun Gothic',
+    colorFontFill: 'rgba(0,0,0,0.9)',
+    colorFontLine: 'rgba(255,255,255,0.9)',
+    fontWidth: 3,
+  };
+  const polyStyle = createMOStyleFunction(polyLayerCode);
+
+  const polyLayer = new VectorImageLayer({
+    source: polySrc,
+    style: polyStyle,
+    zIndex: 10,
+  });
+  mogisMap.map.addLayer(polyLayer);
+
+  // 커스텀 스타일 전환
+  const customStyle = new Style({
+    stroke: new Stroke({ color: '#8e44ad', width: 3, lineDash: [5, 5] }),
+    fill: new Fill({ color: 'rgba(142, 68, 173, 0.1)' }),
+  });
+
+  let useCustom = false;
+  document.getElementById('toggle-style').addEventListener('click', () =&gt; {
+    useCustom = !useCustom;
+    polyLayer.setStyle(useCustom ? customStyle : polyStyle);
+    document.getElementById('toggle-style').textContent = useCustom ? '기본 스타일로' : '커스텀 스타일로';
+  });
+}
+
+init();
+initCodeToggle();</code></pre>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createBaseMap, loadGeoJSON, initCodeToggle, VectorImageLayer, Style, Stroke, Fill, CircleStyle } from './js/common.js';
+    import { createMOStyleFunction, KEY } from './js/mogismap.js';
+
+    const mogisMap = createBaseMap('map');
+
+    async function init() {
+      const polySrc = await loadGeoJSON('./data/sample-polygons.geojson');
+      const lineSrc = await loadGeoJSON('./data/sample-lines.geojson');
+
+      // 레이어코드 기반 스타일 생성
+      const polyLayerCode = {
+        geomType: 'Polygon',
+        colorLine: 'rgba(231, 76, 60, 0.8)',
+        colorFill: 'rgba(231, 76, 60, 0.15)',
+        lineWidth: 2,
+        label: 'NAME',
+        font: 'bold 12px Malgun Gothic',
+        colorFontFill: 'rgba(0,0,0,0.9)',
+        colorFontLine: 'rgba(255,255,255,0.9)',
+        fontWidth: 3,
+      };
+      const polyStyle = createMOStyleFunction(polyLayerCode);
+
+      const polyLayer = new VectorImageLayer({
+        source: polySrc,
+        style: polyStyle,
+        zIndex: 10,
+      });
+      mogisMap.map.addLayer(polyLayer);
+
+      // 커스텀 스타일 전환
+      const customStyle = new Style({
+        stroke: new Stroke({ color: '#8e44ad', width: 3, lineDash: [5, 5] }),
+        fill: new Fill({ color: 'rgba(142, 68, 173, 0.1)' }),
+      });
+
+      let useCustom = false;
+      document.getElementById('toggle-style').addEventListener('click', () => {
+        useCustom = !useCustom;
+        polyLayer.setStyle(useCustom ? customStyle : polyStyle);
+        document.getElementById('toggle-style').textContent = useCustom ? '기본 스타일로' : '커스텀 스타일로';
+      });
+    }
+
+    init();
+    initCodeToggle();
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "FTR_IDN": "L001", "NAME": "상수관_001", "DIAMETER": 200, "MATERIAL": "주철" }, "geometry": { "type": "LineString", "coordinates": [[126.970, 37.560], [126.975, 37.558]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "L002", "NAME": "상수관_002", "DIAMETER": 300, "MATERIAL": "강관" }, "geometry": { "type": "LineString", "coordinates": [[126.975, 37.558], [126.978, 37.563]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "L003", "NAME": "상수관_003", "DIAMETER": 150, "MATERIAL": "PE" }, "geometry": { "type": "LineString", "coordinates": [[126.975, 37.558], [126.982, 37.558]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "L004", "NAME": "상수관_004", "DIAMETER": 200, "MATERIAL": "주철" }, "geometry": { "type": "LineString", "coordinates": [[126.982, 37.558], [126.985, 37.555]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "L005", "NAME": "상수관_005", "DIAMETER": 250, "MATERIAL": "강관" }, "geometry": { "type": "LineString", "coordinates": [[126.970, 37.560], [126.965, 37.552]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "L006", "NAME": "상수관_006", "DIAMETER": 100, "MATERIAL": "PE" }, "geometry": { "type": "LineString", "coordinates": [[126.965, 37.552], [126.972, 37.554]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "L007", "NAME": "상수관_007", "DIAMETER": 300, "MATERIAL": "주철" }, "geometry": { "type": "LineString", "coordinates": [[126.972, 37.554], [126.980, 37.550]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "L008", "NAME": "상수관_008", "DIAMETER": 150, "MATERIAL": "강관" }, "geometry": { "type": "LineString", "coordinates": [[126.985, 37.555], [126.990, 37.562]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "L009", "NAME": "상수관_009", "DIAMETER": 200, "MATERIAL": "PE" }, "geometry": { "type": "LineString", "coordinates": [[126.960, 37.560], [126.962, 37.548], [126.965, 37.552]] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "L010", "NAME": "상수관_010", "DIAMETER": 250, "MATERIAL": "주철" }, "geometry": { "type": "LineString", "coordinates": [[126.968, 37.565], [126.974, 37.568], [126.978, 37.563]] } }
+  ]
+}

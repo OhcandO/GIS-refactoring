@@ -1,0 +1,20 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "FTR_IDN": "V001", "NAME": "제수밸브_001", "TYPE": "제수밸브" }, "geometry": { "type": "Point", "coordinates": [126.970, 37.560] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "V002", "NAME": "제수밸브_002", "TYPE": "제수밸브" }, "geometry": { "type": "Point", "coordinates": [126.978, 37.563] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "V003", "NAME": "제수밸브_003", "TYPE": "제수밸브" }, "geometry": { "type": "Point", "coordinates": [126.985, 37.555] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "V004", "NAME": "제수밸브_004", "TYPE": "제수밸브" }, "geometry": { "type": "Point", "coordinates": [126.962, 37.548] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "H001", "NAME": "소화전_001", "TYPE": "소화전" }, "geometry": { "type": "Point", "coordinates": [126.975, 37.558] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "H002", "NAME": "소화전_002", "TYPE": "소화전" }, "geometry": { "type": "Point", "coordinates": [126.965, 37.552] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "H003", "NAME": "소화전_003", "TYPE": "소화전" }, "geometry": { "type": "Point", "coordinates": [126.990, 37.562] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "H004", "NAME": "소화전_004", "TYPE": "소화전" }, "geometry": { "type": "Point", "coordinates": [126.958, 37.556] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "P001", "NAME": "수압계_001", "TYPE": "수압계" }, "geometry": { "type": "Point", "coordinates": [126.972, 37.554] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "P002", "NAME": "수압계_002", "TYPE": "수압계" }, "geometry": { "type": "Point", "coordinates": [126.982, 37.558] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "P003", "NAME": "수압계_003", "TYPE": "수압계" }, "geometry": { "type": "Point", "coordinates": [126.968, 37.565] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "F001", "NAME": "유량계_001", "TYPE": "유량계" }, "geometry": { "type": "Point", "coordinates": [126.980, 37.550] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "F002", "NAME": "유량계_002", "TYPE": "유량계" }, "geometry": { "type": "Point", "coordinates": [126.960, 37.560] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "F003", "NAME": "유량계_003", "TYPE": "유량계" }, "geometry": { "type": "Point", "coordinates": [126.988, 37.545] } },
+    { "type": "Feature", "properties": { "FTR_IDN": "F004", "NAME": "유량계_004", "TYPE": "유량계" }, "geometry": { "type": "Point", "coordinates": [126.974, 37.568] } }
+  ]
+}

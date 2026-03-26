@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>피쳐 선택 &amp; 콜백 - MOGISMap 예제</title>
+  <link rel="stylesheet" href="css/example.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.5.1/ol.css">
+  <style>
+    #info {
+      font-size: 13px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="back-link">예제 목록</a>
+    <span class="title">피쳐 선택 &amp; 콜백</span>
+    <a href="../classes/MOGISMap.html" class="api-link">API 문서</a>
+  </header>
+  <div class="container">
+    <div class="description">
+      <p>지도 위의 피쳐를 클릭하여 선택하고, 속성 정보를 표시합니다.</p>
+    </div>
+    <div class="map-container">
+      <div class="map-wrap">
+        <div id="map"></div>
+      </div>
+      <div class="panel">
+        <h3>속성 정보</h3>
+        <div id="info">피쳐를 클릭하세요</div>
+        <hr style="border:none;border-top:1px solid #eee;margin:12px 0">
+        <button id="toggle-select" class="btn btn-sm">선택 비활성화</button>
+      </div>
+    </div>
+    <button class="code-toggle">코드 보기</button>
+    <div class="code-view" style="display:none">
+      <pre><code>import { createBaseMap, loadGeoJSON, initCodeToggle, VectorImageLayer, Style, Stroke, Fill, CircleStyle } from './js/common.js';
+
+const mogisMap = createBaseMap('map', { hitTolerance: 10 });
+
+async function init() {
+  // 포인트 레이어 추가
+  const pointSrc = await loadGeoJSON('./data/sample-points.geojson');
+  const pointLayer = new VectorImageLayer({
+    source: pointSrc,
+    style: new Style({
+      image: new CircleStyle({ radius: 8, fill: new Fill({ color: '#e74c3c' }), stroke: new Stroke({ color: '#fff', width: 2 }) })
+    }),
+    zIndex: 30,
+  });
+  mogisMap.map.addLayer(pointLayer);
+
+  // 선택 활성화
+  mogisMap.enableSelect(true);
+  mogisMap.setSelectCallback((feature, layer) =&gt; {
+    const props = feature.getProperties();
+    const infoDiv = document.getElementById('info');
+    if (!props.geometry) return;
+
+    let html = '&lt;table class="info-table"&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;속성&lt;/th&gt;&lt;th&gt;값&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;';
+    for (const [key, value] of Object.entries(props)) {
+      if (key === 'geometry') continue;
+      html += '&lt;tr&gt;&lt;td&gt;' + key + '&lt;/td&gt;&lt;td&gt;' + value + '&lt;/td&gt;&lt;/tr&gt;';
+    }
+    html += '&lt;/tbody&gt;&lt;/table&gt;';
+    infoDiv.innerHTML = html;
+  });
+
+  // 선택 토글
+  let selectEnabled = true;
+  document.getElementById('toggle-select').addEventListener('click', () =&gt; {
+    selectEnabled = !selectEnabled;
+    mogisMap.enableSelect(selectEnabled);
+    document.getElementById('toggle-select').textContent = selectEnabled ? '선택 비활성화' : '선택 활성화';
+  });
+}
+
+init();</code></pre>
+    </div>
+  </div>
+  <script type="module">
+    import { createBaseMap, loadGeoJSON, initCodeToggle, VectorImageLayer, Style, Stroke, Fill, CircleStyle } from './js/common.js';
+
+    const mogisMap = createBaseMap('map', { hitTolerance: 10 });
+
+    async function init() {
+      // 포인트 레이어 추가
+      const pointSrc = await loadGeoJSON('./data/sample-points.geojson');
+      const pointLayer = new VectorImageLayer({
+        source: pointSrc,
+        style: new Style({
+          image: new CircleStyle({ radius: 8, fill: new Fill({ color: '#e74c3c' }), stroke: new Stroke({ color: '#fff', width: 2 }) })
+        }),
+        zIndex: 30,
+      });
+      mogisMap.map.addLayer(pointLayer);
+
+      // 선택 활성화
+      mogisMap.enableSelect(true);
+      mogisMap.setSelectCallback((feature, layer) => {
+        const props = feature.getProperties();
+        const infoDiv = document.getElementById('info');
+        if (!props.geometry) return;
+
+        let html = '<table class="info-table"><thead><tr><th>속성</th><th>값</th></tr></thead><tbody>';
+        for (const [key, value] of Object.entries(props)) {
+          if (key === 'geometry') continue;
+          html += `<tr><td>${key}</td><td>${value}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        infoDiv.innerHTML = html;
+      });
+
+      // 선택 토글
+      let selectEnabled = true;
+      document.getElementById('toggle-select').addEventListener('click', () => {
+        selectEnabled = !selectEnabled;
+        mogisMap.enableSelect(selectEnabled);
+        document.getElementById('toggle-select').textContent = selectEnabled ? '선택 비활성화' : '선택 활성화';
+      });
+    }
+
+    init();
+    initCodeToggle();
+  </script>
+</body>
+</html>
