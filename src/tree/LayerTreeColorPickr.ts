@@ -2,8 +2,9 @@ import * as KEY from '../common/keyMap';
 import Pickr from '@simonwep/pickr';
 import { LayerTree } from './LayerTree';
 import { CheckboxTree } from './CheckboxTree';
-import type { ColorPickrConfig } from '../types';
-import { DEFAULT_PICKR_CONFIG } from '../types';
+import type { ColorPickrConfig, ColorPropertyDef } from '../types';
+import { DEFAULT_PICKR_CONFIG, DEFAULT_COLOR_PROPERTIES } from '../types';
+import type { GeometryType } from '../types/enums';
 
 /**
  * LayerTree 의 기본기능은 계승하면서,
@@ -16,16 +17,23 @@ export class LayerTreeColorPickr extends LayerTree {
   /** Pickr 설정 */
   private pickrConfig: Required<ColorPickrConfig>;
 
-  constructor(tree_div_id: string, pickrConfig?: ColorPickrConfig) {
+  /** 지오메트리 타입별 색상 속성 매핑 */
+  private colorProperties: Record<string, ColorPropertyDef[]>;
+
+  constructor(
+    tree_div_id: string,
+    pickrConfig?: ColorPickrConfig,
+    colorProperties?: Record<string, ColorPropertyDef[]>,
+  ) {
     super(tree_div_id);
     this.pickrConfig = { ...DEFAULT_PICKR_CONFIG, ...pickrConfig };
+    this.colorProperties = colorProperties ?? DEFAULT_COLOR_PROPERTIES;
   }
 
   /**
    * 트리 생성
    */
   createTree(treeList: Record<string, any>[]): void {
-    // 1. map div 에 tree용 영역 생성
     this.createTreeDiv();
 
     const wrap = this.createWrap(treeList);
@@ -34,7 +42,15 @@ export class LayerTreeColorPickr extends LayerTree {
     tree.init(wrap);
     this.INSTANCE_JS_TREE = tree;
 
-    // ## colorPickr 객체생성
+    this.initPickrInstances();
+    this.initSubmitButtons();
+    this.stopEventPropagation();
+  }
+
+  /**
+   * colorPickr 인스턴스 생성 및 이벤트 바인딩
+   */
+  private initPickrInstances(): void {
     const treeEl = document.getElementById(this.TREE_DIV_ID)!;
     treeEl.querySelectorAll<HTMLDivElement>('div.colorPickr').forEach((node) => {
       Pickr.create({
@@ -46,33 +62,26 @@ export class LayerTreeColorPickr extends LayerTree {
         appClass: this.pickrConfig.appClass,
         components: this.pickrConfig.components,
       }).on('save', (color: any, instance: any) => {
-        // 1. MOGISMap 의 LayerCodeObj 찾아서 해당 색깔 값 교체하기
         const colorString = color.toRGBA().toString(0);
         const param = instance.getRoot().root.parentElement.dataset;
-        const layerPurposeCategoryKey = param[(KEY.LAYER_PURPOSE_CATEGORY_KEY).toLowerCase()];
-        const layerCodeArr = this.INSTANCE_MOGISMAP.layerCodeObject[layerPurposeCategoryKey];
+        const categoryKey = param[(KEY.LAYER_PURPOSE_CATEGORY_KEY).toLowerCase()];
+        const layerCodeArr = this.INSTANCE_MOGISMAP.layerCodeObject[categoryKey];
 
-        layerCodeArr.map((layerCodeObj: any) =>
-          layerCodeObj[KEY.LAYER_ID] == param[KEY.LAYER_ID]
-            ? (layerCodeObj[param['key']] = colorString)
-            : layerCodeObj
+        layerCodeArr.map((obj: any) =>
+          obj[KEY.LAYER_ID] == param[KEY.LAYER_ID]
+            ? (obj[param['key']] = colorString)
+            : obj
         );
 
-        const tnode = this.INSTANCE_JS_TREE.get_node('layerid_' + param.id);
-
-        if (tnode && tnode.state.selected === true) {
-          this.INSTANCE_JS_TREE.uncheck_node(tnode);
-        }
-
-        // 2. 기 발행 레이어 파기
-        this.INSTANCE_MOGISMAP.discardLayer(Number(param.id), layerPurposeCategoryKey);
-
-        if (tnode && tnode.state.selected === false) {
-          this.INSTANCE_JS_TREE.check_node(tnode);
-        }
+        this.refreshLayerNode(param.id, categoryKey);
       });
     });
+  }
 
+  /**
+   * submit 버튼 이벤트 바인딩
+   */
+  private initSubmitButtons(): void {
     document.querySelectorAll<HTMLButtonElement>('button.submitter').forEach((node) => {
       node.addEventListener('click', (e: Event) => {
         const target = e.target as HTMLButtonElement;
@@ -82,35 +91,130 @@ export class LayerTreeColorPickr extends LayerTree {
         const input = document.querySelector(
           `input[name='${targ}'][data-id='${id}'][data-layerpurposecategory='${key}']`
         ) as HTMLInputElement;
-        const valu = input.value;
 
         this.INSTANCE_MOGISMAP.layerCodeObject[key].map((el: any) =>
-          el.id == id ? (el[targ] = valu) : el
+          el.id == id ? (el[targ] = input.value) : el
         );
 
-        const tnode = this.INSTANCE_JS_TREE.get_node('layerid_' + id);
-
-        if (tnode && tnode.state.selected === true) {
-          this.INSTANCE_JS_TREE.uncheck_node(tnode);
-        }
-
-        // 2. 기 발행 레이어 파기
-        this.INSTANCE_MOGISMAP.discardLayer(Number(id), key);
-
-        if (tnode && tnode.state.selected === false) {
-          this.INSTANCE_JS_TREE.check_node(tnode);
-        }
+        this.refreshLayerNode(id, key);
       });
     });
+  }
 
-    // colorPicker 컨테이너에 이벤트 버블링/캡쳐링 중단
-    document.querySelectorAll<HTMLDivElement>('div.colorPickr_container').forEach((node) => {
-      node.addEventListener('click', (e) => e.stopPropagation());
+  /**
+   * 레이어 노드를 uncheck → 파기 → recheck 하여 갱신
+   */
+  private refreshLayerNode(layerId: string, categoryKey: string): void {
+    const tnode = this.INSTANCE_JS_TREE.get_node('layerid_' + layerId);
+
+    if (tnode && tnode.state.selected === true) {
+      this.INSTANCE_JS_TREE.uncheck_node(tnode);
+    }
+
+    this.INSTANCE_MOGISMAP.discardLayer(Number(layerId), categoryKey);
+
+    if (tnode && tnode.state.selected === false) {
+      this.INSTANCE_JS_TREE.check_node(tnode);
+    }
+  }
+
+  /**
+   * colorPicker 관련 요소들의 이벤트 버블링 차단
+   */
+  private stopEventPropagation(): void {
+    const selectors = ['div.colorPickr_container', 'div.colorPickr_palette'];
+    selectors.forEach((sel) => {
+      document.querySelectorAll<HTMLDivElement>(sel).forEach((node) => {
+        node.addEventListener('click', (e) => e.stopPropagation());
+      });
     });
-    // colorPicker 팔레트에 이벤트 버블링/캡쳐링 중단
-    document.querySelectorAll<HTMLDivElement>('div.colorPickr_palette').forEach((node) => {
-      node.addEventListener('click', (e) => e.stopPropagation());
-    });
+  }
+
+  /**
+   * 개별 레이어 노드의 색상/수치 편집 UI HTML 생성
+   */
+  private buildColorEditorHtml(
+    layerCode: Record<string, any>,
+    id: number | string,
+    geomType: string,
+  ): string {
+    // 폰트 스타일 편집 UI
+    const fontStyler = layerCode[KEY.FONT_STYLE]
+      ? this.buildFontStylerHtml(layerCode, id)
+      : '';
+
+    // 지오메트리별 색상 속성 조회
+    const colorProps = this.colorProperties[geomType] ?? [];
+
+    if (colorProps.length === 0 && !fontStyler) return '';
+
+    let inner = '';
+
+    // 색상 피커들 생성
+    for (const prop of colorProps) {
+      inner += `
+        <div>${prop.label}</div>
+        <div data-${KEY.LAYER_ID}="${id}"
+             data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
+             data-key="${prop.key}">
+          <div class="colorPickr" data-rgba="${layerCode[prop.key]}"></div>
+        </div>`;
+    }
+
+    // 선 두께 입력 (선 색이 있는 경우에만)
+    if (colorProps.some((p) => p.key === KEY.COLOR_LINE)) {
+      inner += `
+        <div>선두께</div>
+        <div>
+          <input type="number" name="lineWidth" required style="width: 34px; font-size: x-small;"
+            min="0.1" max="10" value="${layerCode[KEY.LINE_WIDTH]}" step="0.1"
+            data-${KEY.LAYER_ID}="${id}"
+            data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}" />
+          <button class="submitter" data-${KEY.LAYER_ID}="${id}" data-targ="${KEY.LINE_WIDTH}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
+        </div>`;
+    }
+
+    inner += fontStyler;
+
+    return `<div class="colorPickr_container"
+              style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;
+              background-color: #00000091; align-items: center;">
+              ${inner}
+            </div>`;
+  }
+
+  /**
+   * 폰트 스타일 편집 UI HTML 생성
+   */
+  private buildFontStylerHtml(layerCode: Record<string, any>, id: number | string): string {
+    return `
+      <div>폰트스타일</div>
+      <div>
+        <input type='text' name='${KEY.FONT_STYLE}' required style="font-size: x-small;"
+          data-${KEY.LAYER_ID}="${id}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
+          value='${layerCode[KEY.FONT_STYLE]}'>
+        <button class="submitter" data-${KEY.LAYER_ID}="${id}" data-targ="${KEY.FONT_STYLE}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
+      </div>
+      <div>폰트 line색</div>
+      <div data-${KEY.LAYER_ID}="${id}"
+           data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
+           data-key="${KEY.FONT_OUTLINE}">
+        <div class="colorPickr" data-rgba="${layerCode[KEY.FONT_OUTLINE]}"></div>
+      </div>
+      <div>폰트 line두께</div>
+      <div>
+        <input type="number" name="${KEY.FONT_WIDTH}" required style="width: 34px; font-size: x-small;"
+          min="0.1" max="10" value="${layerCode[KEY.FONT_WIDTH]}" step="0.1"
+          data-${KEY.LAYER_ID}="${id}"
+          data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"/>
+        <button class="submitter" data-${KEY.LAYER_ID}="${id}" data-targ="${KEY.FONT_WIDTH}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
+      </div>
+      <div>폰트 fill색</div>
+      <div data-${KEY.LAYER_ID}="${id}"
+           data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
+           data-key="${KEY.FONT_FILL}">
+        <div class="colorPickr" data-rgba="${layerCode[KEY.FONT_FILL]}"></div>
+      </div>`;
   }
 
   createWrap(array: Record<string, any>[], level?: number): string {
@@ -129,97 +233,7 @@ export class LayerTreeColorPickr extends LayerTree {
         html += `<li id="${id}">${name}<ul class="contlist w165">`;
       } else {
         html += `<li id="layerid_${id}" data-layerid="${id}" data-type="${type}" class="${type} ${id}">\t${name}`;
-
-        let fontStyler = '';
-        if (layerCode[KEY.FONT_STYLE]) {
-          fontStyler = `
-            <div>폰트스타일</div>
-            <div>
-              <input type='text' name='${KEY.FONT_STYLE}' required style="font-size: x-small;"
-                data-${KEY.LAYER_ID}="${id}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
-                value='${layerCode[KEY.FONT_STYLE]}'>
-              <button class="submitter" data-${KEY.LAYER_ID}="${id}" data-targ="${KEY.FONT_STYLE}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
-            </div>
-            <div>폰트 line색</div>
-            <div data-${KEY.LAYER_ID}="${id}"
-                 data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
-                 data-key="${KEY.FONT_OUTLINE}">
-                <div class="colorPickr" data-rgba="${layerCode[KEY.FONT_OUTLINE]}"></div>
-            </div>
-            <div>폰트 line두께</div>
-            <div>
-              <input type="number" name="${KEY.FONT_WIDTH}" required style="width: 34px; font-size: x-small;"
-                min="0.1" max="10" value="${layerCode[KEY.FONT_WIDTH]}" step="0.1"
-                data-${KEY.LAYER_ID}="${id}"
-                data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"/>
-              <button class="submitter" data-${KEY.LAYER_ID}="${id}" data-targ="${KEY.FONT_WIDTH}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
-            </div>
-            <div>폰트 fill색</div>
-            <div data-${KEY.LAYER_ID}="${id}"
-                 data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
-                 data-key="${KEY.FONT_FILL}">
-                <div class="colorPickr" data-rgba="${layerCode[KEY.FONT_FILL]}"></div>
-            </div>
-          `;
-        }
-
-        if (type === KEY.OL_GEOMETRY_OBJ.LINE) {
-          html += `<div class="colorPickr_container"
-                    style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;
-                    background-color: #00000091;align-items: center;">
-                    <div>선 색</div>
-                    <div data-${KEY.LAYER_ID}="${id}"
-                         data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
-                         data-key="${KEY.COLOR_LINE}">
-                      <div class="colorPickr" data-rgba="${layerCode[KEY.COLOR_LINE]}"></div>
-                    </div>
-                    <div>선두께</div>
-                    <div>
-                      <input type="number" name="lineWidth" required style="width: 34px; font-size: x-small;"
-                        min="0.1" max="10" value="${layerCode[KEY.LINE_WIDTH]}" step="0.1"
-                        data-${KEY.LAYER_ID}="${id}"
-                        data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}" />
-                      <button class="submitter" data-${KEY.LAYER_ID}="${id}" data-targ="${KEY.LINE_WIDTH}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
-                    </div>
-                    ${fontStyler}
-                  </div>`;
-        } else if (type === KEY.OL_GEOMETRY_OBJ.POLYGON) {
-          html += `<div class="colorPickr_container"
-                    style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;
-                    background-color: #00000091;align-items: center;">
-                    <div>선 색</div>
-                    <div data-${KEY.LAYER_ID}="${id}"
-                         data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
-                         data-key="${KEY.COLOR_LINE}">
-                      <div class="colorPickr" data-rgba="${layerCode[KEY.COLOR_LINE]}"></div>
-                    </div>
-                    <div>선두께</div>
-                    <div>
-                      <input type="number" name="lineWidth" required style="width: 34px; font-size: x-small;"
-                        min="0.1" max="10" value="${layerCode[KEY.LINE_WIDTH]}" step="0.1"
-                        data-${KEY.LAYER_ID}="${id}"
-                        data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}" />
-                      <button class="submitter" data-${KEY.LAYER_ID}="${id}" data-targ="${KEY.LINE_WIDTH}" data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}">sbmt</button>
-                    </div>
-                    <div>면 색</div>
-                    <div data-${KEY.LAYER_ID}="${id}"
-                         data-${KEY.LAYER_PURPOSE_CATEGORY_KEY}="${this.layerPurposeCategoryKey}"
-                         data-key="${KEY.COLOR_FILL}">
-                      <div class="colorPickr" data-rgba="${layerCode[KEY.COLOR_FILL]}"></div>
-                    </div>
-                    ${fontStyler}
-                  </div>`;
-        } else {
-          if (fontStyler) {
-            html += `
-              <div class="colorPickr_container"
-                style="display:inline-flex; flex-direction: row; flex-wrap: nowrap; position:relative; top:-5px; left:113px;
-                background-color: #00000091;align-items: center;">
-                ${fontStyler}
-              </div>
-            `;
-          }
-        }
+        html += this.buildColorEditorHtml(layerCode, id, type);
         html += `<label class="switch">
               <input type="checkbox" value="on/off" id="layerid_${id}_check">
               <span class="slider round"></span>
