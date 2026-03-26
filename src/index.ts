@@ -51,5 +51,14 @@ export { MOLegend } from './addon/MOLegend';
 export { MOMeasure } from './addon/MOMeasure';
 export { TileLoadProgress } from './addon/TileLoadProgress';
 
+// 트리
+export { CheckboxTree } from './tree/CheckboxTree';
+export type { TreeNode } from './tree/CheckboxTree';
+export { LayerTree } from './tree/LayerTree';
+export { LayerTreeColorPickr } from './tree/LayerTreeColorPickr';
+export { LayerTreeFixedScale } from './tree/LayerTreeFixedScale';
+export { LayerTreeNew } from './tree/LayerTreeNew';
+export { LayerTreeUEW } from './tree/LayerTreeUEW';
+
 // 유틸리티
 export * as KEY from './common/keyMap';
