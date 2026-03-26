@@ -378,7 +378,7 @@ export class MOSimpleMap extends MOSubscriber {
 
         let targetLayer = this.getLayer(layer_id, la_pu_cate_key);
 
-        if (targetLayer instanceof Layer || (targetLayer as any) instanceof LayerGroup) { //기 발행 레이어 있는 경우
+        if (targetLayer && (targetLayer instanceof Layer || (targetLayer as any) instanceof LayerGroup)) { //기 발행 레이어 있는 경우
             targetLayer.setVisible(visible);
             return Promise.resolve();
         } else if (visible) { //기 발행 레이어 없는데 켜야하는 경우

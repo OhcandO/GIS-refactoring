@@ -42,7 +42,7 @@ interface DefaultStyleOption {
     };
     stroke: {
         color: string;
-        lineDash: number[] | null;
+        lineDash: number[] | undefined;
         width: number;
     };
     fill: {
@@ -84,7 +84,7 @@ const default_style: DefaultStyleOption = {
 
     stroke: {
         color: "rgba(55,93,232,0.74)", //옅은 파랑
-        lineDash: null, // [2,2]
+        lineDash: undefined, // [2,2]
         width: 2,
     },
     fill: {

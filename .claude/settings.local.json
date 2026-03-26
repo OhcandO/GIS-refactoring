@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /d/Workspace/Project_jhoh/MOGISMap/MO_GIS -type f -name *.js)",
+      "Bash(grep -r \"webpack\\\\|babel\\\\|bundle\" /d/Workspace/Project_jhoh/MOGISMap --include=*.json --include=*.js --include=*.config.js)",
+      "Bash(grep -l clean-jsdoc-theme /d/Workspace/Project_jhoh/MOGISMap/docs/*.html)",
+      "Bash(xargs head:*)",
+      "Bash(find /d/Workspace/Project_jhoh/MOGISMap -name *.ts -o -name *.d.ts)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx webpack:*)",
+      "Bash(python -c \":*)",
+      "Bash(sed -i \"s|from ''../common/MO.keyMap''|from ''../common/keyMap''|g\" src/factory/SourceFactory.ts src/factory/LayerFactory.ts src/factory/LayerFactoryDeclutter.ts src/factory/StyleFunctionFactory.ts)",
+      "Bash(sed -i \"s|from ''../vworld/vworldCompatibilities''|from ''../common/vworldCompatibilities''|g\" src/factory/SourceFactory.ts)",
+      "Bash(npx typedoc:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(echo \"exit: $?\")"
+    ]
+  }
+}

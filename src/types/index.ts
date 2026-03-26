@@ -17,6 +17,8 @@ import type View from 'ol/View';
  * DB 테이블 MOGIS_SPEC_LAYER 의 레코드 1건에 대응됨.
  */
 export interface LayerCodeObj {
+  /** 문자열 키를 통한 동적 접근 허용 */
+  [key: string]: any;
   /** DB 상 개별 레이어의 Primary Key */
   id: number;
   /** 본 레이어의 상위 레이어 id (보통 상위레이어는 그룹) */

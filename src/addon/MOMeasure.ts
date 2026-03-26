@@ -294,7 +294,7 @@ export class MOMeasure {
     activeMeasure(drawType: 'LineString' | 'Polygon' | false): void {
         const me = this;
         if (this.draw) {
-            this.#INSTNACE_OL_MAP!.removeInteraction(me.draw);
+            this.#INSTNACE_OL_MAP!.removeInteraction(me.draw!);
             this.#disableMeasure();
         }
         if (!drawType) {
@@ -324,7 +324,7 @@ export class MOMeasure {
                 tip = activeTip;
             });
             this.draw.on('drawend', function () {
-                me.modifyStyle.setGeometry(me.tipPoint);
+                me.modifyStyle.setGeometry(me.tipPoint!);
                 me.modify!.setActive(true);
                 me.#INSTNACE_OL_MAP!.once('pointermove', function () {
                     me.modifyStyle.setGeometry(undefined as any);
@@ -332,7 +332,7 @@ export class MOMeasure {
                 tip = idleTip;
             });
             me.modify!.setActive(true);
-            me.#INSTNACE_OL_MAP!.addInteraction(me.draw);
+            me.#INSTNACE_OL_MAP!.addInteraction(me.draw!);
         }
     }
 }

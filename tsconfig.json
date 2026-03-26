@@ -4,8 +4,8 @@
     "module": "ES2020",
     "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"],
     "moduleResolution": "bundler",
-    "strict": false,
-    "allowJs": true,
+    "strict": true,
+    "allowJs": false,
     "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true,
@@ -20,5 +20,5 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "docs", "lib", "MO_GIS"]
+  "exclude": ["node_modules", "dist", "docs"]
 }

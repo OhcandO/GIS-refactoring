@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "MindOne GIS Openlayers 라이브러리 최적 사용을 위한 JS 모듈화 프로젝트.\r 지도가 필요한 화면에 간단하게 적용하여, \"미리 설정한 스타일의\" 지도 화면과 상호작용을 제공하도록 함.",
   "private": true,
-  "directories": {
-    "lib": "lib"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --progress",
@@ -17,8 +14,6 @@
   "license": "ISC",
   "devDependencies": {
     "@types/proj4": "^2.5.6",
-    "clean-jsdoc-theme": "^4.2.17",
-    "jsdoc": "^4.0.2",
     "ts-loader": "^9.5.4",
     "typedoc": "^0.28.18",
     "typescript": "^6.0.2",
@@ -37,7 +32,6 @@
     "@simonwep/pickr": "^1.9.0",
     "ol": "^7.5.1",
     "proj4": "^2.9.2",
-    "schema-utils": "^4.3.3",
     "spin.js": "^4.1.2"
   }
 }
