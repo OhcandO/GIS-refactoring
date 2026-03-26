@@ -1,0 +1,17 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "name": "MOGISMap API 문서",
+  "readme": "none",
+  "includeVersion": true,
+  "excludePrivate": false,
+  "excludeProtected": false,
+  "excludeInternal": false,
+  "categorizeByGroup": true,
+  "sort": ["source-order"],
+  "navigationLinks": {
+    "GitHub": "https://github.com/OhcandO/GIS-refactoring"
+  },
+  "tsconfig": "tsconfig.json"
+}

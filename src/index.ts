@@ -53,12 +53,15 @@ export { TileLoadProgress } from './addon/TileLoadProgress';
 
 // 트리
 export { CheckboxTree } from './tree/CheckboxTree';
-export type { TreeNode } from './tree/CheckboxTree';
+export type { TreeNode, ChangedEventData } from './tree/CheckboxTree';
 export { LayerTree } from './tree/LayerTree';
 export { LayerTreeColorPickr } from './tree/LayerTreeColorPickr';
 export { LayerTreeFixedScale } from './tree/LayerTreeFixedScale';
 export { LayerTreeNew } from './tree/LayerTreeNew';
 export { LayerTreeUEW } from './tree/LayerTreeUEW';
+
+// 팩토리 보조 타입
+export type { MOOverlayOptions } from './addon/MOOverlay';
 
 // 유틸리티
 export * as KEY from './common/keyMap';
